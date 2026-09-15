@@ -4,7 +4,7 @@
 # is pinned in .github/workflows/ci.yml, and the two move together:
 # automated update tools only see this file, so the workflow pin is
 # updated by hand in the same commit.
-FROM python@sha256:8edbf9e42c7fb168b9c523718ed907117e6d2e60f5889c0c499bbda3a787da53
+FROM python@sha256:e06cc1111ed84189e91866447f562b89faadbfbbb9937cd67e6bf4172cdb45df
 
 # The application runs as a user that owns nothing but its own code.
 RUN useradd --create-home --shell /usr/sbin/nologin rolecall
