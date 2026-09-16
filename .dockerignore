@@ -1,0 +1,38 @@
+# Keep secrets, local state, and noise out of the build context. The image
+# gets exactly the files the Dockerfile copies, and .env can never leak into
+# a layer because it never reaches the builder. Found missing when a local
+# build failed on a root-owned test cache the context tried to read.
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+.tools/
+*.db
+*.sqlite
+*.sqlite3
+.git/
+.github/
+tests/
+fuzz/
+.clusterfuzzlite/
+docs/
+site/
+diagrams/
+deploy/
+scoring/
+badges/
+sbom.json
+*.md
+.dockerignore
+.gitignore
+.pre-commit-config.yaml
+Dockerfile
+docker-compose.yml
+pyproject.toml
