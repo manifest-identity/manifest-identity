@@ -268,6 +268,24 @@ manufactured entry would defeat the reason this file exists.
   that fails to parse fails silently in the one place nobody watches,
   the list of checks that never started (September 10, 2026).
 
+- **The update bot changed the base image's family, and the gate that
+  watched the pin checked only that it moved.** The Dockerfile pinned
+  the base by digest alone, with the slim tag named in a comment. A
+  digest-only reference gives the bot no tag to follow, so it followed
+  the default one, and the September bump the agent completed with a
+  companion commit for the workflow twin moved the pin from the slim
+  image to the full one, 1.6 GB against 190 MB, carrying the packages
+  behind most of the thirty-nine critical findings the scheduled scan
+  later reported. The parity gate passed, because both copies moved
+  together; the comment kept saying slim; the agent verified the
+  twin and not the target. Caught two weeks later, sideways: the
+  coverage upload failed the moment the pin was corrected to slim,
+  because it had been finding git and curl in an image that was never
+  supposed to have them. The fix keeps the tag beside the digest in
+  the reference itself, where the bot reads it, and the lesson is the
+  pin rule's missing half: a check that a pin moved is not a check of
+  what it moved to (September 2026).
+
 Each entry changed a rule, a checklist, or a design, which is the point:
 the catches compound, the mistakes do not. The provenance entry
 changed the attribution itself, and its lesson is the whole file's
