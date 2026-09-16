@@ -16,6 +16,7 @@ on:
       - "rolecall/ingest/**"
       - "fuzz/**"
       - ".clusterfuzzlite/**"
+      - ".dockerignore"
       - "requirements.txt"
       - ".github/workflows/cflite.yml"
   schedule:
