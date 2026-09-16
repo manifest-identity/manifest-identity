@@ -4,16 +4,34 @@
 # checksummed tool downloads; those pins are listed with their watchers
 # in the digest-parity check and the close ritual. It only opens pull
 # requests; nothing updates without review.
+#
+# Bumps are grouped so a week's updates arrive as a few pull requests
+# instead of one per package. Actions from one repository move
+# together because the CodeQL and ClusterFuzzLite actions must run at
+# one version; Python packages move as one tree because the hash lock
+# is recompiled once either way. Each group still runs every gate, and
+# the companion edits the gates demand (the README inventory rows, the
+# digest twins) are made once per group rather than once per package.
 version: 2
 updates:
   - package-ecosystem: pip
     directory: /
     schedule:
       interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      codeql:
+        patterns: ["github/codeql-action/*"]
+      clusterfuzzlite:
+        patterns: ["google/clusterfuzzlite/*"]
+      actions:
+        patterns: ["*"]
   - package-ecosystem: docker
     directory: /
     schedule:
