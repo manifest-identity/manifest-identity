@@ -2,6 +2,8 @@
 # gets exactly the files the Dockerfile copies, and .env can never leak into
 # a layer because it never reaches the builder. Found missing when a local
 # build failed on a root-owned test cache the context tried to read.
+# The fuzz build under .clusterfuzzlite copies the whole tree through
+# this same context, so fuzz/ and .clusterfuzzlite/ stay in.
 .env
 .venv/
 venv/
@@ -20,8 +22,6 @@ coverage.xml
 .git/
 .github/
 tests/
-fuzz/
-.clusterfuzzlite/
 docs/
 site/
 diagrams/
