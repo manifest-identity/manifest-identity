@@ -185,7 +185,7 @@ jobs:
     # the code is the interpreter that ships it. Automated update tools
     # only bump the Dockerfile; this pin moves by hand in the same commit.
     container:
-      image: python@sha256:8edbf9e42c7fb168b9c523718ed907117e6d2e60f5889c0c499bbda3a787da53
+      image: python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
     services:
       # A real database for the migration drift check, on the same digest
       # the compose file pins. The password derives from the run id: not
@@ -209,6 +209,12 @@ jobs:
         run: |
           pip install --no-cache-dir --require-hashes -r requirements.txt
           pip install --no-cache-dir --require-hashes -r requirements-dev.txt
+      # The slim image ships no git, curl, gpg, dirmngr, or unzip, and the
+      # coverage upload and the analyzer's signature check refuse to run
+      # without them; the tools come from Debian's own archive, verified
+      # by apt, and never enter the image.
+      - name: tools the upload and the analyzer need, from the distribution
+        run: apt-get update && apt-get install -y --no-install-recommends git curl gpg dirmngr unzip ca-certificates
       - name: lint
         run: ruff check .
       - name: types
@@ -301,7 +307,11 @@ jobs:
         # scan and the build cannot disagree about the base. Blocking
         # only where a digest move is the fix, per the alarm-stays-
         # meaningful rule (D-037, D-041): unfixed Debian findings are
-        # reported, not failed on.
+        # reported, not failed on. It blocks on the schedule and on
+        # main, where a digest move is owed; on a pull request it only
+        # reports, because no pull request can rebuild the upstream
+        # image, and the built image below is what it can fix (D-055).
+        if: github.event_name != 'pull_request'
         run: |
           BASE=$(grep -oP '^FROM \K.*' Dockerfile)
           "$RUNNER_TEMP/trivy" image --scanners vuln --pkg-types os --ignore-unfixed --severity CRITICAL --exit-code 1 "$BASE"
@@ -309,6 +319,13 @@ jobs:
         run: |
           BASE=$(grep -oP '^FROM \K.*' Dockerfile)
           "$RUNNER_TEMP/trivy" image --scanners vuln --pkg-types os --severity HIGH,CRITICAL "$BASE" || true
+      - name: build the image
+        run: docker build --tag rolecall:ci .
+      - name: built image operating system packages, blocking on critical with a fix
+        # The Dockerfile applies Debian's updates, so this is the scan a
+        # pull request can answer for: a fixed finding here means the
+        # build did not pick up a published fix (D-055).
+        run: '"$RUNNER_TEMP/trivy" image --scanners vuln --pkg-types os --ignore-unfixed --severity CRITICAL --exit-code 1 rolecall:ci'
       - name: scan the pinned trees for malware shapes
         # pip-audit knows published vulnerabilities; GuardDog's
         # heuristics see what has no advisory yet: install-time

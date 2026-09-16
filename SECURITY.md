@@ -52,7 +52,7 @@ has landed. Each is a mechanism that runs, not a rule that hopes.
 | Workflow lint and security audit in the pipeline | A mistake in the files that gate everything else; both tools found and fixed real findings here before adoption |
 | Posture scorecard, externally run and published | A silent drift in the repository's own practices; the score is checkable, not claimed |
 | Container file linted in the pipeline | A container-build mistake the reviewed file carries silently |
-| Base image operating system packages scanned, blocking on critical findings that have fixes | A vulnerable base staying pinned after its fix shipped; unfixed findings are reported, not alarmed on, so the alarm stays meaningful (D-037, D-041) |
+| Base image operating system packages scanned, blocking on critical findings that have fixes on the schedule and on main, and the built image scanned the same way on every change, with Debian's updates applied at build time | A vulnerable base staying pinned after its fix shipped, and a shipped image carrying a fix Debian has published; unfixed findings are reported, not alarmed on, and a pull request is blocked only by what it can fix (D-037, D-041, D-055) |
 | The checks workflow runs weekly on a clock beside its change triggers | A fix or advisory appearing during a quiet week going unseen until an unrelated pull request takes the blame (D-043) |
 | Coverage floor on the test suite | The suite quietly shrinking below what the controls tables claim it proves |
 | Mutation check: seven controls broken one at a time, the suite must notice each | A control whose proving test is a claim; the check found and closed one such gap at adoption (D-041) |
