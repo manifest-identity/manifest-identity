@@ -1123,8 +1123,8 @@ or re-pinned without the table moving fails the build.
 | `github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63` (v4.38.0) | codeql | Runs the queries; findings land in code scanning |
 | `ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc` (v2.4.4) | scorecard | Rates the repository's posture and publishes the score off-repository |
 | `actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8` (v4.2.2) | release, attest-release | Attests each artifact's build provenance, and the container image's digest, into the transparency log |
-| `google/clusterfuzzlite/actions/build_fuzzers@82652fb49e77bc29c35da1167bb286e93c6bcc05` (v1) | fuzz | Builds the harnesses under fuzz/ with AddressSanitizer from the digest-pinned fuzzing base image |
-| `google/clusterfuzzlite/actions/run_fuzzers@82652fb49e77bc29c35da1167bb286e93c6bcc05` (v1) | fuzz | Runs each harness for a bounded time against inputs derived from the change; a crash fails the check |
+| `google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1` (v1) | fuzz | Builds the harnesses under fuzz/ with AddressSanitizer from the digest-pinned fuzzing base image |
+| `google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1` (v1) | fuzz | Runs each harness for a bounded time against inputs derived from the change; a crash fails the check |
 | `codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f` (v7.0.0) | checks, the application job | Publishes the coverage report through the workflow's identity token, no stored secret, so the coverage figure is measured and shown by an outside service |
 | `SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f` (v8.2.1) | checks, the application job, when the token is present | Runs SonarCloud's analysis on the same commit the other gates judged, importing the coverage report |
 | `actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9` (v5.0.0) | docs | Packages the rendered site for Pages |
