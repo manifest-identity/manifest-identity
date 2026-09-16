@@ -1205,14 +1205,27 @@ upstream digest still carried three fixed findings in perl. The gate
 was blocking on something no pull request could change, which is the
 failure D-037 names for the scorecard upload.
 
-Two changes. The base image scan now blocks only on the schedule and
-on main, where its job is to prompt a digest move, and reports on a
-pull request. The Dockerfile applies Debian's package updates at
+Moving the digest found a second problem. The pin the update bot had
+moved on September 1 and the program merged on September 8 was not
+the slim image the Dockerfile's comment named: a digest-only
+reference gives the bot no tag to follow, so it followed the default
+one and moved the pin to the full python image, 1.6 GB against 190
+MB, with the packages that carried most of the thirty-nine findings.
+The parity gate checked that both copies moved and nothing checked
+what they moved to. It surfaced because the coverage upload, which
+had been finding git and curl in the full image, failed on the slim
+one.
+
+Three changes. The base image scan now blocks only on the schedule
+and on main, where its job is to prompt a digest move, and reports
+on a pull request. The Dockerfile applies Debian's package updates at
 build time, so the image the pipeline builds carries every fix Debian
 has published on the day it is built, and that built image is what a
 pull request's scan blocks on, because a pull request can fix what it
-builds. The digest moved to the newest upstream manifest in the same
-change.
+builds. And the reference keeps the tag beside the digest,
+`python:3.14-slim@sha256:...`, in both homes: the digest still decides
+what runs, and the tag tells the bot which family to follow. The
+digest moved to the newest slim manifest in the same change.
 
 Rejected: ignoring the findings until upstream rebuilt. Days of red
 on every pull request is the alarm that teaches the eye to skip it.

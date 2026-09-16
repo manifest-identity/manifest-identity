@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 def digest(path: str, image: str) -> str | None:
-    match = re.search(image + r"@(sha256:[0-9a-f]{64})", Path(path).read_text())
+    match = re.search(image + r"(?::[A-Za-z0-9._-]+)?@(sha256:[0-9a-f]{64})", Path(path).read_text())
     return match.group(1) if match else None
 
 

@@ -185,7 +185,7 @@ jobs:
     # the code is the interpreter that ships it. Automated update tools
     # only bump the Dockerfile; this pin moves by hand in the same commit.
     container:
-      image: python@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
+      image: python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
     services:
       # A real database for the migration drift check, on the same digest
       # the compose file pins. The password derives from the run id: not
@@ -209,6 +209,11 @@ jobs:
         run: |
           pip install --no-cache-dir --require-hashes -r requirements.txt
           pip install --no-cache-dir --require-hashes -r requirements-dev.txt
+      # The slim image ships no git, curl, or gpg, and the coverage
+      # upload action refuses to run without them; the tools come from
+      # Debian's own archive, verified by apt, and never enter the image.
+      - name: tools the coverage upload needs, from the distribution
+        run: apt-get update && apt-get install -y --no-install-recommends git curl gpg ca-certificates
       - name: lint
         run: ruff check .
       - name: types
