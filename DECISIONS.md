@@ -1191,3 +1191,37 @@ which run in-process at test speed rather than at fuzzer speed and are
 not recognized as fuzzing by the posture rater the program tracks; and
 a two-reviewer requirement, which a one-human program cannot honestly
 satisfy.
+
+## D-055: The base image scan blocks on the clock, and the build applies Debian's updates
+
+The container job scanned the pinned base image on every pull
+request and failed on any critical finding with a published fix. On
+September 15, 2026 the scheduled run found thirty-nine such findings,
+glib among them, because Debian had shipped the fix and the upstream
+python image had not yet been rebuilt with it. Every pull request
+opened after that failed the container job, including three that
+moved a Python package and could not touch the image, and the newest
+upstream digest still carried three fixed findings in perl. The gate
+was blocking on something no pull request could change, which is the
+failure D-037 names for the scorecard upload.
+
+Two changes. The base image scan now blocks only on the schedule and
+on main, where its job is to prompt a digest move, and reports on a
+pull request. The Dockerfile applies Debian's package updates at
+build time, so the image the pipeline builds carries every fix Debian
+has published on the day it is built, and that built image is what a
+pull request's scan blocks on, because a pull request can fix what it
+builds. The digest moved to the newest upstream manifest in the same
+change.
+
+Rejected: ignoring the findings until upstream rebuilt. Days of red
+on every pull request is the alarm that teaches the eye to skip it.
+
+Rejected: dropping the base scan. It is the only mechanism that
+notices a fix has shipped for a package the build does not otherwise
+touch, and on the schedule it still fails loudly, which is where a
+digest bump is owed.
+
+Rejected: applying updates at build time without moving the digest.
+The build-time update covers the window; the pin is still the record
+of what was reviewed, and a pin nobody moves is a pin nobody reads.

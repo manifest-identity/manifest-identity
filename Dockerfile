@@ -4,7 +4,14 @@
 # is pinned in .github/workflows/ci.yml, and the two move together:
 # automated update tools only see this file, so the workflow pin is
 # updated by hand in the same commit.
-FROM python@sha256:8edbf9e42c7fb168b9c523718ed907117e6d2e60f5889c0c499bbda3a787da53
+FROM python@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
+
+# The base image is rebuilt upstream some days after Debian ships a
+# security update, and in that window a pinned base carries a fixed
+# vulnerability that no digest bump can remove. The build applies
+# Debian's updates itself, so the image that ships carries every fix
+# Debian has published on the day it is built (D-055).
+RUN apt-get update && apt-get -y upgrade && rm -rf /var/lib/apt/lists/*
 
 # The application runs as a user that owns nothing but its own code.
 RUN useradd --create-home --shell /usr/sbin/nologin rolecall
