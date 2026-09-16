@@ -42,7 +42,7 @@ platform phases, and the program's own documents live there.
 | Tests | **149 tests in 24 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **31 routes**, every one in the role matrix the tests walk |
-| Record | **54 recorded decisions**, each with its rejected alternatives |
+| Record | **55 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -285,6 +285,14 @@ from a real session:
   if they changed after the first run, the stored user did not. Reset
   with the database-delete step above, or create the user through the
   admin routes.
+- **The container job fails on a scheduled run when nothing changed.**
+  Debian shipped a fix for a package in the pinned base image, and the
+  scan blocks until the digest moves. Pull the tag named in the
+  Dockerfile's comment, read its manifest digest from the registry,
+  and move it in the Dockerfile and the workflow twin in one commit;
+  the parity check refuses either alone. If upstream has not rebuilt
+  yet, the built image already carries the fix through its own
+  update step, and only the base row stays red until it has.
 
 -------------------------------------------------------------------------------
 
@@ -1013,7 +1021,8 @@ typing, every test under the coverage floor, the mutation check,
 the migrations against a real PostgreSQL with drift detection, the
 dependency audits, and generates the software bill of materials as
 the run's artifact; and `container` lints the Dockerfile, scans
-the base image, and runs GuardDog over both pinned dependency trees
+the pinned base image on the schedule and the built image on every
+change, and runs GuardDog over both pinned dependency trees
 from its digest-pinned official image, asking the question the
 vulnerability audit cannot: whether a package behaves like malware
 before any advisory exists (D-052). Every tool the pipeline downloads is fetched from its
@@ -1048,7 +1057,11 @@ alarm (D-037).
 The weekly clock exists for the scanners whose subject changes while
 the code does not: a fix shipping for the base image or a new
 advisory against a pinned dependency is found on schedule instead of
-waiting to fail whichever pull request comes next (D-043).
+waiting to fail whichever pull request comes next (D-043). The base
+image scan blocks only on that clock and on main; on a pull request
+it reports, and the image the pull request builds is what blocks,
+because the build applies Debian's updates and a pull request can
+fix what it builds but not what upstream has yet to rebuild (D-055).
 
 The eighth job, `doctrine`, scores this repository against
 [build-doctrine](https://github.com/tltaylor1/build-doctrine)'s six-level
