@@ -209,11 +209,12 @@ jobs:
         run: |
           pip install --no-cache-dir --require-hashes -r requirements.txt
           pip install --no-cache-dir --require-hashes -r requirements-dev.txt
-      # The slim image ships no git, curl, or gpg, and the coverage
-      # upload action refuses to run without them; the tools come from
-      # Debian's own archive, verified by apt, and never enter the image.
-      - name: tools the coverage upload needs, from the distribution
-        run: apt-get update && apt-get install -y --no-install-recommends git curl gpg ca-certificates
+      # The slim image ships no git, curl, gpg, or dirmngr, and the
+      # coverage upload and the analyzer's signature check refuse to run
+      # without them; the tools come from Debian's own archive, verified
+      # by apt, and never enter the image.
+      - name: tools the upload and the analyzer need, from the distribution
+        run: apt-get update && apt-get install -y --no-install-recommends git curl gpg dirmngr ca-certificates
       - name: lint
         run: ruff check .
       - name: types
