@@ -1270,3 +1270,36 @@ accident; the credential shape is what the provider actually issued.
 Rejected: a two-way person-or-service split with no mixed case. The
 mixed identity is the one that matters most to a review, and folding
 it into either side hides it.
+
+
+## D-057: The audit trail is hash-chained, anchored by the evidence exports
+
+An actor holding owner access to the database could alter or remove
+audit rows and nothing would show it; the accepted-risks section had
+said so since the first release, and once promised a fix that shipped
+without arriving. Each audit row now carries the SHA-256 of its own
+content and the previous row's hash (issue 39). Altering any row, or
+removing one, breaks every hash that follows, and a walk names the
+first row that fails. The chain head travels in every campaign
+evidence export, so a copy held outside the database is an anchor:
+history rewritten after the export cannot be made to match it.
+
+The hash covers a fixed, store-independent form of each field, with
+the timestamp reduced to whole UTC seconds, because the first test
+run found SQLite returning the timestamp without its timezone and the
+untouched first row failing verification. Rows written before the
+chain existed carry no hash and are reported as the unchained prefix,
+never rewritten. Two writes in one transaction flush between them so
+the second chains to the first.
+
+Rejected: signing each row with a key the application holds. The
+application's key is on the same host as the database it is meant to
+guard; an owner who can rewrite rows can re-sign them. The export
+anchor puts the trust in a copy the owner does not control.
+
+Rejected: backfilling hashes over pre-chain rows. A hash computed
+today over a row that has sat unguarded for a month attests to
+nothing about that month.
+
+Rejected: a separate append-only ledger table. It doubles the write
+path for the same guarantee, and it is guarded by the same owner.
