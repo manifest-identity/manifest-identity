@@ -1303,3 +1303,27 @@ nothing about that month.
 
 Rejected: a separate append-only ledger table. It doubles the write
 path for the same guarantee, and it is guarded by the same owner.
+
+## D-058: Pull requests need not be current with the mainline before merging
+
+D-054 turned on the ruleset's up-to-date requirement because it would
+have prevented the two August merge races. Two weeks of use showed
+its cost: every merge into main invalidated every other open pull
+request, each one then needed a rebase and a full pipeline run before
+it could merge, and a set of three stacked pull requests took most of
+an afternoon of re-runs to land. The rule is now off. Code-owner
+review and the ten required checks stay as they were.
+
+What the rule guarded against still has an answer. The merge races it
+would have prevented were two branches changing the same file; the
+pipeline's parity and truth gates run on the merge commit's contents,
+and a change that lands behind a moving mainline still fails there if
+the two changes conflict in a way the tests can see. What the rule
+does not guard against, two changes that pass separately and fail
+together without touching the same test, was never something a
+rebase alone would catch either.
+
+Rejected: keeping the rule and merging one pull request at a time
+from a merge queue, which GitHub offers on this plan only for
+organizations; and keeping the rule with the agent rebasing every
+open branch after each merge, which is the toil that was measured.

@@ -30,7 +30,7 @@ EXTRA_PAGES = [
     ("AI-USAGE.md", "93-ai-usage.md"),
     ("SCORING.md", "94-scoring.md"),
 ]
-ASSET_DIRS = {"docs/screenshots": "screenshots", "diagrams": "diagrams"}
+ASSET_DIRS = {"docs/screenshots": "screenshots", "docs/brand": "brand", "diagrams": "diagrams"}
 SKIPPED_SECTIONS = {"Contents"}  # the README's own table of contents
 HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*$", re.MULTILINE)
 LINK = re.compile(r"\]\(([^)\s]+)\)")
