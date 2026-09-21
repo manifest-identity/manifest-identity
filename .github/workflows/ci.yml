@@ -162,7 +162,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tltaylor1/build-doctrine
-          ref: 50eca152fa3a97b6a3e783e540bc5707c9b9947c
+          ref: c43dcf8e4b8e69c18ba676fb80ab88067f861033
           path: doctrine
           persist-credentials: false
       - name: score against the doctrine
