@@ -186,6 +186,7 @@ function identityTier(r) {
 function renderIdentities(rows) {
   const tbody = $("identity-rows");
   tbody.replaceChildren();
+  $("inventory-empty").hidden = rows.length !== 0;
   for (const r of rows) {
     const flags = [
       r.name_reused ? "name reused" : "",
@@ -364,6 +365,7 @@ async function loadGroups() {
   window._groups = rows;
   const tbody = $("group-rows");
   tbody.replaceChildren();
+  $("groups-empty").hidden = rows.length !== 0;
   for (const g of rows) {
     const summary = g.findings.map((f) => f.code).join(", ") || "none";
     tbody.appendChild(row(
@@ -456,6 +458,7 @@ async function loadCampaigns() {
   const rows = await (await api("/campaigns")).json();
   const tbody = $("campaign-rows");
   tbody.replaceChildren();
+  $("campaigns-empty").hidden = rows.length !== 0;
   for (const c of rows) {
     tbody.appendChild(row(
       [c.name, c.scope, c.due_at, c.disposed + " of " + c.total,

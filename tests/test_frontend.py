@@ -118,7 +118,8 @@ def test_the_shell_is_served_with_its_headers(client: TestClient) -> None:
 
 
 def test_the_assets_are_served(client: TestClient) -> None:
-    for path, kind in (("/static/app.js", "javascript"), ("/static/app.css", "css")):
+    for path, kind in (("/static/app.js", "javascript"), ("/static/app.css", "css"),
+                       ("/static/favicon.svg", "svg")):
         response = client.get(path)
         assert response.status_code == 200, path
         assert kind in response.headers["content-type"]
@@ -214,3 +215,16 @@ def test_the_hidden_attribute_always_wins_in_the_stylesheet() -> None:
     # Ahead of the first element display rule, so ordering never
     # becomes the next version of this bug.
     assert guard < css.find("nav { display:")
+
+
+def test_the_shell_names_its_icon_and_its_empty_states() -> None:
+    """The tab icon is same-origin, which the content policy requires,
+    and each of the three list views carries one static sentence for
+    the empty case, hidden until the render decides."""
+    html = (FRONTEND / "index.html").read_text()
+    assert 'rel="icon"' in html and 'href="/static/favicon.svg"' in html
+    for view in ("inventory", "groups", "campaigns"):
+        assert f'id="{view}-empty" class="empty" hidden' in html, view
+    script = (FRONTEND / "app.js").read_text()
+    for view in ("inventory", "groups", "campaigns"):
+        assert f'$("{view}-empty").hidden = rows.length !== 0;' in script, view
