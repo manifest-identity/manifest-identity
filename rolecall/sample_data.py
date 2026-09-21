@@ -20,7 +20,7 @@ Run it: python -m rolecall.sample_data [directory] [--scale N]
 The scale mode adds N synthetic identities to the same three
 generations, two thirds services and one third people, with archetypal
 variation derived from each identity's index, so a thousand-identity
-account is as deterministic as the eighteen-identity one. The
+account is as deterministic as the nineteen-identity one. The
 committed sample stays the curated small set; scaled sets are for
 load work and ship as release artifacts, never commits.
 """
@@ -146,6 +146,16 @@ def people(generation: int) -> list[Person]:
             password=True, mfa=False,
             password_used=d(2026, 7, 20, tzinfo=UTC) if generation >= 2 else None,
             tags={"owner": "platform-team"},
+        ),
+        Person(
+            name="dev-lisa", uid="AIDASAMPLEDEVLISA000",
+            created=d(2023, 9, 12, tzinfo=UTC),
+            why="a person holding access keys: human use of a non-human credential",
+            password=True, mfa=True,
+            password_used=d(2026, 7, 29, tzinfo=UTC),
+            key1=True, key1_rotated=d(2026, 1, 10, tzinfo=UTC),
+            key1_used=d(2026, 7, 30, tzinfo=UTC),
+            tags={"owner": "app-team"},
         ),
         Person(
             name="legacy-backup", uid="AIDASAMPLELEGACYBACK",

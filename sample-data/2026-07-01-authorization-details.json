@@ -16,6 +16,21 @@
       ]
     },
     {
+      "UserName": "dev-lisa",
+      "UserId": "AIDASAMPLEDEVLISA000",
+      "Arn": "arn:aws:iam::555555555555:user/dev-lisa",
+      "CreateDate": "2023-09-12T00:00:00+00:00",
+      "GroupList": [],
+      "AttachedManagedPolicies": [],
+      "UserPolicyList": [],
+      "Tags": [
+        {
+          "Key": "owner",
+          "Value": "app-team"
+        }
+      ]
+    },
+    {
       "UserName": "legacy-backup",
       "UserId": "AIDASAMPLELEGACYBACK",
       "Arn": "arn:aws:iam::555555555555:user/legacy-backup",

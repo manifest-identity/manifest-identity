@@ -50,6 +50,38 @@ class DerivedState:
     trust_policy: object = None
 
 
+@dataclass
+class Classification:
+    """Person or service, derived at read time from the credential
+    shape and never stored (issue 37). A person signs in with a
+    password and a device; a service holds access keys and is
+    offboarded by nobody, which is this tool's founding problem. An
+    identity with both is the human use of a non-human credential
+    the findings already name (NHI10)."""
+
+    kind: str  # person, service, mixed, or unknown
+    reason: str
+
+
+def classify(state: DerivedState) -> Classification:
+    if state.identity_type == "root":
+        return Classification("person", "the root account is a person's sign-in")
+    if state.identity_type == "role":
+        return Classification("service", "a role is assumed, never signed into")
+    keys = bool(state.key1_active or state.key2_active)
+    password = bool(state.password_enabled)
+    if password and keys:
+        return Classification(
+            "mixed", "a console password and active access keys on one identity")
+    if password:
+        return Classification(
+            "person",
+            "a console password" + (" with MFA" if state.mfa_active else " without MFA"))
+    if keys:
+        return Classification("service", "access keys and no console password")
+    return Classification("unknown", "neither a console password nor an active key")
+
+
 def _days(later: datetime, earlier: datetime) -> int:
     return max(0, (later - earlier).days)
 

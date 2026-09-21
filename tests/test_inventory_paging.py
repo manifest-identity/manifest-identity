@@ -1,6 +1,6 @@
 """The inventory stays bounded at any account size (issue 38).
 
-The sample account's eighteen rows prove nothing about thousands, so
+The sample account's nineteen rows prove nothing about thousands, so
 these tests seed a few hundred through the real import path and hold
 the route to its promises: a capped page, filters on the server, and
 tiles that no filter changes.

@@ -154,9 +154,11 @@ async function loadInventory() {
   const text = $("filter-text").value.trim();
   const type = $("filter-type").value;
   const tier = $("filter-tier").value;
+  const kind = $("filter-kind").value;
   if (text) params.set("q", text);
   if (type) params.set("type", type);
   if (tier) params.set("tier", tier);
+  if (kind) params.set("kind", kind);
   if (sortKey) { params.set("sort", sortKey); params.set("direction", sortDir); }
   paintSortMarkers();
   const page = await (await api("/identities?" + params)).json();
@@ -186,13 +188,14 @@ function identityTier(r) {
 function renderIdentities(rows) {
   const tbody = $("identity-rows");
   tbody.replaceChildren();
+  $("inventory-empty").hidden = rows.length !== 0;
   for (const r of rows) {
     const flags = [
       r.name_reused ? "name reused" : "",
       r.flagged ? "flagged" : "",
     ].filter(Boolean).join(", ");
     const tr = row(
-      [r.display_name, r.identity_type, r.account,
+      [r.display_name, r.identity_type, r.kind, r.account,
        r.critical, r.warning, r.notice, r.top_finding || "", flags],
       () => loadDetail(r.id),
     );
@@ -228,6 +231,7 @@ async function loadDetail(id) {
   const facts = $("detail-facts");
   facts.replaceChildren();
   fact(facts, "account", d.account);
+  fact(facts, "kind", d.kind + " (" + d.kind_reason + ")");
   fact(facts, "owner", ownerDescription(d));
   fact(facts, "provisional", d.provisional);
   fact(facts, "name reused", d.name_reused);
@@ -364,6 +368,7 @@ async function loadGroups() {
   window._groups = rows;
   const tbody = $("group-rows");
   tbody.replaceChildren();
+  $("groups-empty").hidden = rows.length !== 0;
   for (const g of rows) {
     const summary = g.findings.map((f) => f.code).join(", ") || "none";
     tbody.appendChild(row(
@@ -456,6 +461,7 @@ async function loadCampaigns() {
   const rows = await (await api("/campaigns")).json();
   const tbody = $("campaign-rows");
   tbody.replaceChildren();
+  $("campaigns-empty").hidden = rows.length !== 0;
   for (const c of rows) {
     tbody.appendChild(row(
       [c.name, c.scope, c.due_at, c.disposed + " of " + c.total,
@@ -653,6 +659,7 @@ $("inventory-head").addEventListener("click", (e) => {
 $("filter-text").addEventListener("input", () => filtersChanged(true));
 $("filter-type").addEventListener("input", () => filtersChanged(false));
 $("filter-tier").addEventListener("input", () => filtersChanged(false));
+$("filter-kind").addEventListener("input", () => filtersChanged(false));
 $("page-prev").addEventListener("click", () => {
   pageOffset = Math.max(0, pageOffset - PAGE_SIZE);
   loadInventory();

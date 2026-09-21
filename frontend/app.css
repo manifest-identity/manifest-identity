@@ -82,3 +82,6 @@ output { display: block; margin: 1em 0; }
      margin: 0.4rem 0; }
 h2 { font-size: 1rem; } h3, h4 { font-size: 0.85rem; color: var(--quiet);
      text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1.25rem; }
+
+/* Empty views say what to do next; the text is static and set in markup. */
+.empty { color: var(--quiet); margin: 1em 0; }

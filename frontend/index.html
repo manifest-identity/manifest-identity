@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>role-call</title>
   <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 </head>
 <body>
   <!-- The shell is public and carries no data. Every value on this
@@ -52,6 +53,13 @@
           <option value="role">roles</option>
           <option value="root">root</option>
         </select>
+        <select id="filter-kind" aria-label="filter by kind">
+          <option value="">person or service</option>
+          <option value="person">people</option>
+          <option value="service">services</option>
+          <option value="mixed">mixed</option>
+          <option value="unknown">unknown</option>
+        </select>
         <select id="filter-tier" aria-label="filter by tier">
           <option value="">every tier</option>
           <option value="critical">critical</option>
@@ -62,12 +70,13 @@
       </div>
       <table>
         <thead id="inventory-head"><tr>
-          <th data-sort="name">identity</th><th data-sort="type">type</th><th data-sort="account">account</th>
+          <th data-sort="name">identity</th><th data-sort="type">type</th><th data-sort="kind">kind</th><th data-sort="account">account</th>
           <th data-sort="critical">critical</th><th data-sort="warning">warning</th><th data-sort="notice">notice</th>
           <th>top finding</th><th>flags</th>
         </tr></thead>
         <tbody id="identity-rows"></tbody>
       </table>
+      <p id="inventory-empty" class="empty" hidden>No identities yet. Import a credential report or an authorization details file from the Imports view, and the inventory fills from it.</p>
       <div class="filters">
         <button id="page-prev" type="button">Previous</button>
         <span id="page-status"></span>
@@ -134,6 +143,7 @@
         </tr></thead>
         <tbody id="group-rows"></tbody>
       </table>
+      <p id="groups-empty" class="empty" hidden>No groups yet. Groups arrive with an authorization details import from the Imports view.</p>
       <h3 id="group-gov-title" hidden></h3>
       <ul id="group-gov-active"></ul>
       <form id="group-gov-form" hidden>
@@ -192,6 +202,7 @@
         </tr></thead>
         <tbody id="campaign-rows"></tbody>
       </table>
+      <p id="campaigns-empty" class="empty" hidden>No campaigns yet. Import an account first, then create a campaign here to review its identities.</p>
       <h3>Insufficient evidence, across campaigns</h3>
       <table>
         <thead><tr>

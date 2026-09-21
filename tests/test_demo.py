@@ -37,14 +37,14 @@ def test_demo_populates_and_converges(demo_env, capsys) -> None:
     assert demo.main() == 0
     first = capsys.readouterr().out
     assert "campaign created" in first
-    assert "18 identities" in first
+    assert "19 identities" in first
 
     # Second run: nothing new, nothing broken.
     assert demo.main() == 0
     second = capsys.readouterr().out
     assert "already imported" in second
     assert "campaign already present" in second
-    assert "18 identities" in second
+    assert "19 identities" in second
 
 
 def test_demo_refuses_without_admin_env(demo_env, monkeypatch, capsys) -> None:

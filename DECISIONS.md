@@ -1238,3 +1238,35 @@ digest bump is owed.
 Rejected: applying updates at build time without moving the digest.
 The build-time update covers the window; the pin is still the record
 of what was reviewed, and a pin nobody moves is a pin nobody reads.
+
+## D-056: Person or service is derived from the credential shape
+
+An IAM user can be a human at a console or a workload holding keys,
+and every review treats them differently: a person is offboarded by
+the fact of leaving, a service is offboarded by nobody, which is this
+tool's founding problem. The inventory now classifies each identity
+as person, service, mixed, or unknown, shows the reasoning on the
+detail page, and filters and sorts by it (issue 37).
+
+The heuristic reads the credential shape and nothing else. A console
+password reads as a person, with or without MFA noted in the reason;
+active access keys alone read as a service; both together read as
+mixed, the human use of a non-human credential the findings already
+name under NHI10; neither reads as unknown. Root is a person and a
+role is a service by type. The classification is derived at read
+time like every other judgment here (D-006) and never stored, so a
+credential change moves it on the next snapshot with nothing to
+reconcile. The sample account gained one mixed identity so all three
+cases are exercised on the committed data.
+
+Rejected: a stored classification set by the operator. It would go
+stale the way every stored status does, and it would invite the
+operator to decide what the credentials already say.
+
+Rejected: reading the identity's name or tags for words like
+"svc" or "bot". Naming conventions vary by account and lie by
+accident; the credential shape is what the provider actually issued.
+
+Rejected: a two-way person-or-service split with no mixed case. The
+mixed identity is the one that matters most to a review, and folding
+it into either side hides it.

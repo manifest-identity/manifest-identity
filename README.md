@@ -39,17 +39,17 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **149 tests in 24 files**, coverage 94 over a 90 percent floor |
+| Tests | **153 tests in 25 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **31 routes**, every one in the role matrix the tests walk |
-| Record | **55 recorded decisions**, each with its rejected alternatives |
+| Record | **56 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
 [The numbers, proven](#the-numbers-proven); a figure that drifts from
 its count fails the build.
 
-![The inventory: eighteen identities, their findings counted by tier, filters and exports above the table](docs/screenshots/inventory.png)
+![The inventory: nineteen identities, their findings counted by tier, filters and exports above the table](docs/screenshots/inventory.png)
 
 **Quick start**, with Docker as the only requirement:
 
@@ -719,7 +719,7 @@ GET /campaigns/{campaign_id}/evidence
 GET /campaigns/{campaign_id}/evidence.csv
 ```
 
-`GET /identities` is paged, because the sample account's eighteen
+`GET /identities` is paged, because the sample account's nineteen
 rows say nothing about an account with thousands: it takes `q` (a
 name substring), `type`, and `tier` as filters, applied on the server
 rather than in the browser, plus `sort` and `direction` over a named
