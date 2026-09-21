@@ -53,6 +53,13 @@
           <option value="role">roles</option>
           <option value="root">root</option>
         </select>
+        <select id="filter-kind" aria-label="filter by kind">
+          <option value="">person or service</option>
+          <option value="person">people</option>
+          <option value="service">services</option>
+          <option value="mixed">mixed</option>
+          <option value="unknown">unknown</option>
+        </select>
         <select id="filter-tier" aria-label="filter by tier">
           <option value="">every tier</option>
           <option value="critical">critical</option>
@@ -63,7 +70,7 @@
       </div>
       <table>
         <thead id="inventory-head"><tr>
-          <th data-sort="name">identity</th><th data-sort="type">type</th><th data-sort="account">account</th>
+          <th data-sort="name">identity</th><th data-sort="type">type</th><th data-sort="kind">kind</th><th data-sort="account">account</th>
           <th data-sort="critical">critical</th><th data-sort="warning">warning</th><th data-sort="notice">notice</th>
           <th>top finding</th><th>flags</th>
         </tr></thead>

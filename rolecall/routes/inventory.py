@@ -22,7 +22,7 @@ from rolecall.assessment import (
 )
 from rolecall.db import get_session
 from rolecall.deps import require_roles
-from rolecall.derive import derive
+from rolecall.derive import classify, derive
 from rolecall.findings import evaluate
 from rolecall.governance import (
     active_records,
@@ -47,6 +47,7 @@ class IdentityView(BaseModel):
     name_reused: bool
     flagged: bool
     owner: str | None
+    kind: str
     critical: int
     warning: int
     notice: int
@@ -82,6 +83,8 @@ class IdentityDetail(BaseModel):
     owner: str | None
     owner_type: str | None
     owner_source: str | None
+    kind: str
+    kind_reason: str
     privilege_sources: list[str]
     findings: list[FindingView]
     governance: list[RecordView]
@@ -132,8 +135,9 @@ def list_identities(
         str | None, Query(alias="type", max_length=16)
     ] = None,
     tier: Literal["critical", "warning", "notice", "quiet"] | None = None,
+    kind: Literal["person", "service", "mixed", "unknown"] | None = None,
     sort: Literal[
-        "name", "type", "account", "critical", "warning", "notice"
+        "name", "type", "account", "kind", "critical", "warning", "notice"
     ] | None = None,
     direction: Literal["asc", "desc"] = "asc",
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
@@ -152,6 +156,10 @@ def list_identities(
     """
     assessed = assess_identities(db)
     tier_by_id = {a.identity.id: _worst_tier(a.tier_counts()) for a in assessed}
+    kind_by_id = {
+        a.identity.id: (classify(a.state).kind if a.state else "unknown")
+        for a in assessed
+    }
     tiles = InventoryTiles(
         identities=len(assessed),
         critical=sum(1 for t in tier_by_id.values() if t == "critical"),
@@ -165,12 +173,14 @@ def list_identities(
         if (needle is None or needle in a.identity.first_display_name.lower())
         and (identity_type is None or a.identity.identity_type == identity_type)
         and (tier is None or tier_by_id[a.identity.id] == tier)
+        and (kind is None or kind_by_id[a.identity.id] == kind)
     ]
     if sort is not None:
         sort_keys: dict[str, object] = {
             "name": lambda a: a.identity.first_display_name.lower(),
             "type": lambda a: a.identity.identity_type,
             "account": lambda a: a.account,
+            "kind": lambda a: kind_by_id[a.identity.id],
             "critical": lambda a: a.tier_counts()["critical"],
             "warning": lambda a: a.tier_counts()["warning"],
             "notice": lambda a: a.tier_counts()["notice"],
@@ -189,6 +199,7 @@ def list_identities(
             name_reused=a.name_reused,
             flagged=a.flagged,
             owner=a.owner.name if a.owner else None,
+            kind=kind_by_id[a.identity.id],
             critical=tiers["critical"],
             warning=tiers["warning"],
             notice=tiers["notice"],
@@ -279,6 +290,8 @@ def identity_detail(
         owner=effective.name if effective else None,
         owner_type=effective.owner_type if effective else None,
         owner_source=effective.source if effective else None,
+        kind=classify(state).kind,
+        kind_reason=classify(state).reason,
         privilege_sources=[source.describe() for source in picture.sources],
         findings=[FindingView(**vars(f)) for f in findings],
         governance=[

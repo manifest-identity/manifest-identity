@@ -3,7 +3,7 @@
 python -m rolecall.demo migrates the schema, creates the
 administrator from the environment, imports the three shipped sample
 months for both sources oldest first, and opens one review campaign,
-so a fresh clone lands in an inventory of eighteen identities with
+so a fresh clone lands in an inventory of nineteen identities with
 tiered findings and a review in progress. Idempotent on purpose:
 running it again converges, re-imports are refused as duplicates and
 an existing campaign is kept, so the command is safe to run twice.
