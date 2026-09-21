@@ -324,3 +324,9 @@ class AuditEvent(Base):
     target: Mapped[str | None] = mapped_column(String(255), default=None)
     detail: Mapped[str | None] = mapped_column(String(1000), default=None)
     ip: Mapped[str | None] = mapped_column(String(64), default=None)
+    # Tamper evidence (issue 39): each row carries the hash of its own
+    # content and the previous row's hash, so an altered or removed row
+    # breaks every hash after it. The chain head is anchored outside
+    # the database by the campaign evidence exports.
+    prev_hash: Mapped[str | None] = mapped_column(String(64), default=None)
+    row_hash: Mapped[str | None] = mapped_column(String(64), default=None)

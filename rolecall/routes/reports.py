@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from rolecall import audit
 from rolecall.assessment import assess_groups, assess_identities
 from rolecall.db import get_session
 from rolecall.deps import require_roles
@@ -106,6 +107,11 @@ class EvidenceExport(BaseModel):
     decided: int
     coverage: str
     exported_at: str
+    # The audit trail's chain head at export time (issue 39). A copy of
+    # this file held outside the database anchors the trail: every row
+    # up to this head is bound to it, so a later alteration of history
+    # is detectable by anyone holding the export.
+    audit_chain_head: str
     decisions: list[EvidenceDecision]
 
 
@@ -151,6 +157,7 @@ def campaign_evidence(
         decided=decided,
         coverage=f"{decided} of {len(items)}",
         exported_at=utcnow().isoformat(timespec="seconds"),
+        audit_chain_head=audit.chain_head(db),
         decisions=[
             EvidenceDecision(
                 display_name=i.display_name,

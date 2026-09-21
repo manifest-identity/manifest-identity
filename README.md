@@ -39,10 +39,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **153 tests in 25 files**, coverage 94 over a 90 percent floor |
+| Tests | **157 tests in 26 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **31 routes**, every one in the role matrix the tests walk |
-| Record | **56 recorded decisions**, each with its rejected alternatives |
+| Record | **57 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -826,15 +826,18 @@ Recorded so each is a decision with a reason, not a surprise.
   acts there. That is the enrichment-over-automation design, stated as a
   risk because a reader could mistake governance records for applied
   controls.
-- **The audit trail is not yet tamper-evident.** The trail is atomic
-  and attributed from the first commit, and the application's own
-  database role cannot delete rows at all (D-013); but an actor with
-  owner access could still alter history. An earlier version of this
-  row promised hash chaining with the campaign work, and the campaign
-  work shipped without it, a stated exit that passed unmet and is
-  recorded as such; the chaining, anchored by the evidence exports, is
-  now application roadmap work with no promised date. Until it lands
-  this is the accepted gap, stated rather than implied.
+- **The audit trail's tamper evidence depends on an anchor held
+  outside the database.** The trail is atomic and attributed, the
+  application's own database role cannot delete rows (D-013), and
+  since D-057 every row is hash-chained to the one before it, with
+  each campaign evidence export carrying the chain head. An actor
+  with owner access can still rewrite history and every hash after
+  it; what they cannot do is make the rewritten trail match an
+  export someone else holds. So the control is only as strong as the
+  practice of keeping exports off the database host, which the
+  operating procedure states. An earlier version of this row promised
+  the chaining with the campaign work and it shipped without it, a
+  stated exit that passed unmet; that history stays recorded here.
 - **Snapshot files are only as authentic as their handling.** The
   intended procedure is exporting reports directly from the provider
   to the machine that imports them. A file that traveled through other
@@ -945,6 +948,22 @@ dump per month for two years, deleting older ones, which bounds disk
 while preserving the ability to answer how any decision looked at the
 time it was made. An instance holding a real organization's data
 follows that organization's records schedule where it is stricter.
+
+**Verify the audit trail.** Every audit row carries the hash of its
+own content and the row before it, so a row altered or removed by an
+actor with owner access breaks every hash after it, and each campaign
+evidence export carries the chain head at export time. The walk
+recomputes every hash and names the first row that fails; with an
+export's head passed as the anchor, it also confirms the trail still
+reaches it, which is what catches history rewritten after the export
+was taken:
+
+```bash
+docker compose exec app python scripts/verify_audit_chain.py --anchor <audit_chain_head from an evidence export>
+```
+
+Keep one evidence export per campaign outside the database; the
+anchor is only as independent as its copy.
 
 **The clean-slate reset**, development only, deletes every imported
 snapshot, every governance record, and the audit history:

@@ -80,6 +80,7 @@ refer to the ranked threats in [README.md](README.md).
 | Bounded, in-memory, claim-verifying ingestion on both file types (D-008, D-030) | 4 | tests/test_ingest.py, tests/test_ingest_authz.py, both property suites |
 | Append-only observations; re-imports rejected; state derived at read (D-006) | 3, 5 | tests/test_ingest.py |
 | Audit rows in the acting transaction, attributed (D-011) | 8 | tests/test_auth.py, tests/test_ingest.py |
+| Audit rows hash-chained, the chain head anchored in every evidence export, a walk that names the first altered or removed row (D-057) | 3, 8 | tests/test_audit_chain.py |
 | Validation and login failures echo nothing the caller sent | 2 | tests/test_validation.py, both property suites |
 | Identities keyed immutably; resurrection mints a new identity and is surfaced (D-016, D-029) | 11 | tests/test_ingest.py, tests/test_ingest_authz.py |
 | The page renders every value as text and contains no markup sink; a scan gates it (D-036) | 7 | tests/test_frontend.py |

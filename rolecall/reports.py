@@ -136,7 +136,7 @@ def to_csv(rows: list[dict[str, object]]) -> str:
 EVIDENCE_SUMMARY_FIELDS = (
     "campaign", "scope", "population_statement", "created_by",
     "created_at", "due_at", "closed_at", "closed_by", "total",
-    "decided", "coverage", "exported_at",
+    "decided", "coverage", "exported_at", "audit_chain_head",
 )
 
 EVIDENCE_CSV_COLUMNS = (
