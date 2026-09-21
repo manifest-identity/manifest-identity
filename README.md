@@ -1,4 +1,4 @@
-# role-call
+![role-call: inventory and governance for non-human identities](docs/brand/banner.jpg)
 
 [![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/tltaylor1/role-call?label=OpenSSF%20Scorecard&style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/tltaylor1/role-call)
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/14563?label=OpenSSF%20Best%20Practices&style=for-the-badge)](https://www.bestpractices.dev/projects/14563)
@@ -10,25 +10,57 @@
 <https://tltaylor1.github.io/role-call/>. What each badge above
 measures and every item it scored: [SCORING.md](SCORING.md).
 
-An inventory and governance tool for non-human identities: the roles,
-service accounts, and access keys that get created, granted permissions
-once, and forgotten. They outnumber the humans in most cloud accounts,
-and nobody offboards them.
+**Inventory and governance for non-human identities.**
 
-role-call imports identity snapshots, derives each identity's state
-from the observed history rather than storing a status that can drift,
-and gives each identity what a human needs before acting: an owner,
-when it was last used, how old its credentials are, how much privilege
-it holds and where that privilege comes from, and whether a governed
-name has been quietly recreated. Review campaigns turn that record
-into decisions, one item at a time, with the evidence beside each one.
-It starts with Amazon Web Services (AWS) identity.
+role-call imports the identity reports your cloud already produces,
+works out each user's and role's state from what was observed, and puts
+an owner and a review decision on every one. It starts with Amazon Web
+Services (AWS) identity.
 
-The operating principle is that people decide and the machine never
-does. The engine recommends and always names its reasons; automation
-prepares, schedules, and verifies; it does not grant, revoke, or
-certify on its own judgment, and every action traces to the person who
-decided it.
+**If you run a cloud account, this happens to you.** Service accounts
+get created for one integration, roles get broad policies so something
+works, access keys get minted for a script whose writer has left. People
+get onboarded and offboarded; these get created, granted, and forgotten.
+The tools that track them store a status somebody set once, and a stored
+status drifts the day after it is written. The result is the identity
+nobody can explain: privileged, unused, unowned, and invisible until the
+day it is abused.
+
+**How it works**
+
+1. Export a credential report and an authorization details file from
+   AWS, the way you already can, and import them. Nothing here holds a
+   cloud credential.
+2. Every identity's state is derived from the observed history at read
+   time, so a re-import is harmless and nothing can drift.
+3. Each identity shows what a person needs before acting: owner, last
+   use, key age, how much privilege it holds and where that privilege
+   comes from, and whether a governed name was quietly recreated.
+4. A review campaign freezes a population and asks for one decision per
+   item, with the evidence beside it and an export that proves how the
+   review was done.
+
+**What it looks at.** Twenty findings, each one named, explained, and
+anchored to the OWASP Non-Human Identities top ten:
+
+- Root account use, a console password without MFA, an access key past
+  its age, two live keys, a legacy certificate, an identity nobody uses.
+- Administrator-equivalent privilege by capability rather than name,
+  wildcard grants, everything-except grants, broad read, the ability
+  to change IAM, privilege escalation paths.
+- Trust policies open to the public or to another account.
+- Privileged identities and groups with no owner, an owner tag that
+  disagrees with the assigned owner, membership drift, an empty
+  privileged group.
+
+**People decide and the machine never does.** The engine recommends
+and always names its reasons. It does not grant, revoke, or certify on
+its own judgment, and every action traces to the person who decided it.
+
+**Who it is for.** A team of one to a few people responsible for one or
+several AWS accounts, who need to answer "who owns this and is it still
+needed" and prove they asked. It is not a provisioning tool, it does not
+change anything in the account, and it does not yet read other clouds.
 
 role-call is one application inside
 [control-plane](https://tltaylor1.github.io), a security engineering
@@ -42,7 +74,7 @@ platform phases, and the program's own documents live there.
 | Tests | **157 tests in 26 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **31 routes**, every one in the role matrix the tests walk |
-| Record | **57 recorded decisions**, each with its rejected alternatives |
+| Record | **58 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -73,7 +105,6 @@ reasons behind each step.
 ## Contents
 
 - [Status](#status)
-- [The problem](#the-problem)
 - [What this is](#what-this-is)
 - [Run it](#run-it)
 - [Running it on Kubernetes](#running-it-on-kubernetes)
@@ -122,22 +153,6 @@ software is provided as is under the
 code and the [threat model](#what-it-defends-against), including its
 accepted risks. Nothing here is production software until the
 documents say so.
-
--------------------------------------------------------------------------------
-
-## The problem
-
-Non-human identities outnumber the humans in most cloud accounts:
-service accounts created for one integration, roles granted broad
-policies to make something work, access keys minted for a script
-whose author has left. Human accounts get onboarding, review, and
-offboarding; these get created, granted, and forgotten. The tools
-that do track them tend to store a status column somebody set once,
-and a stored status drifts the day after it is written.
-
-The result is the identity nobody can explain: privileged, unused,
-unowned, and invisible until the day it is abused. That identity is
-what this application exists to surface.
 
 -------------------------------------------------------------------------------
 
@@ -1378,7 +1393,7 @@ load-bearing ones:
 - `test_ingest.py`, `test_ingest_authz.py`, and two Hypothesis
   property suites: hostile, truncated, and mixed-account files are
   rejected whole; nothing the caller sent is echoed back.
-- `test_findings.py` and `test_privilege.py`: the **19 finding
+- `test_findings.py` and `test_privilege.py`: the **20 finding
   codes**, each carrying its OWASP Non-Human Identities anchor;
   admin equivalence judged by capability, not name.
 - `test_governance.py`: set, supersede, clear, and attest, attributed

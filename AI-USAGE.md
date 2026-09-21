@@ -286,6 +286,26 @@ manufactured entry would defeat the reason this file exists.
   pin rule's missing half: a check that a pin moved is not a check of
   what it moved to (September 2026).
 
+- **The agent spent two hours fixing the wrong commit subject.** The
+  doctrine gate refused three stacked pull requests. The agent read
+  the failing output as the scorer misreading the update bot's commit
+  subjects, opened two scorer changes and two pin changes to chase
+  that reading, and each re-run failed the same way. The refusal was
+  the agent's own subject on the first commit of the stack, which
+  named two issues before the colon where the rule allows one. The
+  gate had printed the offending subject from the start; the agent
+  had been reading the rule rather than the output. The lesson joined
+  the standards as a working rule: when a gate refuses, quote the
+  refused line before touching anything (September 2026).
+- **A shell flag that does not exist emptied a branch.** Rebuilding
+  the stack with corrected subjects, the agent passed a quiet flag to
+  a command that has none; the command printed its usage and did
+  nothing, the script carried on, and the force push that followed
+  set the branch equal to main, which closed its pull request. The
+  commit still existed locally and the branch was rebuilt within
+  minutes, but a script that pushes must stop at the first failure,
+  and this one did not check the step that mattered (September 2026).
+
 Each entry changed a rule, a checklist, or a design, which is the point:
 the catches compound, the mistakes do not. The provenance entry
 changed the attribution itself, and its lesson is the whole file's

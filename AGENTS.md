@@ -297,6 +297,11 @@ These controls are built in from the first commit rather than added later:
   than recalling them.
 - Final architecture diagrams are drawn by a human. The agent specifies what a
   diagram must show and reviews drafts against the threat model.
+- When a gate refuses, quote the refused line before changing anything. The
+  gate names what it rejected; a theory about why it rejected it is not a
+  reading of that line.
+- A script that pushes stops at the first failed step. Every command whose
+  result the push depends on is checked, not assumed.
 
 -------------------------------------------------------------------------------
 

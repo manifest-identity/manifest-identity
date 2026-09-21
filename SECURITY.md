@@ -58,7 +58,7 @@ has landed. Each is a mechanism that runs, not a rule that hopes.
 | Mutation check: seven controls broken one at a time, the suite must notice each | A control whose proving test is a claim; the check found and closed one such gap at adoption (D-041) |
 | The two import parsers fuzzed under AddressSanitizer, on every change touching them and weekly | An input from another system that escapes the parsers' named refusals and reaches an exception nobody wrote (D-054) |
 | Release assets and the published container image attested; the image digest verifiable against the transparency log | A consumer unable to check what was released, or a registry image differing from the reviewed build (D-050, D-054) |
-| Code-owner review and up-to-date branches required by the ruleset | A change merging behind a moving mainline, or without the named owner's approval (D-054) |
+| Code-owner review required by the ruleset | A change merging without the named owner's approval (D-054); the up-to-date requirement that came with it was withdrawn after its cost was measured (D-058) |
 
 At the repository's visibility flip, the server layer joined: GitHub
 secret scanning and push protection, completing the three scanning
