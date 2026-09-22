@@ -39,7 +39,7 @@ has landed. Each is a mechanism that runs, not a rule that hopes.
 | Control | What it guards against |
 |---|---|
 | TruffleHog pre-commit hook, offline mode | A credential reaching a commit on this machine (D-002) |
-| TruffleHog in continuous integration, verification on | A credential in any pushed history, checked against its provider to learn whether it is live |
+| TruffleHog in continuous integration, verification on, less the one detector whose pattern is this repository's own action pinning | A credential in any pushed history, checked against its provider to learn whether it is live; the excluded detector's own pattern is covered at the server layer (D-059) |
 | Vale pre-commit hook and continuous integration job | Writing-rule violations reaching history |
 | Deferred-work marker gate, pre-commit and continuous integration | Stub markers standing in for finished work or recorded decisions |
 | Continuous integration actions pinned by full commit hash | A moved tag changing what the pipeline runs |
