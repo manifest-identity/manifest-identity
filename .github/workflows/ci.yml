@@ -43,7 +43,7 @@ jobs:
           echo "62224de2f9dd7cd418800feb953760a302ed2f82a7c547fe1146a4874fb179e4  th.tar.gz" | sha256sum -c -
           tar -xzf th.tar.gz trufflehog
       - name: scan the full history with verification on
-        run: '"$RUNNER_TEMP/trufflehog" git file://. --fail'
+        run: '"$RUNNER_TEMP/trufflehog" git file://. --fail --exclude-detectors=sonarcloud'
 
   writing:
     runs-on: ubuntu-latest

@@ -1327,3 +1327,32 @@ Rejected: keeping the rule and merging one pull request at a time
 from a merge queue, which GitHub offers on this plan only for
 organizations; and keeping the rule with the agent rebasing every
 open branch after each merge, which is the toil that was measured.
+
+## D-059: The secret scanner drops the one detector that collides with pinning
+
+Every action here is pinned by its full commit hash, and the scanner's
+SonarCloud detector matches a forty character hexadecimal string on a
+line naming Sonar. The two disciplines collide. The September update
+to the SonarQube scan action failed the secrets gate on the pin it was
+replacing, reported as an unverified result, which is the scanner
+saying it asked SonarCloud and SonarCloud did not know the value. The
+pipeline now excludes that one detector by name, and the collision
+would otherwise return on every future bump of that action.
+
+What the narrowing costs, stated rather than glossed: a literal
+SonarCloud token committed here would no longer be caught by this
+layer. Two layers still cover it. GitHub secret scanning and push
+protection carry their own SonarQube pattern at the server, the layer
+a commit cannot route around (D-017), and this project's SonarCloud
+credential is a pipeline secret that never appears in a file. The
+exclusion is validated by the tool: a misspelled detector name exits
+one rather than passing, so the exclusion cannot quietly become a scan
+of nothing.
+
+Rejected: blocking only on verified results, which would have cleared
+this finding and also every finding from a detector with no
+verification endpoint to ask; and excluding the workflow directory by
+path, which would hide every detector from the files that hold the
+most credentials. An alarm that is always false teaches the eye to
+skip the alarm (D-002), and the remedy is to remove the one false
+alarm rather than to lower the gate.
