@@ -5,8 +5,11 @@
 # in the digest-parity check and the close ritual. It only opens pull
 # requests; nothing updates without review.
 #
-# Bumps are grouped so a week's updates arrive as a few pull requests
-# instead of one per package. Actions from one repository move
+# Bumps are grouped so a month's updates arrive as a few pull requests
+# instead of one per package, and the cadence is monthly because these
+# are version updates and not security ones: an advisory reaches this
+# repository through Dependabot's security updates and GitHub's alerts,
+# neither of which waits for this schedule (D-060). Actions from one repository move
 # together because the CodeQL and ClusterFuzzLite actions must run at
 # one version; Python packages move as one tree because the hash lock
 # is recompiled once either way. Each group still runs every gate, and
@@ -15,16 +18,18 @@
 version: 2
 updates:
   - package-ecosystem: pip
+    open-pull-requests-limit: 2
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       python:
         patterns: ["*"]
   - package-ecosystem: github-actions
+    open-pull-requests-limit: 2
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       codeql:
         patterns: ["github/codeql-action/*"]
@@ -35,8 +40,8 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
   - package-ecosystem: docker-compose
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly

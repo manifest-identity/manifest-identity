@@ -1356,3 +1356,27 @@ path, which would hide every detector from the files that hold the
 most credentials. An alarm that is always false teaches the eye to
 skip the alarm (D-002), and the remedy is to remove the one false
 alarm rather than to lower the gate.
+
+## D-060: Version updates arrive monthly, advisories arrive when they arrive
+
+The update bot ran weekly and opened five pull requests in one
+evening, none of which answered a published vulnerability: the
+repository held no open advisory that night or now. Each one still
+demanded the companion edits the gates require, so a week's churn
+cost an evening and taught the reflex these gates exist to prevent,
+which is clicking through a bot's work without reading it.
+
+Version updates now run monthly, with at most two pull requests open
+per ecosystem. The security half is untouched and is a different
+mechanism: Dependabot security updates and the platform's alerts fire
+on an advisory the day it publishes, on no schedule of ours. So the
+cost of the change is that a pin with nothing wrong with it may sit
+one version behind for a few weeks longer, and the thing that would
+make it urgent is exactly the thing the monthly schedule does not
+govern.
+
+Rejected: turning version updates off, which would leave the tree to
+drift until an advisory forced a jump across several versions at
+once, and would drop the rater's check that an update tool is
+configured; and keeping the weekly cadence with notifications
+silenced, which fixes the inbox and not the work.
