@@ -1159,8 +1159,8 @@ or re-pinned without the table moving fails the build.
 | `actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8` (v4.2.2) | release, attest-release | Attests each artifact's build provenance, and the container image's digest, into the transparency log |
 | `google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1` (v1) | fuzz | Builds the harnesses under fuzz/ with AddressSanitizer from the digest-pinned fuzzing base image |
 | `google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1` (v1) | fuzz | Runs each harness for a bounded time against inputs derived from the change; a crash fails the check |
-| `codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f` (v7.0.0) | checks, the application job | Publishes the coverage report through the workflow's identity token, no stored secret, so the coverage figure is measured and shown by an outside service |
-| `SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f` (v8.2.1) | checks, the application job, when the token is present | Runs SonarCloud's analysis on the same commit the other gates judged, importing the coverage report |
+| `codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5` (v7.1.1) | checks, the application job | Publishes the coverage report through the workflow's identity token, no stored secret, so the coverage figure is measured and shown by an outside service |
+| `SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4` (v8.2.2) | checks, the application job, when the token is present | Runs SonarCloud's analysis on the same commit the other gates judged, importing the coverage report |
 | `actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9` (v5.0.0) | docs | Packages the rendered site for Pages |
 | `actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346` (v5.0.1) | docs | Publishes the packaged site through the workflow's identity token |
 
