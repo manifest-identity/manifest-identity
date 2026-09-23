@@ -1418,3 +1418,34 @@ the duplication and moves the toil into a regeneration commit the bot
 still cannot make; and dropping the table, which would leave no record
 of why any of this third-party code is trusted, which is the question
 the table exists to answer.
+
+## D-062: The security rule set was spot-checked against a second analyzer, once
+
+The linter runs the `S` rule set, which is a reimplementation of
+Bandit's checks inside ruff (D-022 chose the linter; D-025 added the
+dataflow analyzers above it). A reimplementation can drift from its
+source, so on September 23, 2026 Bandit 1.9.4 itself was run once over
+the application, the scripts, the fuzz harnesses, the migrations, and
+the tests, then removed from the environment.
+
+Seven findings, none high. Two were the two places ruff already
+flags, each carrying its written suppression and reason: the AWS
+action string `iam:passrole`, which both tools read as a password, and
+the scoring page's `urlopen` against two fixed HTTPS hosts. The other
+five were notices that two scripts import `subprocess` and call git
+and pytest with fixed argument lists in the form that takes no shell,
+which is the form the notice exists to steer toward. The tests
+produced nothing at medium or high.
+
+The result is recorded because it is evidence the pipeline could not
+produce on its own: two independent implementations of the same rules
+agree on this code, and every suppression is justified in both. Bandit
+is not added to the pipeline, because it would run the same checks a
+second time under a second configuration and find what the first run
+finds. The spot check is worth repeating when the linter's rule set is
+upgraded across a major version, or when a finding class is added that
+the linter does not carry.
+
+Rejected: adding Bandit as a permanent job, for the reason above; and
+not recording the run, which would leave the claim that the linter
+covers Bandit's rules as a claim rather than a checked one.
