@@ -4,7 +4,7 @@
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/14563?label=OpenSSF%20Best%20Practices&style=for-the-badge)](https://www.bestpractices.dev/projects/14563)
 [![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Ftltaylor1%2Fbuild-doctrine%2Fmain%2Fbadges%2Frole-call.json&style=for-the-badge)](https://github.com/tltaylor1/build-doctrine/blob/main/SCORES.md)
 [![Coverage](https://img.shields.io/codecov/c/github/tltaylor1/role-call?label=Coverage&style=for-the-badge)](https://codecov.io/gh/tltaylor1/role-call)
-[![Quality gate](https://img.shields.io/sonar/quality_gate/tltaylor1_role-call?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=tltaylor1_role-call)
+[![Quality gate](https://img.shields.io/sonar/quality_gate/manifest-identity_manifest-identity?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=manifest-identity_manifest-identity)
 
 **Documentation site**, this document with side navigation and search:
 <https://tltaylor1.github.io/role-call/>. What each badge above
