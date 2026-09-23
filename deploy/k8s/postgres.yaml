@@ -45,7 +45,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: postgres
-          image: postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+          image: postgres:17@sha256:f4c66b820c6f974249089d3d16d86a3698eae11e8746eb6644b2271031e91232
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

@@ -306,6 +306,21 @@ manufactured entry would defeat the reason this file exists.
   minutes, but a script that pushes must stop at the first failure,
   and this one did not check the step that mattered (September 2026).
 
+- **The agent repeated a recorded lesson on the image it was not
+  written for.** D-055 records that a check that a pin moved is not a
+  check of what it moved to, after the Python base image drifted to
+  the full image. The database image had the same untagged pin, and
+  when the bot bumped it the agent moved the workflow twin to match
+  and merged, without reading the version. The stack had in fact
+  jumped a major on the bump before that one and `docker compose up`
+  had been failing on fresh clones for three weeks; the pipeline's
+  database has no volume and never saw it. Caught by running the
+  renamed stack end to end before its pull request opened. The tag
+  now sits beside every image digest, the gate refuses one without,
+  and the Kubernetes copy is held to the home (D-063). The lesson
+  from D-055 is now a rule a machine checks instead of a paragraph a
+  person remembers (September 2026).
+
 Each entry changed a rule, a checklist, or a design, which is the point:
 the catches compound, the mistakes do not. The provenance entry
 changed the attribution itself, and its lesson is the whole file's

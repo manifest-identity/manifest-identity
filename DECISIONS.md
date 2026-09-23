@@ -1449,3 +1449,35 @@ the linter does not carry.
 Rejected: adding Bandit as a permanent job, for the reason above; and
 not recording the run, which would leave the claim that the linter
 covers Bandit's rules as a claim rather than a checked one.
+
+## D-063: Every image pin carries its major version, and the manifest copy is held to the home
+
+The database image was pinned by digest alone, `postgres@sha256:...`,
+with no tag beside it. An untagged pin gives the update bot no line
+to follow, so it follows `latest`, and on September 1 the bump from
+`18cfe3e` to `4ef4dbc` moved the compose file from PostgreSQL 17.11
+to 18.6 without anyone reading the major. The 18 image refuses a
+data volume mounted at the 17 path, so `docker compose up` on a
+fresh clone has failed since that merge. The pipeline did not notice
+because its test job runs the database as a service with no volume.
+The next bump, on September 22, moved the digest again and the agent
+moved the workflow twin to match, checking that the pin moved and
+not what it moved to, which is the lesson D-055 already recorded for
+the Python image and did not apply to this one.
+
+Both references now read `postgres:17@sha256:...`, and the homes gate
+refuses any pinned image whose reference carries no version tag. The
+Kubernetes manifest held a third copy of the digest, still on 17,
+that no gate covered; the homes gate now holds it to the compose
+file's exact reference, tag and digest, because it is not a workflow
+and the resolve job cannot feed it.
+
+Found by running the renamed stack end to end before its pull
+request opened, which is the verification the doctrine asks for and
+the only check in the program that mounts a volume.
+
+Rejected: moving to 18 now, which is a data migration (`pg_upgrade`)
+for every existing stack and belongs to its own decision with the
+mount layout the 18 image expects; and leaving the Kubernetes copy
+outside the gate, which is how it drifted a major version from the
+file beside it.
