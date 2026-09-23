@@ -1529,3 +1529,38 @@ split one product's record in two and left the observed half with the
 name that no longer said what it was; and a rename in place under the
 personal account, which would have left the organization holding a
 name and pointing at a repository elsewhere.
+
+## D-065: The license is the AGPL 3.0 from the declared-access work onward
+
+The observed half of the product shipped under the Apache 2.0
+license, and every release through v0.2.0 stays under it; a
+published license is not withdrawn. The declared half, the delta, and
+the redefined campaigns are unwritten, and they are the part a
+company would pay for, which makes this the moment to choose the
+terms the rest of the product carries.
+
+The choice is open core. The platform stays open source, forkable,
+and usable by anyone, under the GNU Affero General Public License,
+version 3, whose one addition to the GPL is that a party running the
+software as a service for others must publish their changes. That is
+the lever a one-person product holds against a larger company
+reselling the work, and it is also the term some enterprises refuse
+on sight; that cost is accepted. Parts a company pays for, single
+sign-on, scoped administration, connectors, and support, may live in
+a separate repository under the same organization under other terms,
+and the boundary will be stated in this file when the first such
+part exists.
+
+Every commit in this repository is by its maintainer, by the
+maintainer's own agent app, or by the update bot, so no contributor's
+consent was needed to change the license of future versions. A
+contributor's licence agreement is not added; contributions under
+the AGPL are accepted as AGPL, and the maintainer's ability to
+relicense ends with the first outside contribution, which is stated
+here so that it is a known cost rather than a surprise.
+
+Rejected: staying on Apache 2.0, which offers no protection against
+resale and would leave the private parts as the only thing of value;
+and the Business Source License, which is not open source by the
+accepted definition and would make the program's public claims
+untrue.

@@ -17,4 +17,4 @@ states, and the counted figures in the README are recounted by tests, so
 a change that adds a test or a route also moves the figure it changes.
 
 By contributing you agree your work is licensed under the repository's
-Apache 2.0 license.
+GNU Affero General Public License, version 3 (D-065).
