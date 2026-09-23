@@ -35,14 +35,21 @@ def main() -> int:
                     f"digest; read it from {home} through the resolve job instead"
                 )
     for image, home, twin in TWINS:
-        want = re.search(image + r"(?::[A-Za-z0-9._-]+)?@sha256:[0-9a-f]{64}", (ROOT / home).read_text())
-        have = re.search(image + r"(?::[A-Za-z0-9._-]+)?@sha256:[0-9a-f]{64}", (ROOT / twin).read_text())
+        pattern = image + r"(?::[A-Za-z0-9._-]+)?@sha256:[0-9a-f]{64}"
+        want = re.search(pattern, (ROOT / home).read_text())
+        have = re.search(pattern, (ROOT / twin).read_text())
         if not want or not have or want.group(0) != have.group(0):
-            failures.append(f"{image}: {twin} does not state the same tag and digest as {home}")
+            failures.append(
+                f"{image}: {twin} does not state the same tag and digest as {home}"
+            )
     for name, home, _ in HOMES:
-        ref = re.search(name + r"(?::[A-Za-z0-9._-]+)?@sha256:[0-9a-f]{64}", (ROOT / home).read_text())
+        pattern = name + r"(?::[A-Za-z0-9._-]+)?@sha256:[0-9a-f]{64}"
+        ref = re.search(pattern, (ROOT / home).read_text())
         if ref and not TAGGED.match(ref.group(0)):
-            failures.append(f"{name}: {home} pins a digest with no version tag beside it; the update bot follows latest across majors without one")
+            failures.append(
+                f"{name}: {home} pins a digest with no version tag beside it; "
+                "the update bot follows latest across majors without one"
+            )
     for line in failures:
         print(line)
     if failures:
