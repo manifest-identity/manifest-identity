@@ -8,7 +8,6 @@ moved the copy by hand (D-061). The copies are gone, and this refuses
 their return.
 """
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent

@@ -12,7 +12,6 @@ that the table does not name.
 """
 
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent

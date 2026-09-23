@@ -205,6 +205,11 @@ jobs:
     # the interpreter that ships it and an update tool moving the one home
     # moves the pipeline with it (D-061).
     container:
+      # The workflow auditor reads this file alone, so it cannot see that
+      # the value is a digest the resolve job read from the Dockerfile.
+      # The pinning is held by check_digest_homes.py and by the reader,
+      # which fails when the home holds no digest (D-061).
+      # zizmor: ignore[unpinned-images]
       image: ${{ needs.resolve.outputs.python }}
     services:
       # A real database for the migration drift check, on the image the
@@ -212,6 +217,7 @@ jobs:
       # from the run id: not a secret, not credential-shaped, different
       # every run.
       postgres:
+        # zizmor: ignore[unpinned-images]
         image: ${{ needs.resolve.outputs.postgres }}
         env:
           POSTGRES_USER: rolecall

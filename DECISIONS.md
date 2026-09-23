@@ -1403,6 +1403,12 @@ replaced by gates that hold a property rather than a copy: each digest
 has one home and no workflow carries a second, and every action use is
 pinned to a full commit hash and named in the table.
 
+The workflow auditor reads one file at a time, so it cannot follow the
+value into the job that produced it and reports the container image as
+possibly unpinned. That audit is suppressed on those two lines with the
+reason beside them, and the property it was watching is held by the
+homes check and by the reader, which fails when a home holds no digest.
+
 What this gives up: a reader of the README no longer sees which version
 of an action runs without opening a workflow. That is a click, against
 an update that no longer requires a human to complete it.
