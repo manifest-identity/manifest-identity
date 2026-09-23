@@ -12,7 +12,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from rolecall.roles import Role
+from manifest_identity.roles import Role
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 from tests.reportlib import HEADER
 
@@ -139,7 +139,7 @@ def test_the_timeline_names_each_source_correctly(
     """Both formats import at the same capture time, so a timeline
     keyed by time labels half the rows with the wrong source. Found by
     reading the rendered page, not by a passing test."""
-    from rolecall.sample_data import GENERATIONS, file_set
+    from manifest_identity.sample_data import GENERATIONS, file_set
 
     make_user(db, Role.operator)
     token = login(client, ROLE_USERS[Role.operator])

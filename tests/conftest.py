@@ -12,9 +12,9 @@ tested there.
 import os
 from collections.abc import Iterator
 
-os.environ.setdefault("ROLECALL_DATABASE_URL", "sqlite+pysqlite:///:memory:")
-os.environ.setdefault("ROLECALL_ADMIN_USERNAME", "")
-os.environ.setdefault("ROLECALL_ADMIN_PASSWORD", "")
+os.environ.setdefault("MANIFEST_IDENTITY_DATABASE_URL", "sqlite+pysqlite:///:memory:")
+os.environ.setdefault("MANIFEST_IDENTITY_ADMIN_USERNAME", "")
+os.environ.setdefault("MANIFEST_IDENTITY_ADMIN_PASSWORD", "")
 
 import pytest
 from fastapi.testclient import TestClient
@@ -22,11 +22,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from rolecall import db as db_module
-from rolecall.db import Base
-from rolecall.ratelimit import LOGIN_LIMITER, WRITE_LIMITER
-from rolecall.roles import Role
-from rolecall.security import hash_password
+from manifest_identity import db as db_module
+from manifest_identity.db import Base
+from manifest_identity.ratelimit import LOGIN_LIMITER, WRITE_LIMITER
+from manifest_identity.roles import Role
+from manifest_identity.security import hash_password
 
 # One shared in-memory database for the whole test process; StaticPool
 # hands every connection the same underlying store.
@@ -53,7 +53,7 @@ if hasattr(db_module.get_engine, "cache_clear"):
     db_module.get_engine.cache_clear()
     db_module.get_engine = lambda: _engine  # type: ignore[assignment]
 
-from rolecall.main import app  # noqa: E402  (after the engine override)
+from manifest_identity.main import app  # noqa: E402  (after the engine override)
 
 app.dependency_overrides[db_module.get_session] = _test_get_session
 
@@ -89,7 +89,7 @@ def db() -> Iterator[Session]:
 
 def make_user(db: Session, role: Role, username: str | None = None) -> str:
     """Create a user directly in the database; returns the username."""
-    from rolecall.models import User
+    from manifest_identity.models import User
 
     name = username or ROLE_USERS[role]
     db.add(

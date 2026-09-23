@@ -218,11 +218,11 @@ jobs:
       postgres:
         image: ${{ needs.resolve.outputs.postgres }} # zizmor: ignore[unpinned-images]
         env:
-          POSTGRES_USER: rolecall
-          POSTGRES_DB: rolecall
+          POSTGRES_USER: manifest_identity
+          POSTGRES_DB: manifest_identity
           POSTGRES_PASSWORD: ci-run-${{ github.run_id }}
         options: >-
-          --health-cmd "pg_isready -U rolecall -d rolecall"
+          --health-cmd "pg_isready -U manifest_identity -d manifest_identity"
           --health-interval 2s
           --health-timeout 2s
           --health-retries 15
@@ -248,7 +248,7 @@ jobs:
         # The floor sits under the measured figure (94 at adoption) so
         # it catches erosion without inviting tests written to move a
         # number (D-041).
-        run: pytest --cov=rolecall --cov-fail-under=90 --cov-report=term --cov-report=xml
+        run: pytest --cov=manifest_identity --cov-fail-under=90 --cov-report=term --cov-report=xml
       - name: publish coverage to Codecov
         # Tokenless through the workflow's identity token, so no secret
         # is stored anywhere; the figure the README states is then also
@@ -273,19 +273,19 @@ jobs:
         run: python3 scripts/check_mutation.py
       - name: migrations apply and match the models
         env:
-          ROLECALL_DATABASE_URL: postgresql+psycopg://rolecall:ci-run-${{ github.run_id }}@postgres:5432/rolecall
+          MANIFEST_IDENTITY_DATABASE_URL: postgresql+psycopg://manifest_identity:ci-run-${{ github.run_id }}@postgres:5432/manifest_identity
         run: |
           alembic upgrade head
           alembic check
       - name: the runtime role cannot touch schema (D-013)
         env:
-          ROLECALL_OWNER_DATABASE_URL: postgresql+psycopg://rolecall:ci-run-${{ github.run_id }}@postgres:5432/rolecall
+          MANIFEST_IDENTITY_OWNER_DATABASE_URL: postgresql+psycopg://manifest_identity:ci-run-${{ github.run_id }}@postgres:5432/manifest_identity
         run: |
-          export ROLECALL_APP_DB_PASSWORD="probe-${{ github.run_id }}"
+          export MANIFEST_IDENTITY_APP_DB_PASSWORD="probe-${{ github.run_id }}"
           python scripts/setup_db_roles.py
           python - << 'PROBE'
           import os, psycopg
-          url = f"postgresql://rolecall_app:{os.environ['ROLECALL_APP_DB_PASSWORD']}@postgres:5432/rolecall"
+          url = f"postgresql://manifest_identity_app:{os.environ['MANIFEST_IDENTITY_APP_DB_PASSWORD']}@postgres:5432/manifest_identity"
           with psycopg.connect(url) as conn:
               with conn.cursor() as cur:
                   cur.execute("select count(*) from identities")
@@ -345,12 +345,12 @@ jobs:
           BASE=$(grep -oP '^FROM \K.*' Dockerfile)
           "$RUNNER_TEMP/trivy" image --scanners vuln --pkg-types os --severity HIGH,CRITICAL "$BASE" || true
       - name: build the image
-        run: docker build --tag rolecall:ci .
+        run: docker build --tag manifest-identity:ci .
       - name: built image operating system packages, blocking on critical with a fix
         # The Dockerfile applies Debian's updates, so this is the scan a
         # pull request can answer for: a fixed finding here means the
         # build did not pick up a published fix (D-055).
-        run: '"$RUNNER_TEMP/trivy" image --scanners vuln --pkg-types os --ignore-unfixed --severity CRITICAL --exit-code 1 rolecall:ci'
+        run: '"$RUNNER_TEMP/trivy" image --scanners vuln --pkg-types os --ignore-unfixed --severity CRITICAL --exit-code 1 manifest-identity:ci'
       - name: scan the pinned trees for malware shapes
         # pip-audit knows published vulnerabilities; GuardDog's
         # heuristics see what has no advisory yet: install-time

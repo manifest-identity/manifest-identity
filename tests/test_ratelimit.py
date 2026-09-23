@@ -4,9 +4,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from rolecall.models import AuditEvent
-from rolecall.ratelimit import LoginRateLimiter
-from rolecall.roles import Role
+from manifest_identity.models import AuditEvent
+from manifest_identity.ratelimit import LoginRateLimiter
+from manifest_identity.roles import Role
 from tests.conftest import TEST_PASSWORD, make_user
 
 
@@ -83,7 +83,7 @@ def test_reset_clears_a_key_at_the_unit_level() -> None:
 def test_window_slides(monkeypatch: object) -> None:
     limiter = LoginRateLimiter(max_failures=2, window_seconds=10)
     now = [1000.0]
-    import rolecall.ratelimit as rl
+    import manifest_identity.ratelimit as rl
 
     real_monotonic = rl.time.monotonic
     rl.time.monotonic = lambda: now[0]  # type: ignore[assignment]
@@ -100,8 +100,8 @@ def test_window_slides(monkeypatch: object) -> None:
 def test_the_write_budget_bounds_heavy_writes(client, db) -> None:
     """Imports and campaign creation carry a per-user budget (D-041):
     thirty writes a minute admits any human pace and refuses a loop."""
-    from rolecall.ratelimit import WRITE_LIMITER
-    from rolecall.roles import Role
+    from manifest_identity.ratelimit import WRITE_LIMITER
+    from manifest_identity.roles import Role
     from tests.conftest import ROLE_USERS, auth_header, login, make_user
 
     make_user(db, Role.operator)

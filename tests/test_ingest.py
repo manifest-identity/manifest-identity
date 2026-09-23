@@ -4,8 +4,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from rolecall.models import AuditEvent, Identity, Observation, Snapshot
-from rolecall.roles import Role
+from manifest_identity.models import AuditEvent, Identity, Observation, Snapshot
+from manifest_identity.roles import Role
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 from tests.reportlib import ACCOUNT, report, root_row, user_row
 

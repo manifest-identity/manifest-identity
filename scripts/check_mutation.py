@@ -20,28 +20,28 @@ from pathlib import Path
 MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
     (
         "authorization check removed",
-        "rolecall/deps.py",
+        "manifest_identity/deps.py",
         "        if auth.user.role not in allowed:",
         "        if False:",
         ["tests/test_matrix.py"],
     ),
     (
         "audit rows silently dropped",
-        "rolecall/audit.py",
+        "manifest_identity/audit.py",
         "    db.add(",
         "    return\n    db.add(",
         ["tests/test_governance.py"],
     ),
     (
         "session tokens no longer hashed uniquely",
-        "rolecall/security.py",
+        "manifest_identity/security.py",
         "    return hashlib.sha256(token.encode()).hexdigest()",
         "    return \"0\" * 64",
         ["tests/test_auth.py"],
     ),
     (
         "rate limiter always allows",
-        "rolecall/ratelimit.py",
+        "manifest_identity/ratelimit.py",
         "        kept = [t for t in self._failures.get(key, [])"
         " if now - t < self.window_seconds]",
         "        kept: list[float] = []\n"
@@ -51,21 +51,21 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
     ),
     (
         "formula escaping removed from the CSV exit",
-        "rolecall/reports.py",
+        "manifest_identity/reports.py",
         "    if text.startswith(FORMULA_LEADERS):",
         "    if False:",
         ["tests/test_reports.py"],
     ),
     (
         "assigned owners no longer answer the unowned finding",
-        "rolecall/governance.py",
+        "manifest_identity/governance.py",
         "    if effective is not None and effective.source == \"assigned\":",
         "    if False:",
         ["tests/test_governance.py"],
     ),
     (
         "campaigns close with undecided items",
-        "rolecall/routes/campaigns.py",
+        "manifest_identity/routes/campaigns.py",
         "    if open_items:",
         "    if False:",
         ["tests/test_campaigns.py"],

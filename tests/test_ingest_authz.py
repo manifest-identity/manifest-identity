@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from rolecall.models import Group, GroupObservation, Identity, PolicyDocumentRecord
-from rolecall.roles import Role
+from manifest_identity.models import Group, GroupObservation, Identity, PolicyDocumentRecord
+from manifest_identity.roles import Role
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 from tests.reportlib import ACCOUNT, report, user_row
 

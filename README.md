@@ -1,18 +1,18 @@
-![role-call: inventory and governance for non-human identities](docs/brand/banner.jpg)
+![manifest-identity: inventory and governance for non-human identities](docs/brand/banner.jpg)
 
-[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/tltaylor1/role-call?label=OpenSSF%20Scorecard&style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/tltaylor1/role-call)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/manifest-identity/manifest-identity?label=OpenSSF%20Scorecard&style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/manifest-identity/manifest-identity)
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/14563?label=OpenSSF%20Best%20Practices&style=for-the-badge)](https://www.bestpractices.dev/projects/14563)
-[![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Ftltaylor1%2Fbuild-doctrine%2Fmain%2Fbadges%2Frole-call.json&style=for-the-badge)](https://github.com/tltaylor1/build-doctrine/blob/main/SCORES.md)
-[![Coverage](https://img.shields.io/codecov/c/github/tltaylor1/role-call?label=Coverage&style=for-the-badge)](https://codecov.io/gh/tltaylor1/role-call)
+[![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Ftltaylor1%2Fbuild-doctrine%2Fmain%2Fbadges%2Fmanifest-identity.json&style=for-the-badge)](https://github.com/tltaylor1/build-doctrine/blob/main/SCORES.md)
+[![Coverage](https://img.shields.io/codecov/c/github/tltaylor1/manifest-identity?label=Coverage&style=for-the-badge)](https://codecov.io/gh/manifest-identity/manifest-identity)
 [![Quality gate](https://img.shields.io/sonar/quality_gate/manifest-identity_manifest-identity?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=manifest-identity_manifest-identity)
 
 **Documentation site**, this document with side navigation and search:
-<https://tltaylor1.github.io/role-call/>. What each badge above
+<https://manifest-identity.github.io/manifest-identity/>. What each badge above
 measures and every item it scored: [SCORING.md](SCORING.md).
 
 **Inventory and governance for non-human identities.**
 
-role-call imports the identity reports your cloud already produces,
+manifest-identity imports the identity reports your cloud already produces,
 works out each user's and role's state from what was observed, and puts
 an owner and a review decision on every one. It starts with Amazon Web
 Services (AWS) identity.
@@ -62,7 +62,7 @@ several AWS accounts, who need to answer "who owns this and is it still
 needed" and prove they asked. It is not a provisioning tool, it does not
 change anything in the account, and it does not yet read other clouds.
 
-role-call is one application inside
+manifest-identity is one application inside
 [control-plane](https://tltaylor1.github.io), a security engineering
 program built in public; the roadmap around this application, the
 platform phases, and the program's own documents live there.
@@ -74,7 +74,7 @@ platform phases, and the program's own documents live there.
 | Tests | **157 tests in 26 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **31 routes**, every one in the role matrix the tests walk |
-| Record | **63 recorded decisions**, each with its rejected alternatives |
+| Record | **64 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -86,7 +86,7 @@ its count fails the build.
 **Quick start**, with Docker as the only requirement:
 
 ```bash
-git clone https://github.com/tltaylor1/role-call.git && cd role-call
+git clone https://github.com/manifest-identity/manifest-identity.git && cd manifest-identity
 cp .env.example .env   # fill in the four values it names
 docker compose up -d
 ```
@@ -95,7 +95,7 @@ Then one command populates it end to end, the sample account
 imported and a review campaign open, safe to run twice:
 
 ```bash
-docker compose exec app python -m rolecall.demo
+docker compose exec app python -m manifest_identity.demo
 ```
 
 Open http://127.0.0.1:8000, sign in with your administrator, and the
@@ -158,7 +158,7 @@ documents say so.
 
 ## What this is
 
-You feed role-call snapshot files: a record of every identity in a
+You feed manifest-identity snapshot files: a record of every identity in a
 cloud account at one moment. It keeps every snapshot and never edits
 an old one. When you open the inventory, it works out each identity's
 situation at that moment: compare the newest snapshot with the history,
@@ -185,7 +185,7 @@ Four operations, and nothing else:
   the demo.
 - The operator views the enriched inventory and produces the
   self-contained risk report plus CSV and JSON exports.
-- The operator governs in role-call only: owners, purposes, flags,
+- The operator governs in manifest-identity only: owners, purposes, flags,
   attestations, and review campaigns. Nothing is written to the cloud
   account.
 
@@ -200,12 +200,20 @@ demonstrated.
 
 ## Run it
 
+**Coming from a role-call checkout:** the variables in `.env` are now
+`MANIFEST_IDENTITY_*` (see `.env.example`), the database and its roles
+are `manifest_identity` and `manifest_identity_app`, and an existing
+data volume does not carry over: run `docker compose down -v` and
+start fresh, or restore a backup under the new role names using the
+procedure below (D-064).
+
+
 Requires Docker with the compose plugin, and nothing else.
 
 ```
 cp .env.example .env
-# set POSTGRES_PASSWORD and ROLECALL_APP_DB_PASSWORD (D-051), and set
-# ROLECALL_ADMIN_USERNAME and ROLECALL_ADMIN_PASSWORD so startup
+# set POSTGRES_PASSWORD and MANIFEST_IDENTITY_APP_DB_PASSWORD (D-051), and set
+# MANIFEST_IDENTITY_ADMIN_USERNAME and MANIFEST_IDENTITY_ADMIN_PASSWORD so startup
 # creates your administrator
 docker compose up --build
 ```
@@ -236,7 +244,7 @@ the history should arrive in the order it happened; then read the
 inventory.
 
 The sample account is synthetic and deterministic, generated by
-`python -m rolecall.sample_data`, and it is built to trigger every
+`python -m manifest_identity.sample_data`, and it is built to trigger every
 finding the engine can produce, including the ones that need history:
 an identity that stops being used, a group that gains a member, and a
 name that comes back under a new identifier. It is generated rather
@@ -246,7 +254,7 @@ if the shipped files and the generator disagree.
 
 The committed account stays small on purpose: one identity per
 archetype, so every finding is readable. For load work the same
-generator scales: `python -m rolecall.sample_data out --scale 1000`
+generator scales: `python -m manifest_identity.sample_data out --scale 1000`
 adds a thousand bulk identities to each generation, one third people
 with passwords and two thirds services with keys, every variation
 derived from the identity's index so the output is byte-identical on
@@ -259,10 +267,10 @@ serves a local look; PostgreSQL is what the compose file runs.
 
 ```
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-export ROLECALL_DATABASE_URL="sqlite+pysqlite:///rc.db"
-export ROLECALL_ADMIN_USERNAME=admin ROLECALL_ADMIN_PASSWORD=<yours>
-.venv/bin/python -m rolecall.demo
-.venv/bin/uvicorn rolecall.main:app
+export MANIFEST_IDENTITY_DATABASE_URL="sqlite+pysqlite:///rc.db"
+export MANIFEST_IDENTITY_ADMIN_USERNAME=admin MANIFEST_IDENTITY_ADMIN_PASSWORD=<yours>
+.venv/bin/python -m manifest_identity.demo
+.venv/bin/uvicorn manifest_identity.main:app
 ```
 
 The demo command migrates, creates the administrator from the
@@ -286,11 +294,11 @@ from a real session:
   (Ctrl+Shift+R) after any `docker compose up --build`; the served
   files are current, the tab is not.
 - **The demo command exits with code 1 and a message about admin
-  variables.** It refuses to run without `ROLECALL_ADMIN_USERNAME` and
-  `ROLECALL_ADMIN_PASSWORD` set, on purpose, so no clone ever carries a
+  variables.** It refuses to run without `MANIFEST_IDENTITY_ADMIN_USERNAME` and
+  `MANIFEST_IDENTITY_ADMIN_PASSWORD` set, on purpose, so no clone ever carries a
   default account. Set both in `.env` and run it again.
 - **The app container starts and then exits.** The database password
-  split (D-051) means `ROLECALL_APP_DB_PASSWORD` must be present in
+  split (D-051) means `MANIFEST_IDENTITY_APP_DB_PASSWORD` must be present in
   `.env` alongside `POSTGRES_PASSWORD`; a missing one fails the
   migration step before the server starts. `docker compose logs
   migrate` names which.
@@ -324,7 +332,7 @@ involved.
 
 ```
 scripts/cluster-up.sh
-export POSTGRES_PASSWORD=... ROLECALL_APP_DB_PASSWORD=... ROLECALL_ADMIN_USERNAME=... ROLECALL_ADMIN_PASSWORD=...
+export POSTGRES_PASSWORD=... MANIFEST_IDENTITY_APP_DB_PASSWORD=... MANIFEST_IDENTITY_ADMIN_USERNAME=... MANIFEST_IDENTITY_ADMIN_PASSWORD=...
 scripts/deploy-app.sh
 ```
 
@@ -347,9 +355,9 @@ What the cluster enforces that compose cannot, each verifiable:
   database, and name resolution. Calico enforces; the probes prove:
 
 ```bash
-.tools/kubectl -n rolecall exec deploy/app -- python -c "import socket; socket.create_connection(('db', 5432), timeout=5); print('allowed')"
-.tools/kubectl -n rolecall run probe --image=postgres@sha256:4ef4dbc939d61acea57712655ddb4b4ab27419c913f94cca0cd57cb3ea3c2280 --restart=Never --command -- sleep 300
-.tools/kubectl -n rolecall exec probe -- timeout 4 bash -c "echo > /dev/tcp/db/5432"   # hangs and dies: denied
+.tools/kubectl -n manifest-identity exec deploy/app -- python -c "import socket; socket.create_connection(('db', 5432), timeout=5); print('allowed')"
+.tools/kubectl -n manifest-identity run probe --image=postgres@sha256:4ef4dbc939d61acea57712655ddb4b4ab27419c913f94cca0cd57cb3ea3c2280 --restart=Never --command -- sleep 300
+.tools/kubectl -n manifest-identity exec probe -- timeout 4 bash -c "echo > /dev/tcp/db/5432"   # hangs and dies: denied
 ```
 
 - **Admission, two layers.** The namespace enforces the restricted Pod
@@ -359,7 +367,7 @@ What the cluster enforces that compose cannot, each verifiable:
   unpinned image are both refused at creation, wording and all:
 
 ```bash
-.tools/kubectl -n rolecall run unpinned --image=nginx:latest --restart=Never   # refused by the image-pinning admission policy (D-047)
+.tools/kubectl -n manifest-identity run unpinned --image=nginx:latest --restart=Never   # refused by the image-pinning admission policy (D-047)
 ```
 
 - **No orchestrator identity to steal.** The workloads run under
@@ -367,7 +375,7 @@ What the cluster enforces that compose cannot, each verifiable:
   the application needs nothing from the Kubernetes API:
 
 ```bash
-.tools/kubectl -n rolecall exec deploy/app -- ls /var/run/secrets/kubernetes.io   # No such file or directory
+.tools/kubectl -n manifest-identity exec deploy/app -- ls /var/run/secrets/kubernetes.io   # No such file or directory
 ```
 
 The manifests are schema-validated and posture-linted in the pipeline
@@ -543,7 +551,7 @@ gate exists because of a specific failure:
   they can act on, and separating no identity from insufficient
   authority costs an attacker nothing they could not learn anyway.
 - **The role matrix.** May this role call this route. One data
-  structure in [rolecall/roles.py](rolecall/roles.py) is the single
+  structure in [manifest_identity/roles.py](manifest_identity/roles.py) is the single
   answer: the route dependencies read it to enforce and the tests
   read it to verify, so the enforced matrix and the tested matrix
   cannot drift apart. A route missing from the matrix fails the
@@ -751,22 +759,22 @@ stays derived at read (D-006).
 
 | Path | Role |
 |---|---|
-| `rolecall/main.py` | Application assembly: routes, security headers, the static shell |
-| `rolecall/roles.py` | The role matrix, single source: who may call what |
-| `rolecall/deps.py` | Authentication, authorization, and the write budget, as dependencies |
-| `rolecall/ingest/` | The two snapshot parsers: bounded, in memory, distrusting their own preconditions |
-| `rolecall/models.py` | The tables; append-only observation history as structure |
-| `rolecall/derive.py` | State from history at read time; the freshest value per field |
-| `rolecall/findings.py` | Credential findings, each explaining itself with its OWASP anchor |
-| `rolecall/policy_analysis.py` | What a policy document grants, read by capability |
-| `rolecall/privilege.py` | The privilege picture with source attribution; shadow admin detection |
-| `rolecall/governance.py` | The human layer: typed owners, purposes, flags, attestations |
-| `rolecall/campaigns.py` | Recommendations with reasons, and the delta since last certification |
-| `rolecall/assessment.py` | The one computation the page, the campaigns, and the exports all read |
-| `rolecall/reports.py` | The ranked report and the escaped exports |
-| `rolecall/routes/` | The route handlers, every one in the matrix or named public |
-| `rolecall/audit.py` | The audit spine: the record commits with the action |
-| `rolecall/sample_data.py` | The deterministic sample account generator |
+| `manifest_identity/main.py` | Application assembly: routes, security headers, the static shell |
+| `manifest_identity/roles.py` | The role matrix, single source: who may call what |
+| `manifest_identity/deps.py` | Authentication, authorization, and the write budget, as dependencies |
+| `manifest_identity/ingest/` | The two snapshot parsers: bounded, in memory, distrusting their own preconditions |
+| `manifest_identity/models.py` | The tables; append-only observation history as structure |
+| `manifest_identity/derive.py` | State from history at read time; the freshest value per field |
+| `manifest_identity/findings.py` | Credential findings, each explaining itself with its OWASP anchor |
+| `manifest_identity/policy_analysis.py` | What a policy document grants, read by capability |
+| `manifest_identity/privilege.py` | The privilege picture with source attribution; shadow admin detection |
+| `manifest_identity/governance.py` | The human layer: typed owners, purposes, flags, attestations |
+| `manifest_identity/campaigns.py` | Recommendations with reasons, and the delta since last certification |
+| `manifest_identity/assessment.py` | The one computation the page, the campaigns, and the exports all read |
+| `manifest_identity/reports.py` | The ranked report and the escaped exports |
+| `manifest_identity/routes/` | The route handlers, every one in the matrix or named public |
+| `manifest_identity/audit.py` | The audit spine: the record commits with the action |
+| `manifest_identity/sample_data.py` | The deterministic sample account generator |
 | `frontend/` | One page, no build step; every value rendered as text |
 | `migrations/` | The schema from the first table |
 | `sample-data/` | The generated demo account, committed and checked |
@@ -790,7 +798,7 @@ that answers it. This is the version one model; Phase 7 changes what
 the tool is allowed to do and requires a revision before any of its
 code is written.
 
-The premise that shapes everything here: role-call's database is a map
+The premise that shapes everything here: manifest-identity's database is a map
 of every identity in the target account, which ones are unused, which
 ones are over-privileged, and which credentials are old. That
 inventory is exactly the reconnaissance an attacker wants, so the tool
@@ -804,7 +812,7 @@ Ordered by likelihood times impact. The STRIDE letter names the category.
 
 | # | Threat | STRIDE | Likelihood | Impact | Control |
 |---|---|---|---|---|---|
-| 1 | Theft of role-call's own cloud credential, once the live pull phases add one, giving an attacker the full identity map and a foothold shaped like a security tool | S, I | Medium | High | Federated, short-lived credentials rather than a stored key; read-only scope; the role's own use is audited in the target account's trail, so the watcher is watched |
+| 1 | Theft of manifest-identity's own cloud credential, once the live pull phases add one, giving an attacker the full identity map and a foothold shaped like a security tool | S, I | Medium | High | Federated, short-lived credentials rather than a stored key; read-only scope; the role's own use is audited in the target account's trail, so the watcher is watched |
 | 2 | Disclosure of the inventory: database access or a leaked export hands over the reconnaissance map | I | Medium | High | Authentication and authorization on every request; response models as an allowlist on the way out; exports carry deliberate fields only; encryption at rest supplied by the deployment layer and stated as a requirement, not assumed (D-020) |
 | 3 | A hidden identity: tampering with stored data so an attacker's principal never appears in the inventory | T | Low | High | State is derived at read time from append-only observations, and every sync is a full snapshot, so hiding requires tampering again after every sync; database least privilege; the audit row commits with its action and carries attribution |
 | 4 | A malicious imported snapshot rewrites another account's history or plants hostile values | T | Medium | Medium | Bounded parsing on every axis; the one-account-per-file precondition is verified rather than assumed; ingestion is append-only and duplicates are rejected |
@@ -839,7 +847,7 @@ Recorded so each is a decision with a reason, not a surprise.
   Recorded now so the absence reads as scheduled rather than
   overlooked.
 - **Version one observes and records; it does not enforce.** An identity
-  flagged in role-call keeps working in the cloud account until a human
+  flagged in manifest-identity keeps working in the cloud account until a human
   acts there. That is the enrichment-over-automation design, stated as a
   risk because a reader could mistake governance records for applied
   controls.
@@ -921,7 +929,7 @@ down.
 nothing worth keeping. One command produces a dated, compressed dump:
 
 ```
-docker compose exec -T db pg_dump -U rolecall -Fc rolecall > rolecall-$(date +%Y-%m-%d).dump
+docker compose exec -T db pg_dump -U manifest-identity -Fc manifest-identity > manifest-identity-$(date +%Y-%m-%d).dump
 ```
 
 The dump contains every snapshot, observation, governance record,
@@ -936,7 +944,7 @@ application first so nothing writes mid-restore:
 
 ```
 docker compose stop app
-docker compose exec -T db pg_restore -U rolecall --clean --if-exists -d rolecall < rolecall-2026-08-19.dump
+docker compose exec -T db pg_restore -U manifest-identity --clean --if-exists -d manifest-identity < manifest-identity-2026-08-19.dump
 docker compose start app
 ```
 
@@ -948,10 +956,10 @@ serving the wrong schema.
 Restore into a throwaway database and count:
 
 ```
-docker compose exec -T db createdb -U rolecall restore_drill
-docker compose exec -T db pg_restore -U rolecall -d restore_drill < rolecall-2026-08-19.dump
-docker compose exec -T db psql -U rolecall -d restore_drill -c "select count(*) from observations"
-docker compose exec -T db dropdb -U rolecall restore_drill
+docker compose exec -T db createdb -U manifest-identity restore_drill
+docker compose exec -T db pg_restore -U manifest-identity -d restore_drill < manifest-identity-2026-08-19.dump
+docker compose exec -T db psql -U manifest-identity -d restore_drill -c "select count(*) from observations"
+docker compose exec -T db dropdb -U manifest-identity restore_drill
 ```
 
 The count matches the live table or the backup is not a backup.
@@ -976,7 +984,7 @@ reaches it, which is what catches history rewritten after the export
 was taken:
 
 ```bash
-docker compose exec app python scripts/verify_audit_chain.py --anchor <audit_chain_head from an evidence export>
+docker compose exec app python -m manifest_identity.verify_chain --anchor <audit_chain_head from an evidence export>
 ```
 
 Keep one evidence export per campaign outside the database; the
@@ -1005,10 +1013,10 @@ so nothing written by an attacker survives a restart.
 Every claim above is verifiable against the running stack:
 
 ```bash
-docker compose exec app id                                  # uid=1000(rolecall), not root
-docker compose exec app sh -c "echo x > /srv/rolecall/probe"  # fails: read-only file system
+docker compose exec app id                                  # uid=1000(manifest-identity), not root
+docker compose exec app sh -c "echo x > /srv/manifest_identity/probe"  # fails: read-only file system
 docker compose exec app sh -c "grep CapEff /proc/1/status"  # all zeros
-docker inspect role-call-db-1 --format '{{.HostConfig.PortBindings}}'  # map[]
+docker inspect manifest-identity-db-1 --format '{{.HostConfig.PortBindings}}'  # map[]
 ```
 
 The image itself is built from a digest-pinned base, linted in the
@@ -1113,10 +1121,10 @@ tool was vetted at adoption and recorded as a decision, and two of
 them found real defects here before they were merged.
 
 **release** also publishes the container image to this repository's
-package registry, `ghcr.io/tltaylor1/role-call`, tagged with the
+package registry, `ghcr.io/manifest-identity/manifest-identity`, tagged with the
 version, so a consumer can pull instead of build, and attests the
 image digest the same way it attests every artifact. A pulled image
-verifies with `gh attestation verify oci://ghcr.io/tltaylor1/role-call:<tag> -R tltaylor1/role-call`.
+verifies with `gh attestation verify oci://ghcr.io/manifest-identity/manifest-identity:<tag> -R tltaylor1/manifest-identity`.
 
 **attest-release** is started by hand with a tag name and attests a
 release that was cut before the release workflow gained its
@@ -1132,7 +1140,7 @@ promises for bad input and let anything else escape, so a crash it
 finds is an input that reached an exception nobody wrote.
 
 **docs** publishes this documentation as a site with side navigation
-and search at <https://tltaylor1.github.io/role-call/>, generated at
+and search at <https://manifest-identity.github.io/manifest-identity/>, generated at
 build time from this README and the root documents by
 `scripts/build_docs.py`, so the site has no source of its own to
 drift, and rendered in strict mode so a broken link or anchor fails
@@ -1256,7 +1264,7 @@ word; the attestation bundle also ships as a release asset, so the
 same proof reads offline and by raters that only look at assets:
 
 ```bash
-gh attestation verify sbom-v0.2.0.json -R tltaylor1/role-call
+gh attestation verify sbom-v0.2.0.json -R tltaylor1/manifest-identity
 ```
 
 ### The plan, fixed before code
@@ -1467,7 +1475,7 @@ so; temporary approved re-elevation, where someone else approves and
 the clock does the offboarding; and more providers, Okta and Entra,
 behind the common identity model rather than as rewrites.
 
-role-call is one application inside a larger project:
+manifest-identity is one application inside a larger project:
 [control-plane](https://tltaylor1.github.io), a security engineering
 program whose platform phases build the estate around this
 application as code. That work includes an AWS organization with
@@ -1535,7 +1543,7 @@ identical in code.
 
 Four issues are labeled good first issue and left open on purpose,
 each self-contained with its files and its done-criteria stated:
-[the open set](https://github.com/tltaylor1/role-call/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+[the open set](https://github.com/manifest-identity/manifest-identity/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 Changes land through pull requests and the checks described in
 [How it was built and gated](#how-it-was-built-and-gated); the
 standards themselves are the AGENTS.md file in this repository.

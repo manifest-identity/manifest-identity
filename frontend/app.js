@@ -22,14 +22,14 @@ const hide = (id) => $(id).hidden = true;
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   $("theme-toggle").textContent = theme === "dark" ? "day mode" : "night mode";
-  try { localStorage.setItem("rolecall-theme", theme); } catch { /* private mode */ }
+  try { localStorage.setItem("manifest-identity-theme", theme); } catch { /* private mode */ }
 }
 $("theme-toggle").addEventListener("click", () => {
   const current = document.documentElement.dataset.theme === "dark";
   applyTheme(current ? "light" : "dark");
 });
 try {
-  const saved = localStorage.getItem("rolecall-theme");
+  const saved = localStorage.getItem("manifest-identity-theme");
   if (saved === "dark") applyTheme("dark");
 } catch { /* private mode keeps the default */ }
 
@@ -623,11 +623,11 @@ $("campaign-form").addEventListener("submit", async (e) => {
 $("campaign-back").addEventListener("click", loadCampaigns);
 $("campaign-x").addEventListener("click", loadCampaigns);
 $("download-report").addEventListener("click",
-  () => download("/report.html", "role-call-report.html"));
+  () => download("/report.html", "manifest-identity-report.html"));
 $("download-csv").addEventListener("click",
-  () => download("/export.csv", "role-call.csv"));
+  () => download("/export.csv", "manifest-identity.csv"));
 $("download-json").addEventListener("click",
-  () => download("/export.json", "role-call.json"));
+  () => download("/export.json", "manifest-identity.json"));
 
 $("nav").addEventListener("click", (e) => {
   const view = e.target.dataset.view;

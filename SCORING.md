@@ -83,14 +83,14 @@ named in them are the ones this repository runs.
 
 | Criterion | Status | Justification |
 |---|---|---|
-| [description_good](https://www.bestpractices.dev/projects/14563#description_good) | Met | The README at https://github.com/tltaylor1/role-call#readme opens by stating what the software does (inventory and governance for non-human identities in AWS accounts) and the problem it addresses. |
-| [interact](https://www.bestpractices.dev/projects/14563#interact) | Met | Issues and pull requests are open on GitHub; https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md states how to propose changes and report problems. |
-| [contribution](https://www.bestpractices.dev/projects/14563#contribution) | Met | https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md: every change travels a branch and a pull request through the documented gates. |
-| [contribution_requirements](https://www.bestpractices.dev/projects/14563#contribution_requirements) | Met | https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md names the gates, the writing rules, and the requirement that counted figures move with the change. |
+| [description_good](https://www.bestpractices.dev/projects/14563#description_good) | Met | The README at https://github.com/manifest-identity/manifest-identity#readme opens by stating what the software does (inventory and governance for non-human identities in AWS accounts) and the problem it addresses. |
+| [interact](https://www.bestpractices.dev/projects/14563#interact) | Met | Issues and pull requests are open on GitHub; https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md states how to propose changes and report problems. |
+| [contribution](https://www.bestpractices.dev/projects/14563#contribution) | Met | https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md: every change travels a branch and a pull request through the documented gates. |
+| [contribution_requirements](https://www.bestpractices.dev/projects/14563#contribution_requirements) | Met | https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md names the gates, the writing rules, and the requirement that counted figures move with the change. |
 | [floss_license](https://www.bestpractices.dev/projects/14563#floss_license) | Met | Apache-2.0. |
 | [floss_license_osi](https://www.bestpractices.dev/projects/14563#floss_license_osi) | Met | Apache-2.0 is OSI approved. |
-| [license_location](https://www.bestpractices.dev/projects/14563#license_location) | Met | https://github.com/tltaylor1/role-call/blob/main/LICENSE |
-| [documentation_basics](https://www.bestpractices.dev/projects/14563#documentation_basics) | Met | The README (https://github.com/tltaylor1/role-call#readme) documents installation by compose, SQLite, and Kubernetes, use under "Using it", and the full API surface under "How it is put together". |
+| [license_location](https://www.bestpractices.dev/projects/14563#license_location) | Met | https://github.com/manifest-identity/manifest-identity/blob/main/LICENSE |
+| [documentation_basics](https://www.bestpractices.dev/projects/14563#documentation_basics) | Met | The README (https://github.com/manifest-identity/manifest-identity#readme) documents installation by compose, SQLite, and Kubernetes, use under "Using it", and the full API surface under "How it is put together". |
 | [documentation_interface](https://www.bestpractices.dev/projects/14563#documentation_interface) | Met | The routes block in the README is gated by a test against the application's actual route table, and the application serves interactive API documentation from FastAPI at /docs. |
 | [sites_https](https://www.bestpractices.dev/projects/14563#sites_https) | Met | GitHub, HTTPS only. |
 | [discussion](https://www.bestpractices.dev/projects/14563#discussion) | Met | GitHub issues and pull requests. |
@@ -101,27 +101,27 @@ named in them are the ones this repository runs.
 
 | Criterion | Status | Justification |
 |---|---|---|
-| [repo_public](https://www.bestpractices.dev/projects/14563#repo_public) | Met | https://github.com/tltaylor1/role-call is public. |
+| [repo_public](https://www.bestpractices.dev/projects/14563#repo_public) | Met | https://github.com/manifest-identity/manifest-identity is public. |
 | [repo_track](https://www.bestpractices.dev/projects/14563#repo_track) | Met | Git tracks every change; the mainline ruleset requires pull requests. |
 | [repo_interim](https://www.bestpractices.dev/projects/14563#repo_interim) | Met | Every interim change lands as a pull request on the public repository; nothing is batched into releases. |
 | [repo_distributed](https://www.bestpractices.dev/projects/14563#repo_distributed) | Met | Git. |
 | [version_unique](https://www.bestpractices.dev/projects/14563#version_unique) | Met | Tags of the form v0.x.y, one per release, see the release process recorded in DECISIONS.md (D-050). |
 | [version_semver](https://www.bestpractices.dev/projects/14563#version_semver) | Met | Semantic versioning, v0.2.0 the current release. |
-| [version_tags](https://www.bestpractices.dev/projects/14563#version_tags) | Met | Signed tags start the release workflow; https://github.com/tltaylor1/role-call/tags |
-| [release_notes](https://www.bestpractices.dev/projects/14563#release_notes) | Met | Each release at https://github.com/tltaylor1/role-call/releases carries notes generated from the annotated tag message, and the README's "What comes next" section states the roadmap. |
+| [version_tags](https://www.bestpractices.dev/projects/14563#version_tags) | Met | Signed tags start the release workflow; https://github.com/manifest-identity/manifest-identity/tags |
+| [release_notes](https://www.bestpractices.dev/projects/14563#release_notes) | Met | Each release at https://github.com/manifest-identity/manifest-identity/releases carries notes generated from the annotated tag message, and the README's "What comes next" section states the roadmap. |
 | [release_notes_vulns](https://www.bestpractices.dev/projects/14563#release_notes_vulns) | Met | No vulnerabilities have needed fixing to date; SECURITY.md commits to naming any fixed vulnerability in the release notes. |
 
 ### Reporting
 
 | Criterion | Status | Justification |
 |---|---|---|
-| [report_process](https://www.bestpractices.dev/projects/14563#report_process) | Met | GitHub issues, described in https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md |
-| [report_tracker](https://www.bestpractices.dev/projects/14563#report_tracker) | Met | https://github.com/tltaylor1/role-call/issues |
-| [report_responses](https://www.bestpractices.dev/projects/14563#report_responses) | Met | https://github.com/tltaylor1/role-call/blob/main/SECURITY.md commits to acknowledgment within seven days and a triage answer within fourteen. |
+| [report_process](https://www.bestpractices.dev/projects/14563#report_process) | Met | GitHub issues, described in https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md |
+| [report_tracker](https://www.bestpractices.dev/projects/14563#report_tracker) | Met | https://github.com/manifest-identity/manifest-identity/issues |
+| [report_responses](https://www.bestpractices.dev/projects/14563#report_responses) | Met | https://github.com/manifest-identity/manifest-identity/blob/main/SECURITY.md commits to acknowledgment within seven days and a triage answer within fourteen. |
 | [enhancement_responses](https://www.bestpractices.dev/projects/14563#enhancement_responses) | Met | Enhancement requests are answered in the issue tracker on the same commitments. |
-| [report_archive](https://www.bestpractices.dev/projects/14563#report_archive) | Met | https://github.com/tltaylor1/role-call/issues?q=is%3Aissue |
-| [vulnerability_report_process](https://www.bestpractices.dev/projects/14563#vulnerability_report_process) | Met | https://github.com/tltaylor1/role-call/blob/main/SECURITY.md: private reporting through GitHub security advisories. |
-| [vulnerability_report_private](https://www.bestpractices.dev/projects/14563#vulnerability_report_private) | Met | https://github.com/tltaylor1/role-call/security/advisories/new |
+| [report_archive](https://www.bestpractices.dev/projects/14563#report_archive) | Met | https://github.com/manifest-identity/manifest-identity/issues?q=is%3Aissue |
+| [vulnerability_report_process](https://www.bestpractices.dev/projects/14563#vulnerability_report_process) | Met | https://github.com/manifest-identity/manifest-identity/blob/main/SECURITY.md: private reporting through GitHub security advisories. |
+| [vulnerability_report_private](https://www.bestpractices.dev/projects/14563#vulnerability_report_private) | Met | https://github.com/manifest-identity/manifest-identity/security/advisories/new |
 | [vulnerability_report_response](https://www.bestpractices.dev/projects/14563#vulnerability_report_response) | Met | Within fourteen days per SECURITY.md. |
 
 ### Quality
@@ -137,7 +137,7 @@ named in them are the ones this repository runs.
 | [test_continuous_integration](https://www.bestpractices.dev/projects/14563#test_continuous_integration) | Met | GitHub Actions on every push and pull request; ten required checks gate the mainline. |
 | [test_policy](https://www.bestpractices.dev/projects/14563#test_policy) | Met | AGENTS.md and CONTRIBUTING.md require tests for new functionality; counted README figures are recounted by a test so a new test must move the figure. |
 | [tests_are_added](https://www.bestpractices.dev/projects/14563#tests_are_added) | Met | Every functional change in the history lands with its tests; the counted figures make an untested addition visible. |
-| [tests_documented_added](https://www.bestpractices.dev/projects/14563#tests_documented_added) | Met | https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md |
+| [tests_documented_added](https://www.bestpractices.dev/projects/14563#tests_documented_added) | Met | https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md |
 | [warnings](https://www.bestpractices.dev/projects/14563#warnings) | Met | ruff and mypy strict run in continuous integration. |
 | [warnings_fixed](https://www.bestpractices.dev/projects/14563#warnings_fixed) | Met | The pipeline is clean of warnings; a new warning fails the build. |
 | [warnings_strict](https://www.bestpractices.dev/projects/14563#warnings_strict) | Met | mypy strict mode and the full ruff rule set. |
@@ -158,7 +158,7 @@ named in them are the ones this repository runs.
 | [crypto_password_storage](https://www.bestpractices.dev/projects/14563#crypto_password_storage) | Met | Argon2id hashing with per-password salts via passlib. |
 | [crypto_random](https://www.bestpractices.dev/projects/14563#crypto_random) | Met | The secrets module for every token. |
 | [delivery_mitm](https://www.bestpractices.dev/projects/14563#delivery_mitm) | Met | HTTPS delivery, signed tags, and provenance attestations on release assets and the container image. |
-| [delivery_unsigned](https://www.bestpractices.dev/projects/14563#delivery_unsigned) | Met | Build provenance attestations on every release asset, verifiable with gh attestation verify; https://github.com/tltaylor1/role-call/releases |
+| [delivery_unsigned](https://www.bestpractices.dev/projects/14563#delivery_unsigned) | Met | Build provenance attestations on every release asset, verifiable with gh attestation verify; https://github.com/manifest-identity/manifest-identity/releases |
 | [vulnerabilities_fixed_60_days](https://www.bestpractices.dev/projects/14563#vulnerabilities_fixed_60_days) | Met | No outstanding vulnerabilities; Dependabot alerts and security updates are enabled and reviewed. |
 | [vulnerabilities_critical_fixed](https://www.bestpractices.dev/projects/14563#vulnerabilities_critical_fixed) | Met | None outstanding. |
 | [no_leaked_credentials](https://www.bestpractices.dev/projects/14563#no_leaked_credentials) | Met | TruffleHog scans the full history at every commit and in continuous integration, with verification against providers. |
@@ -207,7 +207,7 @@ application repository. The scorer ran at doctrine commit `31a509add733`.
 | contributing | 4 | CONTRIBUTING.md present; this scorer runs in CI |
 | decisions-record | 4 | 54 numbered entries; a test recounts them |
 | commit-subjects | 4 | all 15 recent subjects lead with an identifier; CI walks the messages |
-| pinned-actions | 5 | all 27 uses pinned by commit; a workflow audit gates it; proven: https://github.com/tltaylor1/role-call/actions/runs/33565119678 |
+| pinned-actions | 5 | all 27 uses pinned by commit; a workflow audit gates it; proven: https://github.com/manifest-identity/manifest-identity/actions/runs/33565119678 |
 | ci-gate | 4 | 10 required checks on the mainline: analyze (actions), analyze (python), application, container, doctrine, floor, links, secrets, workflows, writing |
 | dependency-updates | 3 | update automation configured |
 | run-instructions | 1 | README has a run section with a command block |

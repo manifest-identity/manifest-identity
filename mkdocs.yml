@@ -2,11 +2,11 @@
 # scripts/build_docs.py from the README and the root documents at
 # build time, so the site has no source of its own to drift. Strict
 # mode turns a broken link or anchor into a failed build.
-site_name: role-call
+site_name: manifest-identity
 site_description: Inventory and governance for non-human identities in AWS accounts
-site_url: https://tltaylor1.github.io/role-call/
-repo_url: https://github.com/tltaylor1/role-call
-repo_name: tltaylor1/role-call
+site_url: https://manifest-identity.github.io/manifest-identity/
+repo_url: https://github.com/manifest-identity/manifest-identity
+repo_name: tltaylor1/manifest-identity
 docs_dir: docs/site
 site_dir: site
 strict: true

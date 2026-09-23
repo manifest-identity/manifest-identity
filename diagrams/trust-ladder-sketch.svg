@@ -1,8 +1,8 @@
-<svg viewBox="0 0 880 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="role-call trust ladder working sketch">
+<svg viewBox="0 0 880 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="manifest-identity trust ladder working sketch">
   <!-- Working sketch under the diagram doctrine. Self-contained: system fonts, no external references.
        A layer stack read bottom to top; position carries the order, so no connectors. -->
   <rect width="880" height="460" fill="#f6f5f2"/>
-  <text x="40" y="36" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" letter-spacing="1.5" fill="#57606a">ROLE-CALL TRUST LADDER, WORKING SKETCH</text>
+  <text x="40" y="36" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" letter-spacing="1.5" fill="#57606a">MANIFEST-IDENTITY TRUST LADDER, WORKING SKETCH</text>
   <text x="40" y="56" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">read bottom to top; each rung requires the one below it; none is automated</text>
 
   <!-- rung 4, top -->

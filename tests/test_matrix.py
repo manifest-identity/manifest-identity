@@ -14,8 +14,8 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from rolecall.main import app
-from rolecall.roles import PUBLIC_ROUTES, ROUTE_ROLES, Role
+from manifest_identity.main import app
+from manifest_identity.roles import PUBLIC_ROUTES, ROUTE_ROLES, Role
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 
 SAMPLE_REPORT = (
