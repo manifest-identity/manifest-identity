@@ -1380,3 +1380,35 @@ drift until an advisory forced a jump across several versions at
 once, and would drop the rater's check that an update tool is
 configured; and keeping the weekly cadence with notifications
 silenced, which fixes the inbox and not the work.
+
+## D-061: Every pin has one home, and no gate enforces a copy
+
+Two facts were written twice. The Python and PostgreSQL digests lived
+in the Dockerfile and the compose file and again in the workflow, and
+every action pin lived in a workflow and again in the README table.
+Two gates held the copies in agreement.
+
+The update bot can only ever move one side. So every automated bump
+arrived half done and failed a gate by construction, and the fix was
+always a human or the agent hand-writing the other copy. An evening of
+five routine bumps cost an evening of that, on a repository nobody was
+working on. The gates were not wrong about the state; the state was a
+design that guaranteed the work.
+
+The digests now have one home each and the pipeline reads them at run
+time through a resolve job whose outputs feed the container and the
+service. The action pins live in the workflows alone; the README table
+names what runs and why, without repeating a hash. Both gates were
+replaced by gates that hold a property rather than a copy: each digest
+has one home and no workflow carries a second, and every action use is
+pinned to a full commit hash and named in the table.
+
+What this gives up: a reader of the README no longer sees which version
+of an action runs without opening a workflow. That is a click, against
+an update that no longer requires a human to complete it.
+
+Rejected: generating the README table from the workflows, which keeps
+the duplication and moves the toil into a regeneration commit the bot
+still cannot make; and dropping the table, which would leave no record
+of why any of this third-party code is trusted, which is the question
+the table exists to answer.

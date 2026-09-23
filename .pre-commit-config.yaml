@@ -29,10 +29,10 @@ repos:
         entry: python3 scripts/check_docs_truth.py
         language: system
         pass_filenames: false
-      # The digest-parity gate: paired image digests move together.
-      - id: digest-parity
-        name: digest-parity check
-        entry: python3 scripts/check_digest_parity.py
+      # The digest homes gate: each image digest has one home and no copy.
+      - id: digest-homes
+        name: digest homes check
+        entry: python3 scripts/check_digest_homes.py
         language: system
         pass_filenames: false
       # The actions inventory gate: the README's table of pinned actions

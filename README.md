@@ -74,7 +74,7 @@ platform phases, and the program's own documents live there.
 | Tests | **157 tests in 26 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **31 routes**, every one in the role matrix the tests walk |
-| Record | **60 recorded decisions**, each with its rejected alternatives |
+| Record | **61 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -1142,40 +1142,40 @@ split.
 
 The workflows themselves run third-party code: twelve published actions,
 each pinned to a full commit hash, with the version tag kept as a
-comment for the reader. The hash is what runs; a tag can be moved to
-different code, a hash cannot. Dependabot proposes pin moves and a
-human merges them through review like any change, and a gate
-(`scripts/check_actions_inventory.py`) asserts this table against
-every workflow file in both directions, so an action added, removed,
-or re-pinned without the table moving fails the build.
+comment beside it in the workflow. The hash is what runs; a tag can be
+moved to different code, a hash cannot. This table names what runs and
+why; the pins live in the workflow files alone, because a pin written
+twice is a pin an update tool can only half move (D-061). A gate
+(`scripts/check_actions_inventory.py`) refuses any use that is not
+pinned to a full commit hash, and refuses any action or image the table
+does not name.
 
 | Action | Where it runs | What it does |
 |---|---|---|
-| `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1` (v7.0.1) | every job of six workflows; the fuzz workflow's actions fetch for themselves | Fetches the repository; credentials are not persisted, so no token outlives the step |
-| `actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` (v7.0.1) | checks, the application job | Carries the software bill of materials out of the run |
-| `github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd` (v4.38.1) | codeql | Sets up the analysis engine for the Python and the workflow files |
-| `github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd` (v4.38.1) | codeql | Runs the queries; findings land in code scanning |
-| `ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc` (v2.4.4) | scorecard | Rates the repository's posture and publishes the score off-repository |
-| `actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8` (v4.2.2) | release, attest-release | Attests each artifact's build provenance, and the container image's digest, into the transparency log |
-| `google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1` (v1) | fuzz | Builds the harnesses under fuzz/ with AddressSanitizer from the digest-pinned fuzzing base image |
-| `google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1` (v1) | fuzz | Runs each harness for a bounded time against inputs derived from the change; a crash fails the check |
-| `codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5` (v7.1.1) | checks, the application job | Publishes the coverage report through the workflow's identity token, no stored secret, so the coverage figure is measured and shown by an outside service |
-| `SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4` (v8.2.2) | checks, the application job, when the token is present | Runs SonarCloud's analysis on the same commit the other gates judged, importing the coverage report |
-| `actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9` (v5.0.0) | docs | Packages the rendered site for Pages |
-| `actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346` (v5.0.1) | docs | Publishes the packaged site through the workflow's identity token |
+| `actions/checkout` | every job of six workflows; the fuzz workflow's actions fetch for themselves | Fetches the repository; credentials are not persisted, so no token outlives the step |
+| `actions/upload-artifact` | checks, the application job | Carries the software bill of materials out of the run |
+| `github/codeql-action/init` | codeql | Sets up the analysis engine for the Python and the workflow files |
+| `github/codeql-action/analyze` | codeql | Runs the queries; findings land in code scanning |
+| `ossf/scorecard-action` | scorecard | Rates the repository's posture and publishes the score off-repository |
+| `actions/attest-build-provenance` | release, attest-release | Attests each artifact's build provenance, and the container image's digest, into the transparency log |
+| `google/clusterfuzzlite/actions/build_fuzzers` | fuzz | Builds the harnesses under fuzz/ with AddressSanitizer from the digest-pinned fuzzing base image |
+| `google/clusterfuzzlite/actions/run_fuzzers` | fuzz | Runs each harness for a bounded time against inputs derived from the change; a crash fails the check |
+| `codecov/codecov-action` | checks, the application job | Publishes the coverage report through the workflow's identity token, no stored secret, so the coverage figure is measured and shown by an outside service |
+| `SonarSource/sonarqube-scan-action` | checks, the application job, when the token is present | Runs SonarCloud's analysis on the same commit the other gates judged, importing the coverage report |
+| `actions/upload-pages-artifact` | docs | Packages the rendered site for Pages |
+| `actions/deploy-pages` | docs | Publishes the packaged site through the workflow's identity token |
 
 One tool runs as a container image rather than an action, and it is
 held to the same table discipline: the inventory gate requires every
-image a workflow step runs to appear here, in both directions.
+image a workflow step runs to be named here.
 
 | Image | Where it runs | What it does |
 |---|---|---|
-| `ghcr.io/datadog/guarddog@sha256:3dbc783f65f508b95222101cb2cd84d1d5f3e3675e42d6f1329bb9b8a99c8998` (v3.2.0) | container | Scans both pinned dependency trees for malware shapes (D-052); the digest-parity check watches the digest |
+| `ghcr.io/datadog/guarddog` | container | Scans both pinned dependency trees for malware shapes (D-052); its digest is pinned in the workflow |
 
 Everything else the pipeline runs is downloaded by hand in the
 workflow steps, fetched from its canonical release and
-checksum-verified before it executes; those pins and their watchers
-are listed with the digest-parity check.
+checksum-verified before it executes.
 
 Dependencies are the part of the codebase nobody here wrote, so each
 one was checked against its canonical source before adoption, and
