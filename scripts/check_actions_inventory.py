@@ -16,10 +16,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 USES = re.compile(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", re.MULTILINE)
-IMAGE = re.compile(
-    r"docker run[^\n]*?([a-z0-9.-]+(?:/[a-z0-9._-]+)+)@(sha256:[0-9a-f]{64})"
-)
-NAMED = re.compile(r"`([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_./-]+)+)`")
+# One character class rather than a repeated group: a nested quantifier
+# over overlapping classes backtracks exponentially on a hostile string,
+# which the deep analysis caught in the first draft of this file.
+IMAGE = re.compile(r"docker run[^\n]*?([a-z0-9._/-]+)@(sha256:[0-9a-f]{64})")
+NAMED = re.compile(r"`([A-Za-z0-9_./-]+)`")
 
 
 def main() -> int:
