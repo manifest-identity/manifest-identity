@@ -1,0 +1,15 @@
+# The coverage service reports through the checks interface, which is
+# where the other gates report too. Its pull request comment repeated
+# that in mail nobody asked for, on every change including the update
+# bot's, so the comment is off and the check stays (D-061).
+comment: false
+coverage:
+  status:
+    project:
+      default:
+        target: 90%
+        threshold: 1%
+    patch:
+      default:
+        target: 90%
+        threshold: 1%

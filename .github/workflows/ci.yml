@@ -64,8 +64,8 @@ jobs:
         run: git ls-files -z "*.md" | xargs -0 "$RUNNER_TEMP/vale"
       - name: docs-truth status check
         run: python3 scripts/check_docs_truth.py
-      - name: digest-parity check
-        run: python3 scripts/check_digest_parity.py
+      - name: digest homes check
+        run: python3 scripts/check_digest_homes.py
       - name: actions inventory check
         run: python3 scripts/check_actions_inventory.py
       - name: scoring page matches its snapshot
@@ -170,7 +170,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python3 doctrine/scripts/score.py . --repo "$GITHUB_REPOSITORY" --min-level 1
 
+  resolve:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # The images have one home each, the Dockerfile and the compose file.
+    # This reads them there so no workflow carries a copy an update tool
+    # cannot see (D-061).
+    outputs:
+      python: ${{ steps.images.outputs.python }}
+      postgres: ${{ steps.images.outputs.postgres }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: images
+        name: read each pinned image from its one home
+        run: python3 scripts/read_pinned_images.py >> "$GITHUB_OUTPUT"
+
   application:
+    needs: resolve
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -181,17 +200,23 @@ jobs:
       # Mapped at job level so the scan step's condition can read it;
       # a step cannot test a variable it sets itself.
       SONARQUBE_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-    # The same digest the Dockerfile pins, so the interpreter that tests
-    # the code is the interpreter that ships it. Automated update tools
-    # only bump the Dockerfile; this pin moves by hand in the same commit.
+    # The image the Dockerfile pins, read from the Dockerfile at run time
+    # rather than copied here, so the interpreter that tests the code is
+    # the interpreter that ships it and an update tool moving the one home
+    # moves the pipeline with it (D-061).
     container:
-      image: python:3.14-slim@sha256:caaf356f40667c496d405780745b9ac25771c189a51dfcc42430d531ea09f8a2
+      # The workflow auditor reads this file alone, so it cannot see that
+      # the value is a digest the resolve job read from the Dockerfile.
+      # The pinning is held by check_digest_homes.py and by the reader,
+      # which fails when the home holds no digest (D-061).
+      image: ${{ needs.resolve.outputs.python }} # zizmor: ignore[unpinned-images]
     services:
-      # A real database for the migration drift check, on the same digest
-      # the compose file pins. The password derives from the run id: not
-      # a secret, not credential-shaped, different every run.
+      # A real database for the migration drift check, on the image the
+      # compose file pins, read from it at run time. The password derives
+      # from the run id: not a secret, not credential-shaped, different
+      # every run.
       postgres:
-        image: postgres@sha256:86c951e05bf56c93d95d397747fb8820ac76cc3bedb78f43abd83eedbe3666ae
+        image: ${{ needs.resolve.outputs.postgres }} # zizmor: ignore[unpinned-images]
         env:
           POSTGRES_USER: rolecall
           POSTGRES_DB: rolecall

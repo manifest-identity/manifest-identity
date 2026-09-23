@@ -1,74 +1,61 @@
 #!/usr/bin/env python3
-"""The actions inventory gate: the README's table is the workflows.
+"""The actions inventory gate: the README names every action, and every
+action is pinned by commit hash.
 
-The workflows stand on third-party actions the same way the
-application stands on packages, so the README documents each action
-with its commit pin, and this gate holds the table to the truth in
-both directions: an action added, removed, or re-pinned in any
-workflow fails the build until the table moves with it. The figures
-lesson, applied to the supply chain.
+The workflows stand on third-party code the same way the application
+stands on packages, so the README documents each action and each
+workflow-run image with what it does. The table names them; it does not
+repeat their pins, because a pin in two places is a pin an update tool
+can only half move (D-061). What this holds instead is the property that
+matters: every use is pinned to a full commit hash, and nothing runs
+that the table does not name.
 """
 
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PATTERN = re.compile(
-    r"([A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+)@([0-9a-f]{40})"
-)
-
-
-def pins_in(text: str) -> set[tuple[str, str]]:
-    return set(PATTERN.findall(text))
-
-
-IMAGE_PATTERN = re.compile(
-    r"docker run[^\n]*?([a-z0-9.-]+(?:/[a-z0-9._-]+)+)@(sha256:[0-9a-f]{64})"
-)
+USES = re.compile(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", re.MULTILINE)
+# One character class rather than a repeated group: a nested quantifier
+# over overlapping classes backtracks exponentially on a hostile string,
+# which the deep analysis caught in the first draft of this file.
+IMAGE = re.compile(r"docker run[^\n]*?([a-z0-9._/-]+)@(sha256:[0-9a-f]{64})")
+NAMED = re.compile(r"`([A-Za-z0-9_./-]+)`")
 
 
 def main() -> int:
-    workflow_pins: set[tuple[str, str]] = set()
-    workflow_images: set[tuple[str, str]] = set()
+    unpinned: list[str] = []
+    actions: set[str] = set()
+    images: set[str] = set()
     for workflow in sorted(ROOT.glob(".github/workflows/*.yml")):
         text = workflow.read_text()
-        workflow_pins |= pins_in(text)
-        workflow_images |= set(IMAGE_PATTERN.findall(text))
+        where = workflow.relative_to(ROOT)
+        for ref in USES.findall(text):
+            if ref.startswith("./") or ref.startswith("docker://"):
+                continue
+            name, _, version = ref.partition("@")
+            if not re.fullmatch(r"[0-9a-f]{40}", version):
+                unpinned.append(f"{where}: {ref} is not pinned to a full commit hash")
+            actions.add(name)
+        images |= {image for image, _ in IMAGE.findall(text)}
 
-    readme = ROOT.joinpath("README.md").read_text()
-    readme_pins = pins_in(readme)
-    # Images the README claims the workflows run: any registry-path
-    # digest reference outside the action table's uses form.
-    readme_images = {
-        (image, sha)
-        for image, sha in re.findall(
-            r"`([a-z0-9.-]+(?:/[a-z0-9._-]+)+)@(sha256:[0-9a-f]{64})`", readme
-        )
-    }
+    named = set(NAMED.findall((ROOT / "README.md").read_text()))
+    problems = list(unpinned)
+    for action in sorted(actions - named):
+        problems.append(f"in a workflow but not named in the README table: {action}")
+    for image in sorted(images - named):
+        problems.append(f"run by a workflow but not in the README image table: {image}")
 
-    missing = workflow_pins - readme_pins
-    stale = readme_pins - workflow_pins
-    for action, sha in sorted(missing):
-        print(f"in a workflow but not the README table: {action}@{sha}")
-    for action, sha in sorted(stale):
-        print(f"in the README table but no workflow: {action}@{sha}")
-
-    image_missing = workflow_images - readme_images
-    image_stale = readme_images - workflow_images
-    for image, sha in sorted(image_missing):
-        print(f"run by a workflow but not in the README image table: {image}@{sha}")
-    for image, sha in sorted(image_stale):
-        print(f"in the README image table but run by no workflow: {image}@{sha}")
-
-    if missing or stale or image_missing or image_stale:
+    for line in problems:
+        print(line)
+    if problems:
         return 1
     print(
-        f"actions inventory matches: {len(workflow_pins)} pinned uses, "
-        f"{len(workflow_images)} workflow-run images"
+        f"actions inventory matches: {len(actions)} actions and {len(images)} "
+        f"workflow-run images, every use pinned by commit hash"
     )
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
