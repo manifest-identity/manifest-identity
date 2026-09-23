@@ -74,7 +74,7 @@ platform phases, and the program's own documents live there.
 | Tests | **157 tests in 26 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **31 routes**, every one in the role matrix the tests walk |
-| Record | **64 recorded decisions**, each with its rejected alternatives |
+| Record | **65 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -149,7 +149,7 @@ journey continues in the [program](https://tltaylor1.github.io).
 
 This is a learning project, built in public, by one person. The
 software is provided as is under the
-[Apache 2.0 license](LICENSE). Before relying on any of it, read the
+[AGPL 3.0 license](LICENSE). Before relying on any of it, read the
 code and the [threat model](#what-it-defends-against), including its
 accepted risks. Nothing here is production software until the
 documents say so.
@@ -1701,5 +1701,10 @@ as open source, and the record of how it was built.
 
 ## License
 
-[Apache 2.0](LICENSE). The software is provided as is; read the code
-and the [threat model](#what-it-defends-against) before relying on it.
+[GNU Affero General Public License, version 3](LICENSE), from
+D-065 onward. Every release through v0.2.0 was published under the
+Apache 2.0 license and stays under it; the license changed with the
+declared-access work, so that the platform stays open and forkable
+while anyone who runs it as a service for others publishes their
+changes. The software is provided as is; read the code and the
+[threat model](#what-it-defends-against) before relying on it.
