@@ -3,4 +3,4 @@
 # nothing else survives, which is the point of a drill cluster.
 set -euo pipefail
 TOOLS="$(pwd)/.tools"
-"$TOOLS/kind" delete cluster --name rolecall
+"$TOOLS/kind" delete cluster --name manifest-identity

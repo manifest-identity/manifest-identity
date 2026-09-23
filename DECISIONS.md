@@ -3,6 +3,9 @@
 What was chosen, what was rejected, and why. Risk acceptance lives here.
 Decisions are numbered in the order they were made and are never renumbered.
 
+The project was named role-call through D-063. Entries before D-064
+say role-call where they describe the past, and stay as written.
+
 -------------------------------------------------------------------------------
 
 ## D-001: AWS identity first, then possibly Okta, then Entra
@@ -1481,3 +1484,48 @@ for every existing stack and belongs to its own decision with the
 mount layout the 18 image expects; and leaving the Kubernetes copy
 outside the gate, which is how it drifted a major version from the
 file beside it.
+
+## D-064: role-call becomes manifest-identity
+
+The product grows a second half. role-call reads what identities hold
+from the reports a provider already produces, derives their state, and
+puts a person's decision on each; that is the observed side. The
+declared side, what each identity is supposed to hold, who approved
+it, until when, and which team owns it, has no home in any open-source
+tool, and the difference between the two sides is the product worth
+building. One product needs one name, and manifest-identity names the
+declared record: a manifest is the list of what is supposed to be
+aboard, and to manifest is to make plain.
+
+The rename is complete rather than partial, by the maintainer's rule
+that nothing is kept for convenience. The repository moved to the
+manifest-identity organization, which holds the name, with the old
+address redirecting. The Python package is `manifest_identity`, the
+environment variables `MANIFEST_IDENTITY_*`, the database and its
+roles `manifest_identity` and `manifest_identity_app`, and every
+name shaped like a host or a label `manifest-identity`. The agent app
+that proposes changes is `manifest-identity-agent`, and its commits
+now carry its own identity rather than the maintainer's, which is
+what D-045 intended and what the organization's review rule requires
+to see two parties.
+
+What stays as written: every decision before this one, every release
+and its attestations, and the container package under the old name,
+because the record is not rewritten. An existing `.env` and an
+existing data volume do not survive the rename as they are: the
+variables must be renamed and the database recreated from the
+sample or restored from a backup under the new role names, and the
+README says so.
+
+Found on the way, by running the renamed stack end to end before
+this change opened: the audit chain verifier from D-057 had never
+run outside pytest, because a script under `scripts/` cannot import
+the package. It lives in the package now, as
+`python -m manifest_identity.verify_chain`, and it was run inside the
+container against the demo data before this decision was written.
+
+Rejected: a companion repository beside role-call, which would have
+split one product's record in two and left the observed half with the
+name that no longer said what it was; and a rename in place under the
+personal account, which would have left the organization holding a
+name and pointing at a repository elsewhere.

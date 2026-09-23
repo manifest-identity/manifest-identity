@@ -10,9 +10,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine, pool
 
-import rolecall.models  # noqa: F401  (registers the tables on Base.metadata)
-from rolecall.config import get_settings
-from rolecall.db import Base
+import manifest_identity.models  # noqa: F401  (registers the tables on Base.metadata)
+from manifest_identity.config import get_settings
+from manifest_identity.db import Base
 
 config = context.config
 

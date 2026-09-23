@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+{# The self-contained risk report. Opened from disk, so it carries no
+   content security policy header: the engine's default escaping is the
+   control, there is no script anywhere, and every style is inline in
+   this one file. #}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>manifest-identity risk report</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; color: #24292e; }
+  h1 { font-size: 1.2rem; letter-spacing: 0.05em; }
+  h2 { font-size: 0.95rem; margin-top: 2rem; text-transform: uppercase;
+       letter-spacing: 0.05em; color: #57606a; }
+  .asof { color: #57606a; font-size: 0.85rem; }
+  .tiles { display: flex; gap: 1.5rem; margin: 1rem 0; }
+  .tile { border: 1px solid #d0d7de; padding: 0.6rem 1rem; }
+  .tile b { display: block; font-size: 1.3rem; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.35rem 0.5rem;
+           text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; }
+  .tier-critical { color: #a40e26; font-weight: 600; }
+  .tier-warning { color: #9a6700; }
+  .tier-notice { color: #57606a; }
+  ul { margin: 0.2rem 0 0.2rem 1rem; padding: 0; }
+</style>
+</head>
+<body>
+<h1>manifest-identity risk report</h1>
+{% if as_of %}<p class="asof">inventory as of {{ as_of }}</p>{% endif %}
+
+<div class="tiles">
+  <div class="tile"><b>{{ tiles.identities }}</b>identities</div>
+  <div class="tile"><b>{{ tiles.critical }}</b>with critical findings</div>
+  <div class="tile"><b>{{ tiles.warning }}</b>with warnings</div>
+  <div class="tile"><b>{{ tiles.quiet }}</b>quiet</div>
+</div>
+
+<h2>Identities, ranked by the engine</h2>
+<table>
+  <tr>
+    <th>identity</th><th>type</th><th>owner</th>
+    <th>critical</th><th>warning</th><th>notice</th><th>findings</th>
+  </tr>
+  {% for row in identities %}
+  <tr>
+    <td>{{ row.name }}{% if row.flagged %} (flagged){% endif %}</td>
+    <td>{{ row.type }}</td>
+    <td>{% if row.owner %}{{ row.owner }}{% if row.owner_type %} ({{ row.owner_type }}){% endif %}{% else %}unowned{% endif %}</td>
+    <td>{{ row.critical }}</td>
+    <td>{{ row.warning }}</td>
+    <td>{{ row.notice }}</td>
+    <td>
+      <ul>
+      {% for finding in row.findings %}
+        <li class="tier-{{ finding.tier }}">{{ finding.anchor }}: {{ finding.explanation }}</li>
+      {% endfor %}
+      </ul>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Groups</h2>
+<table>
+  <tr>
+    <th>group</th><th>members</th><th>privileged</th><th>owner</th>
+    <th>findings</th>
+  </tr>
+  {% for group in groups %}
+  <tr>
+    <td>{{ group.name }}{% if group.flagged %} (flagged){% endif %}</td>
+    <td>{{ group.members }}</td>
+    <td>{{ "yes" if group.privileged else "no" }}</td>
+    <td>{{ group.owner or "unowned" }}</td>
+    <td>
+      <ul>
+      {% for finding in group.findings %}
+        <li class="tier-{{ finding.tier }}">{{ finding.anchor }}: {{ finding.explanation }}</li>
+      {% endfor %}
+      </ul>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</body>
+</html>

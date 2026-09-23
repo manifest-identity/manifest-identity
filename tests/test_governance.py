@@ -14,8 +14,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from rolecall.models import AuditEvent, GovernanceRecord, Group, Identity
-from rolecall.roles import Role
+from manifest_identity.models import AuditEvent, GovernanceRecord, Group, Identity
+from manifest_identity.roles import Role
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 
 ACCOUNT = "123456789012"

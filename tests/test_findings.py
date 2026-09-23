@@ -2,9 +2,9 @@
 
 from datetime import UTC, datetime, timedelta
 
-from rolecall.derive import derive
-from rolecall.findings import evaluate
-from rolecall.models import Observation
+from manifest_identity.derive import derive
+from manifest_identity.findings import evaluate
+from manifest_identity.models import Observation
 
 AS_OF = datetime(2026, 8, 15, tzinfo=UTC)
 

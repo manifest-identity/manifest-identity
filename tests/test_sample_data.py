@@ -12,8 +12,8 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from rolecall.roles import Role
-from rolecall.sample_data import GENERATIONS, file_set
+from manifest_identity.roles import Role
+from manifest_identity.sample_data import GENERATIONS, file_set
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 
 SAMPLE_DIR = Path(__file__).resolve().parent.parent / "sample-data"
@@ -53,7 +53,7 @@ def test_committed_files_match_the_generator() -> None:
     on_disk = {path.name: path.read_text() for path in SAMPLE_DIR.glob("*")}
     assert on_disk == generated, (
         "sample-data/ is stale; regenerate with "
-        "python -m rolecall.sample_data sample-data"
+        "python -m manifest_identity.sample_data sample-data"
     )
 
 

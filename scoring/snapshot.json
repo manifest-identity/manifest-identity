@@ -138,7 +138,7 @@
         "score": 10,
         "reason": "1 out of the last 1 releases have a total of 1 signed artifacts.",
         "details": [
-          "Info: provenance for release artifact: attestations-v0.2.0.intoto.jsonl: https://github.com/tltaylor1/role-call/releases/tag/v0.2.0"
+          "Info: provenance for release artifact: attestations-v0.2.0.intoto.jsonl: https://github.com/manifest-identity/manifest-identity/releases/tag/v0.2.0"
         ]
       },
       {
@@ -180,23 +180,23 @@
       },
       "description_good": {
         "status": "Met",
-        "justification": "The README at https://github.com/tltaylor1/role-call#readme opens by stating what the software does (inventory and governance for non-human identities in AWS accounts) and the problem it addresses."
+        "justification": "The README at https://github.com/manifest-identity/manifest-identity#readme opens by stating what the software does (inventory and governance for non-human identities in AWS accounts) and the problem it addresses."
       },
       "interact": {
         "status": "Met",
-        "justification": "Issues and pull requests are open on GitHub; https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md states how to propose changes and report problems."
+        "justification": "Issues and pull requests are open on GitHub; https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md states how to propose changes and report problems."
       },
       "contribution": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md: every change travels a branch and a pull request through the documented gates."
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md: every change travels a branch and a pull request through the documented gates."
       },
       "contribution_requirements": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md names the gates, the writing rules, and the requirement that counted figures move with the change."
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md names the gates, the writing rules, and the requirement that counted figures move with the change."
       },
       "license_location": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/blob/main/LICENSE"
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/LICENSE"
       },
       "floss_license": {
         "status": "Met",
@@ -208,7 +208,7 @@
       },
       "documentation_basics": {
         "status": "Met",
-        "justification": "The README (https://github.com/tltaylor1/role-call#readme) documents installation by compose, SQLite, and Kubernetes, use under \"Using it\", and the full API surface under \"How it is put together\"."
+        "justification": "The README (https://github.com/manifest-identity/manifest-identity#readme) documents installation by compose, SQLite, and Kubernetes, use under \"Using it\", and the full API surface under \"How it is put together\"."
       },
       "documentation_interface": {
         "status": "Met",
@@ -216,7 +216,7 @@
       },
       "repo_public": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call is public."
+        "justification": "https://github.com/manifest-identity/manifest-identity is public."
       },
       "repo_track": {
         "status": "Met",
@@ -240,11 +240,11 @@
       },
       "version_tags": {
         "status": "Met",
-        "justification": "Signed tags start the release workflow; https://github.com/tltaylor1/role-call/tags"
+        "justification": "Signed tags start the release workflow; https://github.com/manifest-identity/manifest-identity/tags"
       },
       "release_notes": {
         "status": "Met",
-        "justification": "Each release at https://github.com/tltaylor1/role-call/releases carries notes generated from the annotated tag message, and the README's \"What comes next\" section states the roadmap."
+        "justification": "Each release at https://github.com/manifest-identity/manifest-identity/releases carries notes generated from the annotated tag message, and the README's \"What comes next\" section states the roadmap."
       },
       "release_notes_vulns": {
         "status": "Met",
@@ -252,15 +252,15 @@
       },
       "report_tracker": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/issues"
+        "justification": "https://github.com/manifest-identity/manifest-identity/issues"
       },
       "report_process": {
         "status": "Met",
-        "justification": "GitHub issues, described in https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md"
+        "justification": "GitHub issues, described in https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md"
       },
       "report_responses": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/blob/main/SECURITY.md commits to acknowledgment within seven days and a triage answer within fourteen."
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/SECURITY.md commits to acknowledgment within seven days and a triage answer within fourteen."
       },
       "enhancement_responses": {
         "status": "Met",
@@ -268,15 +268,15 @@
       },
       "report_archive": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/issues?q=is%3Aissue"
+        "justification": "https://github.com/manifest-identity/manifest-identity/issues?q=is%3Aissue"
       },
       "vulnerability_report_process": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/blob/main/SECURITY.md: private reporting through GitHub security advisories."
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/SECURITY.md: private reporting through GitHub security advisories."
       },
       "vulnerability_report_private": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/security/advisories/new"
+        "justification": "https://github.com/manifest-identity/manifest-identity/security/advisories/new"
       },
       "vulnerability_report_response": {
         "status": "Met",
@@ -316,7 +316,7 @@
       },
       "tests_documented_added": {
         "status": "Met",
-        "justification": "https://github.com/tltaylor1/role-call/blob/main/CONTRIBUTING.md"
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md"
       },
       "warnings": {
         "status": "Met",
@@ -376,7 +376,7 @@
       },
       "delivery_unsigned": {
         "status": "Met",
-        "justification": "Build provenance attestations on every release asset, verifiable with gh attestation verify; https://github.com/tltaylor1/role-call/releases"
+        "justification": "Build provenance attestations on every release asset, verifiable with gh attestation verify; https://github.com/manifest-identity/manifest-identity/releases"
       },
       "vulnerabilities_fixed_60_days": {
         "status": "Met",
@@ -481,7 +481,7 @@
       {
         "rule": "pinned-actions",
         "level": 5,
-        "reason": "all 27 uses pinned by commit; a workflow audit gates it; proven: https://github.com/tltaylor1/role-call/actions/runs/33565119678"
+        "reason": "all 27 uses pinned by commit; a workflow audit gates it; proven: https://github.com/manifest-identity/manifest-identity/actions/runs/33565119678"
       },
       {
         "rule": "ci-gate",

@@ -5,7 +5,7 @@ import json
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 
-from rolecall.ingest.authorization_details import (
+from manifest_identity.ingest.authorization_details import (
     ParseError,
     parse_authorization_details,
 )

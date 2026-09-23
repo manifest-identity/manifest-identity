@@ -22,7 +22,7 @@ import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REPO_URL = "https://github.com/tltaylor1/role-call"
+REPO_URL = "https://github.com/manifest-identity/manifest-identity"
 EXTRA_PAGES = [
     ("SECURITY.md", "90-security.md"),
     ("CONTRIBUTING.md", "91-contributing.md"),
@@ -51,7 +51,7 @@ def page_name(index: int, title: str) -> str:
 def split_readme(text: str) -> list[tuple[str, str, str]]:
     """(page file, title, body) for the home page and each section."""
     parts = re.split(r"^## ", text, flags=re.MULTILINE)
-    pages = [("index.md", "role-call", parts[0].rstrip() + "\n")]
+    pages = [("index.md", "manifest-identity", parts[0].rstrip() + "\n")]
     index = 1
     for part in parts[1:]:
         title, _, body = part.partition("\n")

@@ -11,7 +11,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny
-  namespace: rolecall
+  namespace: manifest-identity
 spec:
   podSelector: {}
   policyTypes: [Ingress, Egress]
@@ -20,11 +20,11 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: app-ingress
-  namespace: rolecall
+  namespace: manifest-identity
 spec:
   podSelector:
     matchLabels:
-      app: rolecall
+      app: manifest-identity
   policyTypes: [Ingress]
   ingress:
     - ports:
@@ -34,11 +34,11 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: app-egress
-  namespace: rolecall
+  namespace: manifest-identity
 spec:
   podSelector:
     matchLabels:
-      app: rolecall
+      app: manifest-identity
   policyTypes: [Egress]
   egress:
     # The database, and nothing else but the resolver that finds it.
@@ -65,7 +65,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: db-ingress
-  namespace: rolecall
+  namespace: manifest-identity
 spec:
   podSelector:
     matchLabels:
@@ -75,6 +75,6 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app: rolecall
+              app: manifest-identity
       ports:
         - port: 5432

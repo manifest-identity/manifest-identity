@@ -10,11 +10,11 @@ services:
   db:
     image: postgres:17@sha256:f4c66b820c6f974249089d3d16d86a3698eae11e8746eb6644b2271031e91232
     environment:
-      POSTGRES_USER: rolecall
-      POSTGRES_DB: rolecall
+      POSTGRES_USER: manifest_identity
+      POSTGRES_DB: manifest_identity
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set it in .env, see .env.example}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rolecall -d rolecall"]
+      test: ["CMD-SHELL", "pg_isready -U manifest_identity -d manifest_identity"]
       interval: 2s
       timeout: 2s
       retries: 15
@@ -46,9 +46,9 @@ services:
     command: >
       sh -c "alembic upgrade head && python scripts/setup_db_roles.py"
     environment:
-      ROLECALL_DATABASE_URL: postgresql+psycopg://rolecall:${POSTGRES_PASSWORD:?set it in .env, see .env.example}@db:5432/rolecall
-      ROLECALL_OWNER_DATABASE_URL: postgresql+psycopg://rolecall:${POSTGRES_PASSWORD:?set it in .env, see .env.example}@db:5432/rolecall
-      ROLECALL_APP_DB_PASSWORD: ${ROLECALL_APP_DB_PASSWORD:?set it in .env, see .env.example}
+      MANIFEST_IDENTITY_DATABASE_URL: postgresql+psycopg://manifest_identity:${POSTGRES_PASSWORD:?set it in .env, see .env.example}@db:5432/manifest_identity
+      MANIFEST_IDENTITY_OWNER_DATABASE_URL: postgresql+psycopg://manifest_identity:${POSTGRES_PASSWORD:?set it in .env, see .env.example}@db:5432/manifest_identity
+      MANIFEST_IDENTITY_APP_DB_PASSWORD: ${MANIFEST_IDENTITY_APP_DB_PASSWORD:?set it in .env, see .env.example}
     depends_on:
       db:
         condition: service_healthy
@@ -63,9 +63,9 @@ services:
     build: .
     environment:
       # The runtime role: rows, never schema.
-      ROLECALL_DATABASE_URL: postgresql+psycopg://rolecall_app:${ROLECALL_APP_DB_PASSWORD:?set it in .env, see .env.example}@db:5432/rolecall
-      ROLECALL_ADMIN_USERNAME: ${ROLECALL_ADMIN_USERNAME:-}
-      ROLECALL_ADMIN_PASSWORD: ${ROLECALL_ADMIN_PASSWORD:-}
+      MANIFEST_IDENTITY_DATABASE_URL: postgresql+psycopg://manifest_identity_app:${MANIFEST_IDENTITY_APP_DB_PASSWORD:?set it in .env, see .env.example}@db:5432/manifest_identity
+      MANIFEST_IDENTITY_ADMIN_USERNAME: ${MANIFEST_IDENTITY_ADMIN_USERNAME:-}
+      MANIFEST_IDENTITY_ADMIN_PASSWORD: ${MANIFEST_IDENTITY_ADMIN_PASSWORD:-}
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:

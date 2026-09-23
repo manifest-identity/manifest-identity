@@ -16,12 +16,12 @@ def demo_env(tmp_path, monkeypatch):
     suite's shared in-memory engine, which conftest installs by
     replacing the engine accessor outright."""
     url = f"sqlite+pysqlite:///{tmp_path}/demo.db"
-    monkeypatch.setenv("ROLECALL_DATABASE_URL", url)
-    monkeypatch.setenv("ROLECALL_ADMIN_USERNAME", "demo.admin")
-    monkeypatch.setenv("ROLECALL_ADMIN_PASSWORD", "demo-" + "x" * 12)
+    monkeypatch.setenv("MANIFEST_IDENTITY_DATABASE_URL", url)
+    monkeypatch.setenv("MANIFEST_IDENTITY_ADMIN_USERNAME", "demo.admin")
+    monkeypatch.setenv("MANIFEST_IDENTITY_ADMIN_PASSWORD", "demo-" + "x" * 12)
     from sqlalchemy import create_engine
 
-    from rolecall import config, db
+    from manifest_identity import config, db
 
     config.get_settings.cache_clear()
     engine = create_engine(url)
@@ -31,7 +31,7 @@ def demo_env(tmp_path, monkeypatch):
 
 
 def test_demo_populates_and_converges(demo_env, capsys) -> None:
-    from rolecall import demo
+    from manifest_identity import demo
 
     importlib.reload(demo)
     assert demo.main() == 0
@@ -48,11 +48,11 @@ def test_demo_populates_and_converges(demo_env, capsys) -> None:
 
 
 def test_demo_refuses_without_admin_env(demo_env, monkeypatch, capsys) -> None:
-    monkeypatch.setenv("ROLECALL_ADMIN_USERNAME", "")
-    from rolecall import config
+    monkeypatch.setenv("MANIFEST_IDENTITY_ADMIN_USERNAME", "")
+    from manifest_identity import config
 
     config.get_settings.cache_clear()
-    from rolecall import demo
+    from manifest_identity import demo
 
     assert demo.main() == 1
-    assert "ROLECALL_ADMIN_USERNAME" in capsys.readouterr().out
+    assert "MANIFEST_IDENTITY_ADMIN_USERNAME" in capsys.readouterr().out

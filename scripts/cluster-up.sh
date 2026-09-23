@@ -34,8 +34,8 @@ fetch kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kube
 # quiet edit to a 7800-line file is a loud failure instead.
 echo "$CALICO_SHA256  $CALICO_MANIFEST" | sha256sum -c - >/dev/null
 
-if "$TOOLS/kind" get clusters 2>/dev/null | grep -qx rolecall; then
-  echo "cluster rolecall already exists; scripts/cluster-down.sh removes it"
+if "$TOOLS/kind" get clusters 2>/dev/null | grep -qx manifest-identity; then
+  echo "cluster manifest-identity already exists; scripts/cluster-down.sh removes it"
   exit 1
 fi
 

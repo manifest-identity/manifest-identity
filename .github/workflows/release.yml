@@ -5,7 +5,7 @@
 # artifact through GitHub's attestation service, so a consumer can
 # verify what was released and how it was built without trusting this
 # repository's word:
-#   gh attestation verify <artifact> -R tltaylor1/role-call
+#   gh attestation verify <artifact> -R tltaylor1/manifest-identity
 name: release
 
 permissions:
@@ -59,13 +59,13 @@ jobs:
       - name: build the artifacts
         run: |
           mkdir -p dist
-          git archive --format=tar.gz --prefix="role-call-$GITHUB_REF_NAME/" -o "dist/role-call-src-$GITHUB_REF_NAME.tar.gz" "$GITHUB_REF_NAME"
+          git archive --format=tar.gz --prefix="manifest-identity-$GITHUB_REF_NAME/" -o "dist/manifest-identity-src-$GITHUB_REF_NAME.tar.gz" "$GITHUB_REF_NAME"
           tar -czf "dist/sample-data-$GITHUB_REF_NAME.tar.gz" sample-data
           # The large set ships here, never as a commit: a thousand
           # bulk identities per generation, deterministic, for load
           # work (the generator imports nothing outside the standard
           # library, so no install step precedes it).
-          python3 -m rolecall.sample_data "$RUNNER_TEMP/sample-data-scaled" --scale 1000
+          python3 -m manifest_identity.sample_data "$RUNNER_TEMP/sample-data-scaled" --scale 1000
           tar -czf "dist/sample-data-scaled-$GITHUB_REF_NAME.tar.gz" -C "$RUNNER_TEMP" sample-data-scaled
           "$RUNNER_TEMP/venv/bin/pip-audit" --require-hashes -r requirements.txt --format cyclonedx-json --output "dist/sbom-$GITHUB_REF_NAME.json"
           (cd dist && sha256sum ./* > SHA256SUMS)

@@ -29,9 +29,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SNAPSHOT = ROOT / "scoring" / "snapshot.json"
 PAGE = ROOT / "SCORING.md"
-REPO = "tltaylor1/role-call"
+REPO = "tltaylor1/manifest-identity"
 BEST_PRACTICES_ID = 14563
-SONAR_KEY = "tltaylor1_role-call"
+SONAR_KEY = "manifest-identity_manifest-identity"
 
 # The scanner's own documentation of each check, at a fixed commit so
 # the links and the risk labels below cannot drift under the page.

@@ -1,4 +1,4 @@
-<svg viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="role-call system context working sketch">
+<svg viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="manifest-identity system context working sketch">
   <!-- Working sketch under the diagram doctrine. Self-contained: system fonts, no external references. -->
   <defs>
     <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
@@ -7,7 +7,7 @@
   </defs>
 
   <rect width="880" height="420" fill="#f6f5f2"/>
-  <text x="40" y="36" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" letter-spacing="1.5" fill="#57606a">ROLE-CALL SYSTEM CONTEXT, WORKING SKETCH</text>
+  <text x="40" y="36" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" letter-spacing="1.5" fill="#57606a">MANIFEST-IDENTITY SYSTEM CONTEXT, WORKING SKETCH</text>
 
   <!-- inputs -->
   <rect x="60" y="90" width="170" height="58" rx="6" fill="rgba(87,96,106,0.08)" stroke="#8a939e"/>
@@ -20,7 +20,7 @@
 
   <!-- the system, focal -->
   <rect x="360" y="160" width="200" height="80" rx="6" fill="rgba(176,79,46,0.06)" stroke="#b04f2e"/>
-  <text x="460" y="195" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#24292e">role-call</text>
+  <text x="460" y="195" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#24292e">manifest-identity</text>
   <text x="460" y="213" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">derive, govern, report</text>
 
   <!-- stores and outputs -->

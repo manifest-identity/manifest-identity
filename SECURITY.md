@@ -7,7 +7,7 @@ how to report a problem privately.
 
 Report suspected vulnerabilities privately through GitHub's security
 advisories, at
-<https://github.com/tltaylor1/role-call/security/advisories/new>,
+<https://github.com/manifest-identity/manifest-identity/security/advisories/new>,
 which is the Security tab of this repository, then "Report a
 vulnerability." Do not open a public issue, pull request, or discussion
 for a suspected vulnerability before it has been triaged.

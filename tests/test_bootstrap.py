@@ -6,10 +6,10 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from rolecall.bootstrap import bootstrap_admin
-from rolecall.config import Settings
-from rolecall.models import User
-from rolecall.security import PasswordPolicyError
+from manifest_identity.bootstrap import bootstrap_admin
+from manifest_identity.config import Settings
+from manifest_identity.models import User
+from manifest_identity.security import PasswordPolicyError
 
 GOOD_PASSWORD = "pw-" + secrets.token_urlsafe(16)
 

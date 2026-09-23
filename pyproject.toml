@@ -19,12 +19,12 @@ select = ["E", "F", "I", "B", "UP", "S", "ERA"]
 [tool.ruff.lint.flake8-bugbear]
 # Dependency factories are FastAPI's idiom for defaults, not the
 # mutable-default bug B008 exists to catch.
-extend-immutable-calls = ["fastapi.Depends", "rolecall.deps.require_roles"]
+extend-immutable-calls = ["fastapi.Depends", "manifest_identity.deps.require_roles"]
 
 [tool.mypy]
 python_version = "3.14"
 strict = true
-files = ["rolecall"]
+files = ["manifest_identity"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

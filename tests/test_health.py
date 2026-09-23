@@ -3,7 +3,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from rolecall import main as main_module
+from manifest_identity import main as main_module
 
 
 def test_liveness_is_ok(client: TestClient) -> None:

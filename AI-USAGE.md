@@ -321,6 +321,18 @@ manufactured entry would defeat the reason this file exists.
   from D-055 is now a rule a machine checks instead of a paragraph a
   person remembers (September 2026).
 
+- **A documented command had never been run where it was documented.**
+  D-057 shipped the audit chain verifier as `scripts/verify_audit_chain.py`
+  with a README command to run it inside the container, and its tests
+  passed. The command had never been run: a script in that folder cannot
+  import the package, since Python puts the script's own folder on the
+  path and the package is not installed in the image. Pytest hides this
+  by adding the repository root. Caught by the end-to-end run before the
+  rename opened, two days after the decision. The verifier moved into
+  the package and was run in the container before D-064 was written; the
+  lesson is that a documented command is verified by running it as
+  documented, not by testing the function it wraps (September 2026).
+
 Each entry changed a rule, a checklist, or a design, which is the point:
 the catches compound, the mistakes do not. The provenance entry
 changed the attribution itself, and its lesson is the whole file's

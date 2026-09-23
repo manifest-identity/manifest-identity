@@ -7,9 +7,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from rolecall import security
-from rolecall.models import AuditEvent, AuthSession, utcnow
-from rolecall.roles import Role
+from manifest_identity import security
+from manifest_identity.models import AuditEvent, AuthSession, utcnow
+from manifest_identity.roles import Role
 from tests.conftest import (
     ROLE_USERS,
     TEST_PASSWORD,
