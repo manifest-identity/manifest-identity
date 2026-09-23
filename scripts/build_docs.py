@@ -6,8 +6,9 @@ documents, so the site has no source of its own to drift.
 The README becomes the site: everything above its first section is
 the home page, and every top-level section becomes a page in README
 order, with the section's headings promoted one level so each page
-has its own title. SECURITY.md, CONTRIBUTING.md, DECISIONS.md,
-AI-USAGE.md, and SCORING.md follow as further pages. Links are rewritten to survive
+has its own title. ARCHITECTURE.md, THREAT-MODEL.md, ROADMAP.md,
+SECURITY.md, CONTRIBUTING.md, DECISIONS.md, AI-USAGE.md, and SCORING.md
+follow as further pages. Links are rewritten to survive
 the split: a heading anchor points at the page that now holds the
 heading, images are copied beside the pages, and links to other files
 in the repository point at them on GitHub. The output directory is
@@ -24,6 +25,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 REPO_URL = "https://github.com/manifest-identity/manifest-identity"
 EXTRA_PAGES = [
+    ("ARCHITECTURE.md", "80-architecture.md"),
+    ("THREAT-MODEL.md", "81-threat-model.md"),
+    ("ROADMAP.md", "82-roadmap.md"),
     ("SECURITY.md", "90-security.md"),
     ("CONTRIBUTING.md", "91-contributing.md"),
     ("DECISIONS.md", "92-decisions.md"),

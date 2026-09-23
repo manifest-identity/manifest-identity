@@ -1564,3 +1564,95 @@ resale and would leave the private parts as the only thing of value;
 and the Business Source License, which is not open source by the
 accepted definition and would make the program's public claims
 untrue.
+
+## D-066: The declared half is designed before it is built, in three documents
+
+The product grows a declared half (D-064). Its design lives in
+three files rather than in the README: ARCHITECTURE.md holds the
+four parts, the provider-neutral model both halves share from v0.3,
+the data flow, the trust boundaries, and the diagram list;
+THREAT-MODEL.md holds the ranked threats and accepted risks, version
+one's moved in unchanged and the declared half's rows added beneath
+them; ROADMAP.md holds version one's roadmap as it stood, then the
+declared half by version with a definition of done for each. The
+README keeps its sections as short pointers so that its anchors and
+its front-door shape stay, and the documentation site publishes the
+three files as pages.
+
+The observed half's design was written into the README because there
+was one half and one document was enough. An outside consistency
+read in September found that shape had begun to hide drift, and the
+maintainer had asked for the roadmap and threat model as files in
+August. This is that change, made at the moment a second half
+needed a place to be designed. Nothing was cut in the move.
+
+Rejected: a second README for the declared half, which would have
+made two front doors; and designing the declared half in the private
+planning material only, which would have kept the reasoning off the
+record that this project exists to keep.
+
+## D-067: GitHub is the second observed provider, because the program is the first user
+
+The original order (D-001) put Entra second after AWS. The second
+observer is GitHub instead. The program that builds this product
+runs on GitHub: two agent apps with installations and tokens, three
+organizations, code-owner review, a release workflow with its own
+identity. Those are non-human identities with owners, approvers, and
+no record anywhere of what they are supposed to hold. Declaring them
+and observing them through the exports the platform already offers
+gives the declared half its first live delta on an estate the
+maintainer can grant read access to today, and it is the smallest
+provider to observe. Entra follows it.
+
+Rejected: Entra second as planned, which is the larger vocabulary
+(users, groups, service principals, managed identities, directory
+roles, role-based access assignments, Privileged Identity Management)
+and would have put the first live delta months out; and no second
+provider until the declared half is finished, which would have left
+the delta tested only on sample data.
+
+## D-068: A declaration is per grant, and the page shows it per identity
+
+The record is one declaration per grant path: an identity holding a
+role definition at a scope by a path. That is the unit a person
+approves, the unit that expires, and the unit the delta compares. The
+page groups declarations under the identity, because that is how a
+person thinks about them: this account, and what it may hold. The
+form declares several grants for one identity in one sitting, and
+the CSV import takes one row per grant.
+
+Rejected: one declaration per identity carrying a list of grants,
+which cannot expire or be revoked one grant at a time and makes
+every partial change a rewrite of the whole record.
+
+## D-069: The two records are called observed and declared
+
+The words on the page and in the documents are "observed" for what
+the provider's reports show and "declared" for what people said
+should be, with "the delta" for the difference. They are the plainest
+pair that keeps the distinction NetBox draws between operational
+state and desired state, and they read the same to an engineer, an
+auditor, and a team lead. "Actual" and "intended" were the
+alternatives and they invite argument about which is real; "held"
+and "declared" was close and loses the sense that the observed side
+is a report and not a fact.
+
+## D-070: The three roles gain a scope, and required fields ship secure and changeable
+
+Reviewer, operator, and administrator stay (D-017); no fourth role.
+Each binding carries a scope node in the provider's hierarchy, so an
+administrator for one tenant is not one for another, and every write
+route checks the caller's binding against the target's node. Which
+declaration fields are required is an administrator setting, per
+field, because organizations differ in what they will make teams
+write. The shipped defaults are the secure ones, expiry on at one
+year and justification required, and every change to a default is an
+audited administrator action, so an organization that turns one off
+has decided to and one that never looked has not.
+
+Rejected: a fourth role for scope administrators, which multiplies
+the matrix without adding a property a scoped binding lacks;
+prescribing expiry and justification with no way to change them,
+which the maintainer ruled out (organizations decide); and shipping
+them off by default, which makes the record's quality depend on
+someone finding a setting.
