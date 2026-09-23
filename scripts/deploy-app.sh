@@ -6,7 +6,8 @@
 # script refuses to start while one is missing, because a generated
 # default becomes the real credential the day nobody replaces it.
 # Requires the cluster from scripts/cluster-up.sh. Environment:
-#   POSTGRES_PASSWORD, ROLECALL_ADMIN_USERNAME, ROLECALL_ADMIN_PASSWORD
+#   POSTGRES_PASSWORD, ROLECALL_APP_DB_PASSWORD, ROLECALL_ADMIN_USERNAME,
+#   ROLECALL_ADMIN_PASSWORD
 set -euo pipefail
 
 : "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD, see .env.example}"

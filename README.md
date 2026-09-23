@@ -191,7 +191,8 @@ Four operations, and nothing else:
 
 That set exercises authentication, authorization across three roles,
 input validation, derived state, audit logging, and the enrichment
-model, and it keeps the tool's own cloud credential read-only. Adding
+model, and it holds no cloud credential at all; when the live pull
+phases add one, it will be read-only (D-015, D-020). Adding
 more operations would not add a property that is not already
 demonstrated.
 
@@ -203,8 +204,9 @@ Requires Docker with the compose plugin, and nothing else.
 
 ```
 cp .env.example .env
-# set POSTGRES_PASSWORD, and set ROLECALL_ADMIN_USERNAME and
-# ROLECALL_ADMIN_PASSWORD so startup creates your administrator
+# set POSTGRES_PASSWORD and ROLECALL_APP_DB_PASSWORD (D-051), and set
+# ROLECALL_ADMIN_USERNAME and ROLECALL_ADMIN_PASSWORD so startup
+# creates your administrator
 docker compose up --build
 ```
 
@@ -322,7 +324,7 @@ involved.
 
 ```
 scripts/cluster-up.sh
-export POSTGRES_PASSWORD=... ROLECALL_ADMIN_USERNAME=... ROLECALL_ADMIN_PASSWORD=...
+export POSTGRES_PASSWORD=... ROLECALL_APP_DB_PASSWORD=... ROLECALL_ADMIN_USERNAME=... ROLECALL_ADMIN_PASSWORD=...
 scripts/deploy-app.sh
 ```
 
@@ -357,7 +359,7 @@ What the cluster enforces that compose cannot, each verifiable:
   unpinned image are both refused at creation, wording and all:
 
 ```bash
-.tools/kubectl -n rolecall run unpinned --image=nginx:latest --restart=Never   # refused by pod security
+.tools/kubectl -n rolecall run unpinned --image=nginx:latest --restart=Never   # refused by the image-pinning admission policy (D-047)
 ```
 
 - **No orchestrator identity to steal.** The workloads run under
@@ -633,7 +635,7 @@ network, and identity controls it adds apply inside it.
 | Report builder | Produces the self-contained risk report and the escaped CSV and JSON exports |
 | Audit trail | Records every governance action, written with the action in one transaction |
 | PostgreSQL | Holds observations, governance records, and the audit trail; access controlled, with encryption at rest supplied by the deployment layer (D-020) |
-| The tool's own cloud credential | A read-only role in the target AWS account, arriving with the live pull phases; the identity that must be governed best |
+| The tool's own cloud credential, not yet present | Version one holds none. The live pull phases add a read-only role in the target AWS account, and from that day it is the identity that must be governed best |
 
 ```mermaid
 flowchart LR
@@ -802,7 +804,7 @@ Ordered by likelihood times impact. The STRIDE letter names the category.
 
 | # | Threat | STRIDE | Likelihood | Impact | Control |
 |---|---|---|---|---|---|
-| 1 | Theft of role-call's own cloud credential, giving an attacker the full identity map and a foothold shaped like a security tool | S, I | Medium | High | Federated, short-lived credentials rather than a stored key; read-only scope; the role's own use is audited in the target account's trail, so the watcher is watched |
+| 1 | Theft of role-call's own cloud credential, once the live pull phases add one, giving an attacker the full identity map and a foothold shaped like a security tool | S, I | Medium | High | Federated, short-lived credentials rather than a stored key; read-only scope; the role's own use is audited in the target account's trail, so the watcher is watched |
 | 2 | Disclosure of the inventory: database access or a leaked export hands over the reconnaissance map | I | Medium | High | Authentication and authorization on every request; response models as an allowlist on the way out; exports carry deliberate fields only; encryption at rest supplied by the deployment layer and stated as a requirement, not assumed (D-020) |
 | 3 | A hidden identity: tampering with stored data so an attacker's principal never appears in the inventory | T | Low | High | State is derived at read time from append-only observations, and every sync is a full snapshot, so hiding requires tampering again after every sync; database least privilege; the audit row commits with its action and carries attribution |
 | 4 | A malicious imported snapshot rewrites another account's history or plants hostile values | T | Medium | Medium | Bounded parsing on every axis; the one-account-per-file precondition is verified rather than assumed; ingestion is append-only and duplicates are rejected |
