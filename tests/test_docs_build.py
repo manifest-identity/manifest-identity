@@ -29,7 +29,7 @@ def test_every_readme_section_becomes_a_page_and_every_anchor_resolves() -> None
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "site"
         written = build_docs.build(out)
-        pages = [name for name in written if name[:2].isdigit() and name[:2] < "90"]
+        pages = [name for name in written if name[:2].isdigit() and name[:2] < "80"]
         assert len(pages) == len(sections), (pages, sections)
         assert "index.md" in written
         assert all(dst in written for _, dst in build_docs.EXTRA_PAGES)

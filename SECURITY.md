@@ -24,8 +24,8 @@ before they are discussed publicly, and public disclosure is
 coordinated with the reporter, with ninety days as the default outer
 bound if a fix stalls. Reporters are credited in the advisory unless
 they ask not to be. Some reports will be answered with a pointer to a
-documented, accepted risk; those are listed in the threat model
-section of [README.md](README.md), and that answer arrives with the
+documented, accepted risk; those are listed in
+[THREAT-MODEL.md](THREAT-MODEL.md), and that answer arrives with the
 same timelines. This is one person's project: there is no bounty
 program, and the timelines above are commitments of attention, not of
 around-the-clock response.
@@ -68,7 +68,7 @@ layers.
 
 A control listed without its test is a claim, not a control, so every
 row names the tests that fail if the control disappears. Threat numbers
-refer to the ranked threats in [README.md](README.md).
+refer to the ranked threats in [THREAT-MODEL.md](THREAT-MODEL.md).
 
 | Control | Threat it answers | Proven by |
 |---|---|---|
@@ -99,7 +99,7 @@ refer to the ranked threats in [README.md](README.md).
 
 ## Controls still planned
 
-Mapped threat-by-threat in the README's threat model:
+Mapped threat-by-threat in [THREAT-MODEL.md](THREAT-MODEL.md):
 deployment-layer encryption at rest (D-020) arrives with the
 deployment phases, and step-up authentication arrives with the first
 action that changes a cloud account, which version one deliberately
