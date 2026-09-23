@@ -209,16 +209,14 @@ jobs:
       # the value is a digest the resolve job read from the Dockerfile.
       # The pinning is held by check_digest_homes.py and by the reader,
       # which fails when the home holds no digest (D-061).
-      # zizmor: ignore[unpinned-images]
-      image: ${{ needs.resolve.outputs.python }}
+      image: ${{ needs.resolve.outputs.python }} # zizmor: ignore[unpinned-images]
     services:
       # A real database for the migration drift check, on the image the
       # compose file pins, read from it at run time. The password derives
       # from the run id: not a secret, not credential-shaped, different
       # every run.
       postgres:
-        # zizmor: ignore[unpinned-images]
-        image: ${{ needs.resolve.outputs.postgres }}
+        image: ${{ needs.resolve.outputs.postgres }} # zizmor: ignore[unpinned-images]
         env:
           POSTGRES_USER: rolecall
           POSTGRES_DB: rolecall
