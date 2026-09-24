@@ -11,12 +11,12 @@ status; those are not validated away, they are absent.
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, Response, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.authorize import authorizations, csv_import
+from manifest_identity.authorize import authorizations, csv_import, from_observed
 from manifest_identity.authorize.models import Authorization, EntryPath
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
@@ -414,3 +414,60 @@ def import_authorizations(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     db.commit()
     return reading_view(row, result)
+
+
+class ObservedGrantView(BaseModel):
+    identity_id: int
+    identity_external_id: str
+    display_name: str
+    account: str
+    role_definition_external_id: str
+    role_definition_hash: str | None
+    role_display_name: str
+    mode: str
+    path: list[dict[str, str]]
+    source_kind: str
+    # True when an authorization already stands for this exact grant,
+    # so the page offers the action where it is still owed.
+    authorized: bool
+
+
+@router.get("/identities/{identity_id}/observed-grants")
+def observed_grants(
+    identity_id: int,
+    db: Annotated[Session, Depends(get_session)],
+    _auth: Annotated[
+        AuthContext, require_roles("GET /identities/{identity_id}/observed-grants")
+    ],
+) -> list[ObservedGrantView]:
+    """What this identity holds, in the shape an authorization takes,
+    so the form can be prefilled from the evidence rather than typed
+    from it. It prefills; a person still authorizes (D-024)."""
+    identity = db.get(Identity, identity_id)
+    if identity is None:
+        raise HTTPException(status_code=404, detail="no such identity")
+    return [
+        ObservedGrantView(**vars(grant))
+        for grant in from_observed.for_identity(db, identity)
+    ]
+
+
+@router.get("/export/observed-grants.csv")
+def export_observed_grants(
+    db: Annotated[Session, Depends(get_session)],
+    _auth: Annotated[AuthContext, require_roles("GET /export/observed-grants.csv")],
+) -> Response:
+    """Every observed grant in the import's own columns, with owner and
+    justification left empty: the two things the observed side cannot
+    know and the two a person is being asked for. Export, fill them in,
+    import."""
+    body = from_observed.export_csv(from_observed.for_estate(db))
+    return Response(
+        content=body,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="observed-grants.csv"'
+            )
+        },
+    )

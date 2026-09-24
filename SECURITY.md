@@ -109,6 +109,9 @@ refer to the ranked threats in [THREAT-MODEL.md](THREAT-MODEL.md).
 | The dry run applies every rule the write applies and writes nothing, so a preview cannot promise a row the write refuses | 8 | tests/test_csv_import.py |
 | Imported rows pass the same checks the form applies, through the same code, so a door cannot be the weaker one | 8 | tests/test_csv_import.py |
 | The file reader is bounded on size, rows, columns, and cell length, in memory, refusing the whole file at a bound (D-030) | 4, 9 | tests/test_csv_import.py |
+| Reading the observed side in the authorized side's shape writes nothing: it prefills a decision and never makes one (D-024) | 8 | tests/test_from_observed.py |
+| The export of observed grants passes the same formula escaping as every other spreadsheet exit | 7 | tests/test_from_observed.py |
+| Access arriving through a group is offered with its hop recorded, so an export cannot silently omit a class of privilege | 8 | tests/test_from_observed.py |
 | The runtime database role holds data rights only, no schema and no deletes; migrations run separately as the owner (D-013, D-051) | 3 | the pipeline probe: schema change attempted as the runtime role must be refused |
 | An administrator ends all of a user's sessions in one audited act | 6 | tests/test_admin_users.py |
 | Read-only root filesystems, dropped capabilities, no privilege escalation, bounded resources, and no host-published database port (D-042) | 1, 9 | verifiable by the commands in the README, run against the live stack at adoption |

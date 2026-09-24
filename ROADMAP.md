@@ -70,8 +70,7 @@ data.
   fields the administrator sets and secure defaults. **Built.**
 - Entry paths: the form, a file import that reads the customer's own
   shape through a mapping with a dry run, authorize from observed,
-  and an export shaped for the import. **The form and the file door
-  are built.**
+  and an export shaped for the import. **Built.**
 - The delta, computed at read: held but not authorized, authorized but
   not held, expired and still held, owner disagreement.
 - Home, relationships, and grant paths with a mode on each hop; the

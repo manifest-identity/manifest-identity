@@ -71,9 +71,9 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **213 tests in 29 files**, coverage 94 over a 90 percent floor |
+| Tests | **223 tests in 30 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **44 routes**, every one in the role matrix the tests walk |
+| Surface | **46 routes**, every one in the role matrix the tests walk |
 | Record | **74 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
@@ -751,6 +751,16 @@ audit_events
   a format the mapping declares, because 03/04/2026 is two different
   days in two countries. A dry run shows how the file was understood
   and writes nothing.
+  Neither door asks anyone to retype what the system can already see.
+  The observed grants come back in the authorized record's own shape,
+  as a prefill on an identity's page and as an export in the import's
+  columns, with the owner and the justification left empty because
+  they are the two things the observed side cannot know. What already
+  carries an authorization is marked, so the page asks where the
+  answer is still owed. It prefills and never writes: turning what is
+  into what should be without a person in the middle would leave the
+  delta comparing the observed record against a copy of itself
+  (D-024).
 - A **governance record** is the human layer: an owner, a purpose, a
   flag, or an attestation, on an identity or a group (D-019),
   attributed and audited, stored rather than derived because it IS the
@@ -800,6 +810,8 @@ DELETE /governance/{record_id}
 GET /identities/{identity_id}/authorizations
 POST /identities/{identity_id}/authorizations
 POST /authorizations/{authorization_id}/revoke
+GET /identities/{identity_id}/observed-grants
+GET /export/observed-grants.csv
 GET /mappings
 POST /mappings
 POST /authorizations/import/dry-run
