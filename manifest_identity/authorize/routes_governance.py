@@ -17,10 +17,10 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.authorize.governance import SINGLE_ACTIVE_KINDS, supersede
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, require_roles, require_scope
-from manifest_identity.declare.governance import SINGLE_ACTIVE_KINDS, supersede
 from manifest_identity.models import GovernanceRecord, Identity, utcnow
 
 router = APIRouter()

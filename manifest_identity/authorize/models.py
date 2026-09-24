@@ -1,11 +1,16 @@
-"""declare's tables: what people said should be, append-only.
+"""authorize's tables: what a person said an identity may hold,
+append-only.
 
+An authorization is per grant path (D-068, D-073): what an identity is
+supposed to hold, who authorized it, until when. Authorized
+relationships are the intended counterparts of observed ones.
 Governance records are the identity-level layer role-call built:
-owner, purpose, flag, attestation about an identity or a group.
-Declarations are per grant path (D-068): what an identity is supposed
-to hold, who approved it, until when. Declared relationships are the
-intended counterparts of observed ones. Every row names its approver
-from the session, never from a form (threat 14).
+owner, purpose, flag, attestation about an identity or a group. Every
+row names its authorizer from the session, never from a form
+(threat 14).
+
+The word authorization names this record and nothing else (D-073).
+The application's own gates are the role matrix and the scope check.
 """
 
 from datetime import datetime
@@ -18,8 +23,8 @@ from manifest_identity.core.db import Base
 from manifest_identity.core.models import utcnow
 
 
-class DeclarationStatus(StrEnum):
-    declared = "declared"
+class AuthorizationStatus(StrEnum):
+    authorized = "authorized"
     expired = "expired"
     revoked = "revoked"
 
@@ -34,7 +39,7 @@ class EntryPath(StrEnum):
 
 
 class GovernanceRecord(Base):
-    """What a person declared about an identity or a group itself:
+    """What a person recorded about an identity or a group itself:
     owner, purpose, flag, attestation. Superseded or cleared, never
     edited (D-006 applied to people)."""
 
@@ -60,11 +65,12 @@ class GovernanceRecord(Base):
     cleared_by: Mapped[str | None] = mapped_column(String(64), default=None)
 
 
-class Declaration(Base):
-    """Intent about one grant path. A new row supersedes the previous
-    one for the same path; the chain is the history."""
+class Authorization(Base):
+    """One grant path a person authorized an identity to hold. A new
+    row supersedes the previous one for the same path; the chain is
+    the history, and no row is ever edited."""
 
-    __tablename__ = "declarations"
+    __tablename__ = "authorizations"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     identity_id: Mapped[int] = mapped_column(ForeignKey("identities.id"), index=True)
@@ -77,9 +83,9 @@ class Declaration(Base):
     owner_ref: Mapped[str] = mapped_column(String(255))
     secondary_owner_kind: Mapped[str | None] = mapped_column(String(16), default=None)
     secondary_owner_ref: Mapped[str | None] = mapped_column(String(255), default=None)
-    approver_user_id: Mapped[int | None] = mapped_column(default=None)
-    approver_username: Mapped[str] = mapped_column(String(64))
-    approved_at: Mapped[datetime] = mapped_column(
+    authorizer_user_id: Mapped[int | None] = mapped_column(default=None)
+    authorizer_username: Mapped[str] = mapped_column(String(64))
+    authorized_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow
     )
     justification: Mapped[str | None] = mapped_column(String(1000), default=None)
@@ -89,9 +95,9 @@ class Declaration(Base):
     valid_until: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )
-    status: Mapped[str] = mapped_column(String(16), default=DeclarationStatus.declared)
+    status: Mapped[str] = mapped_column(String(16), default=AuthorizationStatus.authorized)
     supersedes_id: Mapped[int | None] = mapped_column(
-        ForeignKey("declarations.id"), default=None
+        ForeignKey("authorizations.id"), default=None
     )
     entry_path: Mapped[str] = mapped_column(String(24))
     created_at: Mapped[datetime] = mapped_column(
@@ -99,11 +105,11 @@ class Declaration(Base):
     )
 
 
-class DeclaredRelationship(Base):
-    """A relationship someone intends: a trust, a federation, a
-    delegation, with its owner, approver, and validity window."""
+class AuthorizedRelationship(Base):
+    """A relationship someone authorized: a trust, a federation, a
+    delegation, with its owner, authorizer, and validity window."""
 
-    __tablename__ = "declared_relationships"
+    __tablename__ = "authorized_relationships"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     kind: Mapped[str] = mapped_column(String(24))
@@ -117,9 +123,9 @@ class DeclaredRelationship(Base):
     from_kind: Mapped[str] = mapped_column(String(24))
     owner_kind: Mapped[str] = mapped_column(String(16))
     owner_ref: Mapped[str] = mapped_column(String(255))
-    approver_user_id: Mapped[int | None] = mapped_column(default=None)
-    approver_username: Mapped[str] = mapped_column(String(64))
-    approved_at: Mapped[datetime] = mapped_column(
+    authorizer_user_id: Mapped[int | None] = mapped_column(default=None)
+    authorizer_username: Mapped[str] = mapped_column(String(64))
+    authorized_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow
     )
     justification: Mapped[str | None] = mapped_column(String(1000), default=None)
@@ -127,9 +133,9 @@ class DeclaredRelationship(Base):
     valid_until: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )
-    status: Mapped[str] = mapped_column(String(16), default=DeclarationStatus.declared)
+    status: Mapped[str] = mapped_column(String(16), default=AuthorizationStatus.authorized)
     supersedes_id: Mapped[int | None] = mapped_column(
-        ForeignKey("declared_relationships.id"), default=None
+        ForeignKey("authorized_relationships.id"), default=None
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow

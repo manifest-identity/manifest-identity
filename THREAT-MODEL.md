@@ -4,7 +4,7 @@
 The method: STRIDE per component (Spoofing, Tampering, Repudiation,
 Information disclosure, Denial of service, Elevation of privilege),
 ranked by likelihood and impact, each threat mapped to the control
-that answers it. The version one model is the observed half. The declared half adds
+that answers it. The version one model is the observed half. The authorized half adds
 its own rows below (D-066), and Phase 7 changes what the tool is
 allowed to do and requires a revision before any of its code is
 written.
@@ -98,9 +98,9 @@ Recorded so each is a decision with a reason, not a surprise.
   the provider against itself is out of scope.
 
 
-## Threats the declared half adds
+## Threats the authorized half adds
 
-The declared record is a second map, and a more valuable one: it says
+The authorized record is a second map, and a more valuable one: it says
 what is supposed to be true, and whoever can write it can make
 unwanted access look intended. These rows extend the ranked table
 above; numbering continues from it, and each names the control that
@@ -109,29 +109,31 @@ builds it.
 
 | # | Threat | STRIDE | Likelihood | Impact | Control |
 |---|---|---|---|---|---|
-| 12 | Laundered access: a declaration written for a grant that should not exist, so the delta reports nothing wrong | T, E | Medium | High | A declaration needs an attributed approver from an authenticated session and a scope binding that covers the identity; every declaration is append-only and audited in the chain; the delta-driven campaign shows owners what was declared in their scope by whom (1.1, 1.2, 1.8) |
-| 13 | A declaration written outside the writer's scope: an administrator for one tenant declaring for another | E | Medium | High | Role bindings carry a scope node; every write route checks the caller's binding covers the target's scope; the matrix test walks every write route inside and outside scope (1.1) |
-| 14 | Forged or misattributed approval: a declaration claiming an approver who never approved | S, R | Low | High | The approver is taken from the session, never from the form or the file; the CSV importer is the attributed approver of every row it imports; the audit row commits with the declaration (1.2, 1.3) |
-| 15 | A stale side making the delta lie: the observed side behind reality, or the declared side behind a revocation, so a difference is missed or invented | I | Medium | Medium | Every finding shows the last observation time of each side beside it; the declared record's expiry is a clock the delta reads, not a field a person remembers (1.5) |
+| 12 | Laundered access: an authorization written for a grant that should not exist, so the delta reports nothing wrong | T, E | Medium | High | An authorization needs an attributed authorizer from an authenticated session and a scope binding that covers the identity; every authorization is append-only and audited in the chain; the delta-driven campaign shows owners what was authorized in their scope and by whom (1.1, 1.2, 1.8) |
+| 13 | An authorization written outside the writer's scope: an administrator for one tenant authorizing in another | E | Medium | High | Role bindings carry a scope node; every write route checks the caller's binding covers the target's scope; the matrix test walks every write route inside and outside scope (1.1) |
+| 14 | Forged or misattributed authority: an authorization claiming an authorizer who never authorized it | S, R | Low | High | The authorizer is taken from the session, never from the form or the file; the CSV importer is the attributed authorizer of every row it imports; the audit row commits with the authorization (1.2, 1.3) |
+| 15 | A stale side making the delta lie: the observed side behind reality, or the authorized side behind a revocation, so a difference is missed or invented | I | Medium | Medium | Every finding shows the last observation time of each side beside it; the authorized record's expiry is a clock the delta reads, not a field a person remembers (1.5) |
 | 16 | Alert flooding or alert loss: an automation downstream drowns in notices, or a revocation is never heard | D, R | Medium | Medium | Every alert that fires is a record with recipients, channel, and delivery result, in the chain; alerts are rate-limited per recipient; a failed delivery is recorded as failed and shown (1.9) |
 | 17 | The read API token: a per-integration credential that, stolen, hands over both records | S, I | Medium | High | Per-integration tokens, read-only, revocable, rate-limited, stored as hashes like sessions; a change feed rather than a full dump as the normal path (1.10) |
-| 18 | Email intake as a channel: a forged message becomes a declaration | S, T | Medium | High | Not built in Phase 1; when built, a message yields a proposed declaration only, from an allowlisted and signature-checked sender, routed to an approver, attachments ignored, size-bounded (roadmap) |
-| 19 | A relationship or eligibility the declaration never mentioned: access arriving through a trust, a delegation, or a group nobody declared | E | Medium | High | Relationships are first-class declared objects; grant paths carry a mode on each hop; the delta reports access via an undeclared relationship and eligibility outside any declaration (1.6) |
-| 20 | A role definition that grows after approval: the provider adds actions to a built-in role, or an owner edits a custom one, so the approved grant now holds more | T, E | Medium | Medium | Role definitions are versioned observations; a declaration binds to the definition hash at approval; the changed-since-declaration finding lists the added actions and asks for a new decision (1.7) |
+| 18 | Email intake as a channel: a forged message becomes an authorization | S, T | Medium | High | Not built in Phase 1; when built, a message yields a proposal only, from an allowlisted and signature-checked sender, routed to an authorizer who must act on it in the page, attachments ignored, size-bounded (roadmap) |
+| 19 | A relationship or eligibility the authorization never mentioned: access arriving through a trust, a delegation, or a group nobody authorized | E | Medium | High | Relationships are first-class authorizable objects; grant paths carry a mode on each hop; the delta reports access through a relationship nobody authorized, and eligibility outside any authorization (1.6) |
+| 20 | A role definition that grows after the fact: the provider adds actions to a built-in role, or an owner edits a custom one, so the authorized grant now holds more | T, E | Medium | Medium | Role definitions are versioned observations; an authorization binds to the definition hash when it is written; the changed-since finding lists the added actions and asks for a new decision (1.7) |
 
-## Accepted risks the declared half adds
+## Accepted risks the authorized half adds
 
-- **The declared record is only as honest as the people who write
-  it.** A team can declare what it wants declared. The control is not
-  a gate on intent, which no tool can judge, but attribution and
-  visibility: every declaration names its approver, its owner, and
-  its scope, and the delta-driven campaign shows each owner what was
-  declared in their name. A wrong declaration is a recorded decision,
-  which is the property this product exists to create.
+- **The authorized record is only as honest as the people who write
+  it.** A team can authorize whatever it wants to authorize. The
+  control is not a gate on intent, which no tool can judge, but
+  attribution and visibility: every authorization names its
+  authorizer, its owner, and its scope, and the delta-driven campaign
+  shows each owner what was authorized in their name. A wrong
+  authorization is a recorded decision, which is the property this
+  product exists to create.
 - **The delta compares two snapshots, not two truths.** Both sides
   can be stale, and the finding says when each was last seen. A
   connection (v0.6) narrows the window; it does not remove it.
-- **Scope wider or narrower than declared is not computed in v0.3.**
-  Comparing a declared permission set against an observed one is
+- **Scope wider or narrower than authorized is not computed in
+  v0.3.** Comparing an authorized permission set against an observed
+  one is
   policy analysis, and it earns its own subphase; until then the
   delta compares grants by identity and path, and the page says so.

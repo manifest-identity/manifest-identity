@@ -5,7 +5,7 @@ README's sections on how a request is protected, the trust
 boundaries, what runs where, how it is put together, the data model
 shape, and the route surface are each asserted against the running
 system by a test, and this document does not repeat them. This
-document is the design of the declared half (D-066), the model both
+document is the design of the authorized half (D-066), the model both
 halves share from v0.3, and the diagram list.
 
 ## The product in four parts
@@ -13,13 +13,13 @@ halves share from v0.3, and the diagram list.
 - **Observe.** Import the reports a provider already produces;
   connect and pull later. Observations are append-only and state is
   derived at read (D-006). This is version one.
-- **Declare.** The intended record: what each identity is supposed
+- **Authorize.** The intended record: what each identity is supposed
   to hold, who approved it, when, until when, and which team owns
   it. Stored on purpose, append-only, always attributed.
 - **Compare.** The delta between the two, computed at read, never
-  stored: held but not declared, declared but not held, expired and
+  stored: held but not authorized, authorized but not held, expired and
   still held, owner disagreement, access through a relationship
-  nobody declared, a definition that changed after approval.
+  nobody authorized, a definition that changed after it was authorized.
 - **Decide.** Campaigns as the write path for intent, driven by
   expiry and by the delta, with the evidence export and the audit
   chain behind every decision. A revoke is a work item; nothing here
@@ -28,7 +28,7 @@ halves share from v0.3, and the diagram list.
 The prior art is NetBox, whose record is the desired state of a
 network and whose rule is that live state never enters the record
 without a human. This applies the same premise to identity and
-access: the observed side is never edited, the declared side is
+access: the observed side is never edited, the authorized side is
 never automatic, and the difference is the work.
 
 ## The model
@@ -42,10 +42,10 @@ than the shape of the tables. Eight objects:
 | Scope node | A place in the provider's hierarchy | AWS partition, organization, organizational unit, account; Azure cloud, tenant (the directory), management group, subscription, resource group; Google organization, folder, project; GitHub enterprise, organization, repository; Kubernetes cluster, namespace; Active Directory forest, domain, organizational unit. Owners and administrator bindings attach to nodes |
 | Identity | A principal | Keyed by the provider's immutable identifier (D-016); kind: person, service, mixed, unknown, external; **home**: this directory, another tenant or account by identifier, an identity provider, or a consumer origin (Gmail, Facebook, Apple, Microsoft personal). A guest is an identity whose home is not here |
 | Credential | Something an identity authenticates with | Keys, passwords, secrets, certificates, tokens, Kerberos keys, SSH keys; age and expiry are first-class |
-| Relationship | A declared connection between scopes or identities through which access arrives | Trust (cross-account role), federation (an external identity provider), delegation (Azure Lighthouse), cross-tenant access settings, group nesting. Declarable: owner, approver, expiry, scope |
-| Role definition | What a grant grants | Referenced by the provider's stable id; contents read at import, hashed, versioned, stored, so a review shows what a role allowed on the day of a decision. Meaning is derived from contents by capability (D-033), never from a name. Custom definitions are declarable objects with an owner |
+| Relationship | A connection between scopes or identities through which access arrives | Trust (cross-account role), federation (an external identity provider), delegation (Azure Lighthouse), cross-tenant access settings, group nesting. Authorizable: owner, authorizer, expiry, scope |
+| Role definition | What a grant grants | Referenced by the provider's stable id; contents read at import, hashed, versioned, stored, so a review shows what a role allowed on the day of a decision. Meaning is derived from contents by capability (D-033), never from a name. Custom definitions are authorizable objects with an owner |
 | Grant | An identity holding a role definition at a scope | With a **mode**: standing, eligible (may be obtained: PIM eligible, an assumable role, a Privileged Access Manager entitlement), or session (active because an eligibility was activated); and a **path**: direct, or via one or more hops, each hop a membership (active or eligible), a trust, a delegation, with the mode on each hop. The page shows "holds now" and "can obtain" |
-| Declaration | Intent about one grant | Identity, grant path, owner (a team, or a person with a required secondary owner), approver from the session and approval time, justification, reference, valid from, valid until, control reference, intended mode, status (declared, expired, revoked) with append-only history; bound to the role definition hash at approval |
+| Authorization | What a person authorized one identity to hold, per grant | Identity, grant path, owner (a team, or a person with a required secondary owner), authorizer from the session and the time, justification, reference, valid from, valid until, control reference, intended mode, status (authorized, expired, revoked) with append-only history; bound to the role definition hash when it is authorized |
 
 The tables are these objects, not a translation of them (D-071).
 Version one's tables held the AWS vocabulary, two key columns and a
@@ -74,16 +74,16 @@ Two stores, one comparison, one write path.
 1. Files, and later connections, produce observations: identities,
    credentials, grants with paths, role definitions with versions,
    relationships as seen. Append-only.
-2. People produce declarations, through the form, a CSV import with
-   a documented template, "declare from observed," an export shaped
-   for the import, and, if it is ever built, email intake that yields
-   a proposed declaration routed to an approver.
+2. People produce authorizations, through the form, a CSV import
+   with a documented template, "authorize from observed," an export
+   shaped for the import, and, if it is ever built, email intake that
+   yields a proposal routed to an authorizer.
 3. The delta reads both at request time and reports the classes
    above, each finding carrying the last observation time of each
    side, because a stale side makes the delta lie (threat 15).
-4. Campaigns turn delta items and expiring declarations into decisions
-   owed to named people; each decision writes a declaration or a
-   revocation; each is audited in the same transaction and
+4. Campaigns turn delta items and expiring authorizations into
+   decisions owed to named people; each decision writes an
+   authorization or a revocation; each is audited in the same transaction and
    hash-chained (D-057); the evidence export carries the chain head.
 5. Alerts fire on approval, revocation, and expiry, to administrators
    or administrator groups, by email and signed webhook; every firing
@@ -93,12 +93,12 @@ Two stores, one comparison, one write path.
 
 ## Trust boundaries
 
-Version one has three, listed in the README. The declared half adds
+Version one has three, listed in the README. The authorized half adds
 one and sharpens two:
 
-- **The declared record is a target.** Whoever can write intent can
+- **The authorized record is a target.** Whoever can write intent can
   make unwanted access look intended (threat 12). The boundary is
-  attribution and scope: no declaration exists without an approver
+  attribution and scope: no authorization exists without an authorizer
   taken from the session, a scope binding that covers the identity,
   and an audit row in the chain.
 - **Scope is a boundary inside the application.** An administrator
@@ -107,7 +107,7 @@ one and sharpens two:
 - **Integrations are outside.** The API token is a credential with
   the same care as a session (threat 17); webhooks are signed; email,
   if ever built, is untrusted input that produces a proposal, never
-  a declaration (threat 18).
+  an authorization (threat 18).
 
 ## Where administration lives
 
@@ -115,7 +115,7 @@ The three roles from D-017 stay: reviewer, operator, administrator.
 Each binding gains a scope node, so "administrator for tenant X" and
 "operator for AWS organization Y" are real bindings, and the role
 matrix test walks every write route with a binding inside and
-outside scope. Administrators set which declaration fields are
+outside scope. Administrators set which authorization fields are
 required; the shipped defaults are the secure ones (expiry on at one
 year, justification required), and every change to them is an
 audited administrator action.
@@ -164,18 +164,18 @@ observed half's, as listed at version one.
     with human review as the gate.
 
 
-The declared half adds four:
+The authorized half adds four:
 
 11. **The two records.** Observations flowing in from files and
-    connections on one side, declarations from people on the other,
+    connections on one side, authorizations from people on the other,
     the delta between them, and the campaign writing back to the
-    declared side only.
+    authorized side only.
 12. **The scope tree.** One provider's hierarchy with an
-    administrator binding on a node and a declaration attached
+    administrator binding on a node and an authorization attached
     beneath it.
 13. **A grant path.** An identity reaching a role at a scope through
     an eligible group membership and a cross-account trust, with the
     mode on each hop and the "holds now" and "can obtain" columns.
 14. **The campaign triggers.** Expiry and delta feeding the queue of
-    decisions owed, each decision writing a declaration or a
+    decisions owed, each decision writing an authorization or a
     revocation, the alert and its record firing after.

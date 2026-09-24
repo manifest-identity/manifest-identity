@@ -74,7 +74,7 @@ platform phases, and the program's own documents live there.
 | Tests | **168 tests in 27 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **35 routes**, every one in the role matrix the tests walk |
-| Record | **72 recorded decisions**, each with its rejected alternatives |
+| Record | **73 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -136,7 +136,7 @@ provenance attestations on every release artifact. Phase 1 built the
 application in twelve review-gated subphases whose order was fixed
 before any code ([the plan](#the-plan-fixed-before-code)): a fresh
 clone with Docker starts the stack, migrates the schema, serves
-sign-in with three roles behind a tested authorization matrix,
+sign-in with three roles behind a tested role matrix,
 imports identity exports append-only, derives the inventory with
 its credential and privilege findings, carries governance records and
 review campaigns, and produces the risk report and the escaped
@@ -191,7 +191,7 @@ Four operations, and nothing else:
   attestations, and review campaigns. Nothing is written to the cloud
   account.
 
-That set exercises authentication, authorization across three roles,
+That set exercises authentication, the role matrix across three roles,
 input validation, derived state, audit logging, and the enrichment
 model, and it holds no cloud credential at all; when the live pull
 phases add one, it will be read-only (D-015, D-020). Adding
@@ -586,9 +586,12 @@ reflection surface.
   is defined by schema, not by what the row happens to contain, so an
   internal field added next year does not leak by default.
 
-In classic terms the gates implement authentication, authorization,
+In classic terms the gates implement authentication, access control,
 and accounting; the design principle is that each is a mechanism that
-runs, not a rule that hopes.
+runs, not a rule that hopes. This product reserves the word
+authorization for the record of what an identity is allowed to hold
+(D-073), and calls its own gates the role matrix and the scope
+check.
 
 Sign-in itself gets four defenses of its own. Passwords hash with
 bcrypt, which salts automatically and is deliberately slow by an
@@ -796,7 +799,7 @@ stays derived at read (D-006).
 
 The package is split by part, and each part owns its own tables, its
 own routes, and nothing else: core holds who may act and where,
-observe holds what was seen, declare holds what people said, decide
+observe holds what was seen, authorize holds what people allowed, decide
 holds the reviews and the alerts.
 
 | Path | Role |
@@ -817,7 +820,7 @@ holds the reviews and the alerts.
 | `manifest_identity/observe/policy_analysis.py` | What a policy document grants, read by capability |
 | `manifest_identity/observe/privilege.py` | The privilege picture with source attribution; shadow admin detection |
 | `manifest_identity/observe/assessment.py` | The one computation the page, the campaigns, and the exports all read |
-| `manifest_identity/declare/governance.py` | The human layer: typed owners, purposes, flags, attestations |
+| `manifest_identity/authorize/governance.py` | The human layer: typed owners, purposes, flags, attestations |
 | `manifest_identity/decide/campaigns.py` | Recommendations with reasons, and the delta since last certification |
 | `manifest_identity/decide/reports.py` | The ranked report and the escaped exports |
 | `manifest_identity/sample_data.py` | The deterministic sample account generator |
@@ -1417,7 +1420,7 @@ fresh rather than committing it is in
 ## What comes next, and what never will
 
 The roadmap is its own document: [ROADMAP.md](ROADMAP.md), the
-observed half's list as it stood at version one, then the declared
+observed half's list as it stood at version one, then the authorized
 half by version, v0.3 through v0.6, each a definition of done rather
 than a date. The out-of-scope items and their reasons are there too.
 
@@ -1468,7 +1471,7 @@ standards themselves are the AGENTS.md file in this repository.
 The diagram list lives with the architecture:
 [ARCHITECTURE.md](ARCHITECTURE.md#diagrams), the ten finished
 diagrams still to be drawn by hand for the observed half and the four
-for the declared half, with the working sketches in the diagrams
+for the authorized half, with the working sketches in the diagrams
 directory standing in until each completes.
 
 -------------------------------------------------------------------------------
@@ -1591,7 +1594,7 @@ as open source, and the record of how it was built.
 [GNU Affero General Public License, version 3](LICENSE), from
 D-065 onward. Every release through v0.2.0 was published under the
 Apache 2.0 license and stays under it; the license changed with the
-declared-access work, so that the platform stays open and forkable
+authorized-access work, so that the platform stays open and forkable
 while anyone who runs it as a service for others publishes their
 changes. The software is provided as is; read the code and the
 [threat model](#what-it-defends-against) before relying on it.
