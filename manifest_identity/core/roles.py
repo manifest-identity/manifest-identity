@@ -75,6 +75,10 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /authorizations/{authorization_id}/revoke": frozenset(
         {Role.operator, Role.administrator}
     ),
+    # Reading the observed side in the authorized side's shape is a
+    # read: it prefills a decision and never makes one (D-024).
+    "GET /identities/{identity_id}/observed-grants": ALL_ROLES,
+    "GET /export/observed-grants.csv": ALL_ROLES,
     # A mapping says how someone else's file is read, which is a
     # governance act: everyone may see the mappings, and writing one
     # is the operator's and administrator's (D-074).
