@@ -13,16 +13,16 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from manifest_identity.core.db import get_session
-from manifest_identity.core.deps import require_roles
-from manifest_identity.core.models import ScopeNode
-from manifest_identity.declare.governance import (
+from manifest_identity.authorize.governance import (
     active_records,
     apply_owner_governance,
     record_history,
     resolve_owner,
 )
-from manifest_identity.declare.routes_governance import RecordView, record_view
+from manifest_identity.authorize.routes_governance import RecordView, record_view
+from manifest_identity.core.db import get_session
+from manifest_identity.core.deps import require_roles
+from manifest_identity.core.models import ScopeNode
 from manifest_identity.observe.assessment import (
     AssessedIdentity,
     assess_groups,

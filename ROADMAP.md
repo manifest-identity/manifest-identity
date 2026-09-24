@@ -54,7 +54,7 @@ Recorded so each absence is a decision rather than an oversight.
   imported; event-driven refresh arrives with the cloud phases.
 
 
-## The declared half, by version
+## The authorized half, by version
 
 Each version is a definition of done, not a date. The subphases are
 detailed in the maintainer's plan and summarized here; a version
@@ -62,15 +62,15 @@ ships when every subphase in it is merged with its tests, its
 decisions are recorded, and a fresh clone runs the demo with the new
 data.
 
-### v0.3: declare and compare
+### v0.3: authorize and compare
 
 - Scope tree and scoped administration: the three roles gain a scope
   node, every write route checks it.
-- The declaration record: append-only, attributed, with required
+- The authorization record: append-only, attributed, with required
   fields the administrator sets and secure defaults.
-- Entry paths: the form, CSV import with a shipped template, declare
+- Entry paths: the form, CSV import with a shipped template, authorize
   from observed, and an export shaped for the import.
-- The delta, computed at read: held but not declared, declared but
+- The delta, computed at read: held but not authorized, authorized but
   not held, expired and still held, owner disagreement.
 - Home, relationships, and grant paths with a mode on each hop; the
   "holds now" and "can obtain" columns.
@@ -93,7 +93,7 @@ data.
 - The read API with per-integration tokens and a change feed.
 - The generic observed importer with a source selector on the Imports
   page.
-- The first user: the program's own GitHub identities declared and
+- The first user: the program's own GitHub identities authorized and
   observed (D-067), the first live delta.
 
 ### v0.6: connect
@@ -106,6 +106,6 @@ data.
 
 Native observers one provider at a time (Entra and Azure, Google
 Cloud, Active Directory, Okta, Kubernetes), email intake as a
-proposed-declaration channel if it is ever built, scope comparison in
+proposal channel if it is ever built, scope comparison in
 the delta, single sign-on at the cloud phases, and the items the
 version one roadmap above still holds.

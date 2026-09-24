@@ -1625,7 +1625,7 @@ Rejected: one declaration per identity carrying a list of grants,
 which cannot expire or be revoked one grant at a time and makes
 every partial change a rewrite of the whole record.
 
-## D-069: The two records are called observed and declared
+## D-069: The two records are called observed and declared (superseded by D-073)
 
 The words on the page and in the documents are "observed" for what
 the provider's reports show and "declared" for what people said
@@ -1636,6 +1636,10 @@ auditor, and a team lead. "Actual" and "intended" were the
 alternatives and they invite argument about which is real; "held"
 and "declared" was close and loses the sense that the observed side
 is a report and not a fact.
+
+Superseded by D-073 before anything was built on it: declared names
+the act of writing something down, and the record's force comes from
+a named person authorizing it for a period.
 
 ## D-070: The three roles gain a scope, and required fields ship secure and changeable
 
@@ -1753,3 +1757,61 @@ scope as a string on the user, which cannot express a tree or carry
 attribution; and inferring scope from the target's account on the
 caller's behalf, which is authority derived from data the caller
 supplied.
+
+
+## D-073: The record is an authorization, and that word names nothing else here
+
+D-069 called the two records observed and declared. Declared names the
+act of writing something down, and it reads like documentation. What
+gives this record its force is that a named person authorized an
+identity to hold an access, for a period, with an owner. So the record
+is an authorization, the verb is authorize, the person on it is the
+authorizer, and the part that owns it is `authorize`.
+
+It is also the word the frameworks already use. AC-2 and AC-6, ISO/IEC
+27002 5.18, and the SOX access language all say authorized. The two
+sentences the delta exists to produce are "held but not authorized"
+and "authorized but not held", which is what an auditor says out loud.
+The delta is the product, so the delta's sentences are the ones that
+should read best.
+
+Approved was the near miss. An approval implies a request that came
+before it, and there is no request object in this design until email
+intake, which may never be built; a person can authorize access nobody
+asked for. Manifest entry was the other candidate, tying the record to
+the product's own name, and it was rejected as the more distinctive
+word that fewer readers would recognize on sight.
+
+The cost is a collision, and it is contained by rule rather than by
+intention:
+
+1. **In this product, authorization and authorized name this record
+   and nothing else.** The application's own gates are called the role
+   matrix and the scope check, never "authorization". The code already
+   worked this way, in `require_roles` and `require_scope`; the
+   product's own documents did not, and now do. AGENTS.md is the
+   exception by design: it carries build-doctrine's shared standards
+   text, where object-level authorization is a general engineering
+   rule that every repository under the doctrine reads the same way,
+   and forking that text to suit one product's vocabulary would cost
+   more than the collision does.
+2. **The bare word unauthorized is never a label**, because HTTP owns
+   it: 401 is named Unauthorized and this application returns it. The
+   finding is written "held but not authorized".
+3. **The AWS authorization details file keeps the provider's name**,
+   in the source kind and the parser, because the provider's
+   vocabulary ending at the parser is the rule (D-071) and renaming
+   someone else's file would be a worse lie than the collision.
+
+The rename happened before the record held a single row: the tables
+exist from migration 0001 and no route writes them yet, so this is a
+name change, not a data change. An existing demo volume keeps the old
+table names and must be recreated, which the clean-slate reset in the
+README already covers.
+
+Rejected: keeping declared because it was already written down, which
+is the sunk cost of one session against a word in every finding, every
+document, and every screen for the life of the product; and carrying
+both words, one in the code and one on the page, which is how a
+product ends up with two vocabularies and a translation layer between
+them.

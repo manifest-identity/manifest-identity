@@ -6,6 +6,13 @@ import them from one place.
 """
 
 from manifest_identity.api.models import IntegrationToken
+from manifest_identity.authorize.models import (
+    Authorization,
+    AuthorizationStatus,
+    AuthorizedRelationship,
+    EntryPath,
+    GovernanceRecord,
+)
 from manifest_identity.core.db import Base
 from manifest_identity.core.models import (
     GLOBAL_NODE_EXTERNAL_ID,
@@ -26,13 +33,6 @@ from manifest_identity.decide.models import (
     CampaignItem,
     CampaignTrigger,
 )
-from manifest_identity.declare.models import (
-    Declaration,
-    DeclarationStatus,
-    DeclaredRelationship,
-    EntryPath,
-    GovernanceRecord,
-)
 from manifest_identity.observe.models import (
     Credential,
     CredentialKind,
@@ -50,9 +50,11 @@ from manifest_identity.observe.models import (
 )
 
 __all__ = [
-    "GLOBAL_NODE_EXTERNAL_ID", "Alert", "AlertDelivery", "AuditEvent", "AuthSession",
-    "Base", "Campaign", "CampaignItem", "CampaignTrigger", "Credential",
-    "CredentialKind", "Declaration", "DeclarationStatus", "DeclaredRelationship",
+    "GLOBAL_NODE_EXTERNAL_ID", "Alert", "AlertDelivery", "AuditEvent",
+    "Authorization", "AuthorizationStatus", "AuthorizedRelationship",
+    "AuthSession", "Base",
+    "Campaign", "CampaignItem", "CampaignTrigger", "Credential",
+    "CredentialKind",
     "EntryPath", "GovernanceRecord", "Grant", "GrantMode", "Home", "Identity",
     "IdentityKind", "IdentityObservation", "Import", "IntegrationToken",
     "Membership", "ObservedRelationship", "Partition", "Provider",

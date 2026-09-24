@@ -20,14 +20,14 @@ from datetime import datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from manifest_identity.core.models import ScopeNode
-from manifest_identity.declare.governance import (
+from manifest_identity.authorize.governance import (
     EffectiveOwner,
     active_owners_by_target,
     apply_owner_governance,
     resolve_owner,
 )
-from manifest_identity.declare.models import GovernanceRecord
+from manifest_identity.authorize.models import GovernanceRecord
+from manifest_identity.core.models import ScopeNode
 from manifest_identity.observe.derive import DerivedState, derive
 from manifest_identity.observe.findings import Finding, evaluate
 from manifest_identity.observe.models import (

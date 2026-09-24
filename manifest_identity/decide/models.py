@@ -3,7 +3,7 @@ deliveries.
 
 A campaign freezes a population into items at creation; one item,
 one decision; no bulk operation anywhere (D-039). A decision writes
-intent through declare and never touches a cloud (D-024). An alert
+intent through authorize and never touches a cloud (D-024). An alert
 is a record, and each delivery to each recipient is a record, so
 "who was told, and did it arrive" is answerable (threat 16).
 """
@@ -67,7 +67,7 @@ class CampaignItem(Base):
         JSON, default=None
     )
     evidence: Mapped[dict[str, object] | None] = mapped_column(JSON, default=None)
-    # The declaration or delta finding the item came from, when the
+    # The authorization or delta finding the item came from, when the
     # trigger was expiry or delta.
     origin_kind: Mapped[str | None] = mapped_column(String(24), default=None)
     origin_ref: Mapped[str | None] = mapped_column(String(255), default=None)

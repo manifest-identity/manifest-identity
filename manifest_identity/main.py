@@ -16,6 +16,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from manifest_identity.authorize import routes_governance as governance
 from manifest_identity.core import routes_admin as admin
 from manifest_identity.core import routes_auth as auth
 from manifest_identity.core.bootstrap import bootstrap_admin
@@ -24,7 +25,6 @@ from manifest_identity.core.db import database_reachable, get_engine
 from manifest_identity.core.logs import configure_logging, log_event
 from manifest_identity.decide import routes_campaigns as campaigns
 from manifest_identity.decide import routes_reports as reports
-from manifest_identity.declare import routes_governance as governance
 from manifest_identity.observe import routes_imports as imports
 from manifest_identity.observe import routes_inventory as inventory
 

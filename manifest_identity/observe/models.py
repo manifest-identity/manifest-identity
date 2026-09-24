@@ -238,8 +238,8 @@ class Membership(Base):
 
 class ObservedRelationship(Base):
     """A connection through which access arrives, as seen: a role's
-    trust policy, a federation, a delegation. The declared counterpart
-    lives in declare."""
+    trust policy, a federation, a delegation. The authorized
+    counterpart lives in authorize."""
 
     __tablename__ = "observed_relationships"
 

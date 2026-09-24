@@ -68,7 +68,7 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
     ),
     (
         "assigned owners no longer answer the unowned finding",
-        "manifest_identity/declare/governance.py",
+        "manifest_identity/authorize/governance.py",
         "    if effective is not None and effective.source == \"assigned\":",
         "    if False:",
         ["tests/test_governance.py"],
