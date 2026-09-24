@@ -280,6 +280,7 @@ async function loadDetail(id) {
   }
 
   renderDetailGovernance(d);
+  await renderAuthorizations(id);
 
   const timeline = $("detail-timeline");
   timeline.replaceChildren();
@@ -308,6 +309,59 @@ function governanceItem(r, onCleared) {
     li.append(" ", clear);
   }
   return li;
+}
+
+// What is authorized, and the chain behind it. Read for every role;
+// written by the operator and the administrator, matching the matrix.
+async function renderAuthorizations(id) {
+  const rows = await (await api("/identities/" + id + "/authorizations")).json();
+  const superseded = new Set(
+    rows.map((r) => r.supersedes_id).filter((x) => x !== null));
+  const live = rows.filter(
+    (r) => r.status === "authorized" && !superseded.has(r.id));
+  const active = $("auth-active");
+  active.replaceChildren();
+  $("auth-empty").hidden = live.length > 0;
+  for (const r of live) {
+    const li = document.createElement("li");
+    const hops = r.path.map(
+      (h) => h.via + (h.ref ? " " + h.ref : "")).join(" then ");
+    li.appendChild(document.createTextNode(
+      r.role_definition_external_id + ", " + r.mode + ", by " + hops
+      + ", owned by " + r.owner_ref
+      + (r.valid_until ? ", until " + r.valid_until.slice(0, 10) : ", no expiry")
+      + ", authorized by " + r.authorizer));
+    if (currentRole !== "reviewer") {
+      const revoke = document.createElement("button");
+      revoke.type = "button";
+      revoke.textContent = "revoke";
+      revoke.addEventListener("click", async () => {
+        // A revocation says why, so the record explains itself; the
+        // server refuses an empty reason and so does this.
+        const reason = window.prompt("Why is this being revoked?");
+        if (!reason || !reason.trim()) return;
+        const response = await api("/authorizations/" + r.id + "/revoke", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason }),
+        });
+        if (response.ok) loadDetail(id);
+      });
+      li.append(" ", revoke);
+    }
+    active.appendChild(li);
+  }
+  $("auth-form").hidden = currentRole === "reviewer";
+  $("auth-result").hidden = true;
+  const history = $("auth-history");
+  history.replaceChildren();
+  for (const r of rows) {
+    history.appendChild(row([
+      r.role_definition_external_id, r.mode, r.owner_ref, r.status,
+      r.authorizer, r.authorized_at,
+      r.valid_until ? r.valid_until.slice(0, 10) : "",
+    ]));
+  }
 }
 
 function renderDetailGovernance(d) {
@@ -706,6 +760,69 @@ function wireOwnerTypeVisibility(formId) {
   kind.addEventListener("change", sync);
   sync();
 }
+// The second owner is required only when a person owns it, and the
+// group name is asked for only when access arrives through one: the
+// form offers what the rule needs and nothing else.
+(function wireAuthorizationForm() {
+  const form = $("auth-form");
+  const via = form.querySelector('[name="via"]');
+  const ownerKind = form.querySelector('[name="owner_kind"]');
+  const sync = () => {
+    $("auth-ref-label").hidden = via.value === "direct";
+    $("auth-secondary").hidden = ownerKind.value !== "individual";
+  };
+  via.addEventListener("change", sync);
+  ownerKind.addEventListener("change", sync);
+  sync();
+})();
+
+$("auth-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = new FormData(e.target);
+  const via = form.get("via");
+  const payload = {
+    role_definition_external_id: form.get("role_definition_external_id"),
+    path: [{ via, ref: via === "direct" ? "" : (form.get("ref") || ""),
+             mode: "active" }],
+    mode: form.get("mode"),
+    owner_kind: form.get("owner_kind"),
+    owner_ref: form.get("owner_ref"),
+  };
+  if (form.get("owner_kind") === "individual") {
+    payload.secondary_owner_kind = form.get("secondary_owner_kind");
+    payload.secondary_owner_ref = form.get("secondary_owner_ref");
+  }
+  for (const name of ["justification", "reference", "control_reference"]) {
+    if (form.get(name)) payload[name] = form.get(name);
+  }
+  // A date input gives a day; the record keeps an instant, and the
+  // end of that day is what a person means by "until".
+  if (form.get("valid_until")) {
+    payload.valid_until = form.get("valid_until") + "T23:59:59+00:00";
+  }
+  const result = $("auth-result");
+  result.hidden = false;
+  result.textContent = "saving...";
+  try {
+    const response = await api(
+      "/identities/" + detailId + "/authorizations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    if (response.ok) {
+      result.hidden = true;
+      e.target.reset();
+      loadDetail(detailId);
+    } else {
+      const data = await response.json();
+      result.textContent = "refused: " + detailText(data.detail);
+    }
+  } catch {
+    result.textContent = "the authorization could not be saved";
+  }
+});
+
 wireOwnerTypeVisibility("gov-form");
 wireOwnerTypeVisibility("group-gov-form");
 
