@@ -143,7 +143,10 @@ def test_the_scaled_set_holds_every_small_set_invariant() -> None:
     for name, content in scaled.items():
         for shape in CREDENTIAL_SHAPES:
             assert not shape.search(content), f"{name} matched {shape.pattern}"
-        if name.endswith(".csv"):
+        # Scale adds identities, so it grows the credential reports.
+        # The authorization template is a shipped example of the file
+        # door's shape, not a population, and does not scale with one.
+        if name.endswith("-credential-report.csv"):
             small_rows = set(curated[name].splitlines())
             large_rows = content.splitlines()
             assert small_rows <= set(large_rows)

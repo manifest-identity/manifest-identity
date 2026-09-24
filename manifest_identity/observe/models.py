@@ -236,6 +236,58 @@ class Membership(Base):
     mode: Mapped[str] = mapped_column(String(16), default="active")
 
 
+class ImportMapping(Base):
+    """How one organization's file maps to the fields this product
+    needs (D-074). The file keeps its shape; this is the object that
+    reads it, and it is named, attributed, and superseded rather than
+    edited, so a mapping that turns out to be wrong leaves every row
+    it read findable through the batch."""
+
+    __tablename__ = "import_mappings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    # authorizations today; the observed side joins at 1.11 rather
+    # than building a second door.
+    source_kind: Mapped[str] = mapped_column(String(32), index=True)
+    # {field: {"column": str | None, "constant": str | None,
+    #          "format": str | None}}. A field takes a column or a
+    #  constant, never both; format is the date format, declared and
+    #  never inferred.
+    fields: Mapped[dict[str, dict[str, str | None]]] = mapped_column(JSON)
+    version: Mapped[int] = mapped_column(default=1)
+    supersedes_id: Mapped[int | None] = mapped_column(
+        ForeignKey("import_mappings.id"), default=None
+    )
+    created_by_username: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow
+    )
+
+
+class ImportBatch(Base):
+    """One file read through one mapping. Every row written names its
+    batch, so "which mapping produced this record" is a query and not
+    a reconstruction."""
+
+    __tablename__ = "import_batches"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source_kind: Mapped[str] = mapped_column(String(32))
+    mapping_id: Mapped[int] = mapped_column(
+        ForeignKey("import_mappings.id"), index=True
+    )
+    source_filename: Mapped[str | None] = mapped_column(String(255), default=None)
+    row_count: Mapped[int] = mapped_column(default=0)
+    written_count: Mapped[int] = mapped_column(default=0)
+    refused_count: Mapped[int] = mapped_column(default=0)
+    ignored_columns: Mapped[list[str] | None] = mapped_column(JSON, default=None)
+    imported_by_username: Mapped[str] = mapped_column(String(64))
+    imported_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow
+    )
+
+
 class ObservedRelationship(Base):
     """A connection through which access arrives, as seen: a role's
     trust policy, a federation, a delegation. The authorized

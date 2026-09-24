@@ -504,6 +504,56 @@ def authorization_details(generation: int, scale: int = 0) -> str:
     return json.dumps(payload, indent=2) + "\n"
 
 
+def authorizations_template() -> str:
+    """The template for the file door, generated rather than written,
+    so its columns come from the shipped mapping itself (D-074) and
+    the two cannot drift. Its rows name identities from the sample
+    account above, so a reader can import it after the observed files
+    and watch the record fill."""
+    from manifest_identity.authorize.csv_import import DEFAULT_FIELDS
+
+    columns = [
+        column
+        for spec in DEFAULT_FIELDS.values()
+        if (column := spec.get("column")) is not None
+    ]
+    everyone = {person.name: person.uid for person in people(len(GENERATIONS) - 1)}
+    rows = [
+        {
+            "identity_id": everyone["report-reader"],
+            "role": "arn:aws:iam::aws:policy/ReadOnlyAccess",
+            "mode": "standing",
+            "path": "",
+            "owner_kind": "team",
+            "owner": "platform-team",
+            "justification": "reads the audit bucket for the nightly report",
+            "reference": "CHG-1041",
+            "control": "AC-6",
+            "valid_from": "2026-09-01",
+            "valid_until": "2027-08-31",
+        },
+        {
+            "identity_id": everyone["data-pipeline"],
+            "role": "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+            "mode": "standing",
+            "path": "membership:operations",
+            "owner_kind": "individual",
+            "owner": "dana.okafor",
+            "secondary_owner_kind": "team",
+            "secondary_owner": "platform-team",
+            "justification": "moves the nightly extract while the rewrite lands",
+            "reference": "CHG-1042",
+            "control": "AC-2",
+            "valid_from": "2026-09-01",
+            "valid_until": "2027-02-28",
+        },
+    ]
+    lines = [",".join(columns)]
+    for row in rows:
+        lines.append(",".join(str(row.get(column, "")) for column in columns))
+    return "\n".join(lines) + "\n"
+
+
 def file_set(scale: int = 0) -> dict[str, str]:
     """Every sample file, by name, deterministic and complete. A zero
     scale is the committed curated set, byte for byte; any other scale
@@ -515,6 +565,7 @@ def file_set(scale: int = 0) -> dict[str, str]:
         out[f"{day}-authorization-details.json"] = authorization_details(
             generation, scale
         )
+    out["authorizations-template.csv"] = authorizations_template()
     return out
 
 

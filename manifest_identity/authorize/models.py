@@ -100,6 +100,11 @@ class Authorization(Base):
         ForeignKey("authorizations.id"), default=None
     )
     entry_path: Mapped[str] = mapped_column(String(24))
+    # Set when the row came through a file, so the mapping that read
+    # it is one join away (D-074).
+    batch_id: Mapped[int | None] = mapped_column(
+        ForeignKey("import_batches.id"), default=None, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow
     )
