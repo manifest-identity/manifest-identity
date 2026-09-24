@@ -53,6 +53,22 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         ["tests/test_authorizations.py"],
     ),
     (
+        "a file import stops naming the mapping that read it",
+        # The property D-074 is built for: without the batch link, a
+        # mapping later found wrong leaves nothing to find.
+        "manifest_identity/authorize/csv_import.py",
+        "        written.batch_id = batch.id",
+        "        written.batch_id = None",
+        ["tests/test_csv_import.py"],
+    ),
+    (
+        "a date is guessed when the mapping declares no format",
+        "manifest_identity/observe/mapping.py",
+        "    if not fmt:",
+        "    if False:",
+        ["tests/test_csv_import.py"],
+    ),
+    (
         "audit rows silently dropped",
         "manifest_identity/core/audit.py",
         "    db.add(event)",

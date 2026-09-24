@@ -75,6 +75,17 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /authorizations/{authorization_id}/revoke": frozenset(
         {Role.operator, Role.administrator}
     ),
+    # A mapping says how someone else's file is read, which is a
+    # governance act: everyone may see the mappings, and writing one
+    # is the operator's and administrator's (D-074).
+    "GET /mappings": ALL_ROLES,
+    "POST /mappings": frozenset({Role.operator, Role.administrator}),
+    # A dry run writes nothing, and is still not a reader's act: it is
+    # the step before importing, and it names identities.
+    "POST /authorizations/import/dry-run": frozenset(
+        {Role.operator, Role.administrator}
+    ),
+    "POST /authorizations/import": frozenset({Role.operator, Role.administrator}),
     # Creating and closing a campaign shape the review; deciding an
     # item is the review, so disposition is open to every role, one
     # item at a time, with no bulk operation anywhere (D-039).

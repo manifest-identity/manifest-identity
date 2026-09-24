@@ -1815,3 +1815,72 @@ document, and every screen for the life of the product; and carrying
 both words, one in the code and one on the page, which is how a
 product ends up with two vocabularies and a translation layer between
 them.
+
+## D-074: The customer's file keeps its own shape, and the mapping is the object
+
+The CSV door was designed twice. The first design prescribed a column
+set, documented it, shipped a template, and put a format version in
+every row so a file written to an old contract would be refused rather
+than misread. The maintainer asked whether a schema has to be
+prescribed at all, and it does not.
+
+Organizations already hold these spreadsheets. Access approvals live in
+somebody's sheet with columns called Owner, Business Unit, Expires, and
+Ticket. Prescribing a schema asks them to transform that file before
+they get anything back, and the transform happens on their side, where
+no gate of ours can see it. A bad transform is invisible here forever:
+the rows arrive well formed and wrong.
+
+So the file keeps its shape and the import carries a mapping: each
+field this product needs, named against the column that holds it, or
+against a constant for a field the file does not have. A mapping is a
+stored object with a name, the person who wrote it, and a supersession
+chain like every other record here, and every import names the mapping
+it was read through.
+
+That last property is the one worth the work. If a mapping turns out to
+have been wrong, every row imported through it is findable. Under the
+prescribed schema, a customer's bad transform leaves nothing to find.
+
+Three consequences follow.
+
+**There is no format version.** Nothing of ours is versioned because
+nothing of ours is the format. What changes is their file, and the
+answer to a changed file is a new version of their mapping, which the
+chain already records. The version column the first design argued for
+is dropped rather than kept beside the mapping, because two mechanisms
+answering one question is how a reader learns to trust neither.
+
+**Nothing is guessed.** A mapping that does not cover every required
+field refuses the file whole, before a row is read. Columns nobody
+mapped are ignored explicitly and counted in the result, so an ignored
+column is a number a person can see rather than a silence. Dates are
+parsed by a format the mapping declares, never inferred, because
+03/04/2026 is two different days in two countries and picking one is
+the kind of quiet wrong this product exists to prevent. Values pass
+exactly the checks the form applies, through the same code, so the
+required-field settings and the person-owner rule cannot differ by
+which door a record came through.
+
+**A flexible reader needs a dry run.** A mapping makes a systematic
+misread more likely than a fixed schema does, so reading and writing
+are two routes. The dry run applies the mapping, returns the first
+rows as the system understood them with the refusals and their
+reasons, and writes nothing. The importer is the attributed authorizer
+of every row that lands, so a person confirming a dry run is putting
+their name on all of it, which is the reason the preview exists rather
+than a convenience.
+
+Rejected: the prescribed column set with a version column, for the
+reasons above, though its template survives as the shipped default
+mapping so the easy path stays easy; matching their headers against a
+list of aliases we maintain, which is guessing with extra steps and
+fails silently when two aliases collide; and versioning by filename,
+which contradicts the rule that a file's content is authoritative and
+its name is not (D-008).
+
+The cost is that subphase 1.3 grows, and it is paid back at 1.11,
+where the observed side needs the same door and now uses the same
+mechanism rather than a second one. The screen for building a mapping,
+rather than sending one, moves to the page work with the rest of the
+frontend.

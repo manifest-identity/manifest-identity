@@ -68,8 +68,9 @@ data.
   node, every write route checks it. **Built.**
 - The authorization record: append-only, attributed, with required
   fields the administrator sets and secure defaults. **Built.**
-- Entry paths: the form, CSV import with a shipped template, authorize
-  from observed, and an export shaped for the import.
+- Entry paths: the form, a file import that reads the customer's own
+  shape through a mapping with a dry run, authorize from observed,
+  and an export shaped for the import. **The file door is built.**
 - The delta, computed at read: held but not authorized, authorized but
   not held, expired and still held, owner disagreement.
 - Home, relationships, and grant paths with a mode on each hop; the

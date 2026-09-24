@@ -71,10 +71,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **187 tests in 28 files**, coverage 94 over a 90 percent floor |
+| Tests | **210 tests in 29 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **40 routes**, every one in the role matrix the tests walk |
-| Record | **73 recorded decisions**, each with its rejected alternatives |
+| Surface | **44 routes**, every one in the role matrix the tests walk |
+| Record | **74 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -737,6 +737,19 @@ audit_events
   column, never a job that might not run. Which fields an
   authorization must carry is the administrator's choice, shipped
   strict, and every change to that choice is audited (D-070).
+  Authorizations arrive through the form or through a file. A file
+  keeps its own shape: the import carries a **mapping** that names
+  which of their columns holds each field, or a constant for a field
+  their file does not have, so nobody is asked to transform their
+  spreadsheet before they get anything back (D-074). A mapping is
+  written and superseded rather than edited, and every import names
+  the mapping that read it, so a mapping later found wrong leaves
+  every row it produced findable. Nothing is guessed: a missing
+  required column refuses the file, a missing optional one is named
+  in the result, unmapped columns are counted, and a date is read by
+  a format the mapping declares, because 03/04/2026 is two different
+  days in two countries. A dry run shows how the file was understood
+  and writes nothing.
 - A **governance record** is the human layer: an owner, a purpose, a
   flag, or an attestation, on an identity or a group (D-019),
   attributed and audited, stored rather than derived because it IS the
@@ -786,6 +799,10 @@ DELETE /governance/{record_id}
 GET /identities/{identity_id}/authorizations
 POST /identities/{identity_id}/authorizations
 POST /authorizations/{authorization_id}/revoke
+GET /mappings
+POST /mappings
+POST /authorizations/import/dry-run
+POST /authorizations/import
 POST /campaigns
 GET /campaigns
 GET /campaigns/rollup
@@ -836,6 +853,8 @@ holds the reviews and the alerts.
 | `manifest_identity/observe/privilege.py` | The privilege picture with source attribution; shadow admin detection |
 | `manifest_identity/observe/assessment.py` | The one computation the page, the campaigns, and the exports all read |
 | `manifest_identity/authorize/authorizations.py` | The authorization write path: attributed, append-only, bounded |
+| `manifest_identity/authorize/csv_import.py` | The file door: rows become the same request the form builds |
+| `manifest_identity/observe/mapping.py` | The bounded table reader and the mapping both doors share |
 | `manifest_identity/authorize/governance.py` | The human layer: typed owners, purposes, flags, attestations |
 | `manifest_identity/core/options.py` | Administrator settings, secure by default, audited on every change |
 | `manifest_identity/decide/campaigns.py` | Recommendations with reasons, and the delta since last certification |

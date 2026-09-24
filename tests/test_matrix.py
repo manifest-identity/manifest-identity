@@ -31,6 +31,14 @@ SAMPLE_REPORT = (
     b"FALSE,N/A,N/A,N/A,N/A,FALSE,N/A,N/A,N/A,N/A,FALSE,N/A,FALSE,N/A\n"
 )
 
+# A file the mapping can read whose rows name no identity: the call is
+# a valid one, so a denial is provably authorization.
+SAMPLE_AUTHORIZATIONS = (
+    b"identity_id,role,mode,path,owner_kind,owner,justification\n"
+    b"AIDANOBODY000000000001,arn:aws:iam::aws:policy/ReadOnlyAccess,"
+    b"standing,,team,matrix-team,matrix exercise\n"
+)
+
 # How to call each governed route with a valid request, so a denial is
 # provably authorization and not validation. Values are request kwargs.
 CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
@@ -92,6 +100,27 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
     ),
     "GET /admin/scopes": ("get", "/admin/scopes", {}),
     "GET /admin/settings": ("get", "/admin/settings", {}),
+    "GET /mappings": ("get", "/mappings", {}),
+    "POST /mappings": (
+        "post",
+        "/mappings",
+        {"json": {"name": "matrix mapping", "fields": {
+            "identity_external_id": {"column": "identity_id"},
+            "role_definition_external_id": {"column": "role"},
+            "owner_kind": {"constant": "team"},
+            "owner_ref": {"column": "owner"},
+        }}},
+    ),
+    "POST /authorizations/import/dry-run": (
+        "post",
+        "/authorizations/import/dry-run",
+        {"files": {"file": ("a.csv", SAMPLE_AUTHORIZATIONS, "text/csv")}},
+    ),
+    "POST /authorizations/import": (
+        "post",
+        "/authorizations/import",
+        {"files": {"file": ("a.csv", SAMPLE_AUTHORIZATIONS, "text/csv")}},
+    ),
     "PUT /admin/settings": (
         "put",
         "/admin/settings",

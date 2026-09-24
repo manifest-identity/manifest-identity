@@ -1,0 +1,3 @@
+identity_id,role,mode,path,owner_kind,owner,secondary_owner_kind,secondary_owner,justification,reference,control,valid_from,valid_until
+AIDASAMPLEREPORTREAD,arn:aws:iam::aws:policy/ReadOnlyAccess,standing,,team,platform-team,,,reads the audit bucket for the nightly report,CHG-1041,AC-6,2026-09-01,2027-08-31
+AIDASAMPLEDATAPIPELI,arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess,standing,membership:operations,individual,dana.okafor,team,platform-team,moves the nightly extract while the rewrite lands,CHG-1042,AC-2,2026-09-01,2027-02-28

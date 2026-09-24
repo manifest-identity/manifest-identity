@@ -187,11 +187,13 @@ def _check(db: Session, request: Request, valid_until: datetime | None) -> None:
         raise AuthorizationError("an expiry is required by this organization")
 
 
-def authorize(
-    db: Session, request: Request, actor: User, now: datetime | None = None
-) -> Authorization:
-    """Write one authorization, superseding whatever it replaces, with
-    its audit row in the same transaction. The caller commits."""
+def check_only(
+    db: Session, request: Request, now: datetime | None = None
+) -> tuple[datetime, datetime | None]:
+    """Every rule `authorize` applies, applied without writing, and the
+    window it resolved. The dry run of a file import calls this, so a
+    preview cannot promise a row the write would refuse: there is one
+    set of rules and this is it."""
     moment = now or utcnow()
     valid_from = _aware(request.valid_from) if request.valid_from else moment
     maximum = options.get_int(db, "authorization.maximum_lifetime_days")
@@ -214,7 +216,16 @@ def authorize(
                 f"this organization allows at most {maximum} days, "
                 "and a longer window needs the setting changed first"
             )
+    return valid_from, valid_until
 
+
+def authorize(
+    db: Session, request: Request, actor: User, now: datetime | None = None
+) -> Authorization:
+    """Write one authorization, superseding whatever it replaces, with
+    its audit row in the same transaction. The caller commits."""
+    moment = now or utcnow()
+    valid_from, valid_until = check_only(db, request, moment)
     key = path_key(request.path)
     previous = active_for_path(db, request.identity_id, key, moment)
     row = Authorization(
