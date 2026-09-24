@@ -228,3 +228,19 @@ def test_the_shell_names_its_icon_and_its_empty_states() -> None:
     script = (FRONTEND / "app.js").read_text()
     for view in ("inventory", "groups", "campaigns"):
         assert f'$("{view}-empty").hidden = rows.length !== 0;' in script, view
+
+
+def test_the_scopes_view_ships_hidden_and_is_gated_by_role() -> None:
+    """The scope tree is read through an administrative route, so the
+    button that asks for it must not be on the page for anyone else.
+    It ships hidden in the markup and is shown only when the roles the
+    session reports include administrator; a button that appears and
+    then fails with a 403 teaches users to ignore refusals."""
+    html = (FRONTEND / "index.html").read_text()
+    assert '<button id="nav-scopes" data-view="scopes" hidden>' in html
+    assert '<section id="scopes" hidden>' in html
+    js = (FRONTEND / "app.js").read_text()
+    assert '$("nav-scopes").hidden = !currentRoles.includes("administrator");' in js
+    # The view is in the switcher's list, or showing it would leave the
+    # previous view on the page beneath it.
+    assert '"scopes",' in js

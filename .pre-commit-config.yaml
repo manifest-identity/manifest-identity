@@ -42,6 +42,14 @@ repos:
         entry: python3 scripts/check_actions_inventory.py
         language: system
         pass_filenames: false
+      # The compose file's hardening is a property, not a comment: no
+      # scanner in the container job reads a compose file, so this one
+      # does.
+      - id: compose-hardening
+        name: compose hardening check
+        entry: python3 scripts/check_compose_hardening.py
+        language: system
+        pass_filenames: false
       # The scoring page is generated from a snapshot of the raters'
       # data; a page the snapshot does not produce is a page that
       # states a figure nobody read.

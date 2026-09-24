@@ -21,6 +21,7 @@
       <button data-view="groups">Groups</button>
       <button data-view="campaigns">Campaigns</button>
       <button data-view="imports">Imports</button>
+      <button id="nav-scopes" data-view="scopes" hidden>Scopes</button>
       <span class="spacer"></span>
       <span id="whoami"></span>
       <button id="signout">Sign out</button>
@@ -224,6 +225,21 @@
       </div>
       <output id="campaign-detail-result" hidden></output>
       <div id="campaign-items"></div>
+    </section>
+
+    <section id="scopes" hidden>
+      <h2>Scopes</h2>
+      <p class="empty">Authority is a binding at a place in this tree. A
+      binding covers its node and everything beneath it; a binding at
+      global covers everything. Bindings are managed through the
+      administrative routes in this version.</p>
+      <table>
+        <thead><tr>
+          <th>provider</th><th>partition</th><th>kind</th>
+          <th>identifier</th><th>name</th><th>parent</th>
+        </tr></thead>
+        <tbody id="scope-rows"></tbody>
+      </table>
     </section>
 
     <section id="imports" hidden>

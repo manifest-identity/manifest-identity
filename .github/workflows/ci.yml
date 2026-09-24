@@ -378,3 +378,21 @@ jobs:
         run: '"$RUNNER_TEMP/kubeconform" -summary -skip ValidatingAdmissionPolicy,ValidatingAdmissionPolicyBinding deploy/k8s/'
       - name: manifest posture lint
         run: '"$RUNNER_TEMP/kube-linter" lint deploy/k8s/'
+      - name: configuration scan over compose and the manifests
+        # The image scans above answer "what is in the base"; this one
+        # answers "what did the configuration around it allow": a
+        # privileged container, a writable root filesystem, a missing
+        # resource bound, a host mount. hadolint reads the Dockerfile
+        # for build hygiene and kube-linter reads the manifests for
+        # posture; this reads both against a rule set neither carries.
+        # Blocking at high and critical, because every finding here is
+        # a line in a file this repository owns and can fix.
+        run: |
+          "$RUNNER_TEMP/trivy" config --severity HIGH,CRITICAL --exit-code 1 deploy/k8s/
+          "$RUNNER_TEMP/trivy" config --severity HIGH,CRITICAL --exit-code 1 Dockerfile
+      - name: the compose file keeps its hardening
+        # Trivy's configuration rules cover Dockerfiles, Kubernetes,
+        # and the infrastructure template formats, and read a compose
+        # file reporting nothing; the properties its header claims are
+        # checked by this instead of assumed.
+        run: python3 scripts/check_compose_hardening.py

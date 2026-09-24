@@ -1656,3 +1656,100 @@ prescribing expiry and justification with no way to change them,
 which the maintainer ruled out (organizations decide); and shipping
 them off by default, which makes the record's quality depend on
 someone finding a setting.
+
+## D-071: The observed half is rebuilt on the neutral model, and no data is migrated
+
+Version one's tables were shaped by the file that fed them. An
+observation row carried `key1_active` and `key2_last_rotated` because
+an AWS credential report has two key slots; a snapshot belonged to an
+account because AWS calls a place an account; a policy document was
+stored per snapshot because that is how the authorization details
+file arrives. Every one of those is a provider's vocabulary standing
+where a model belongs, and the declared half has to compare across
+providers that count credentials differently and call their places
+tenants, subscriptions, projects, and clusters.
+
+Two ways forward were weighed. Map the old tables to a neutral shape
+at read time, keeping the storage as it is: cheap this week, and it
+leaves every reader translating forever, with two vocabularies in the
+code and the mapping as the place bugs live. Or rebuild the tables
+neutral now and re-point the readers. The maintainer ruled for the
+rebuild, three times and plainly: build it as if the old product
+never existed, and let what the old product did arrive as features on
+the new model.
+
+So the package is split by part, each owning its own tables and
+nothing else: core (users, sessions, scope nodes, bindings, settings,
+the audit chain), observe (providers, imports, identities,
+observations, credentials, role definitions, grants, memberships,
+relationships), declare (governance records, declarations, declared
+relationships), decide (campaigns, items, alerts, deliveries), and
+api (integration tokens). Snapshots become imports keyed by scope,
+source kind, and capture time. A credential is one row per
+credential, so a provider with five keys is five rows. A grant names
+a versioned role definition at a scope, by a path of hops and in a
+mode, which is what makes group-derived and eligible access
+expressible at all. Groups stay identities of kind group (D-019).
+The provider's own words end at the parser.
+
+No data is migrated, because there is none: the only deployment is a
+demo that regenerates from `python -m manifest_identity.sample_data`,
+and a released version has never held a production estate. Every
+migration before this one is deleted and replaced by a single
+greenfield migration, which is honest about what it is rather than
+pretending to a lineage nobody walked. Anyone running the demo
+recreates the volume; the README says so.
+
+Paths moved with the split: the audit chain verifier D-063 placed at
+`python -m manifest_identity.verify_chain` is now
+`python -m manifest_identity.core.verify_chain`, and the parsers are
+under `manifest_identity/observe/providers/`. Entries before this one
+name the old paths where they describe the past, and stay as written.
+
+Rejected: mapping at read, for the reasons above; keeping the old
+migrations so the history looks continuous, which would make Alembic
+carry a past no database has; and a migration that moves demo data,
+which is work performed on data that regenerates in a second.
+
+## D-072: A role binding at a scope replaces the role column on a user
+
+A user had one role, in a column, and it applied everywhere the
+application looked. That is the right model for one team watching one
+account and the wrong one for an estate: an operator for the payments
+account had to be an operator for every account, and the only way to
+give someone less was to give them nothing.
+
+Authority is now a row: user, role, scope node, who granted it, when,
+and a revocation that ends it without deleting it. A user holds as
+many bindings as the estate needs. One function answers every
+authority question, and it is the only one that does: does this user
+hold one of these roles at this node, at an ancestor of it, or at the
+global node, with nothing revoked. Routes ask the matrix first, which
+is unchanged and still the single source of which roles a route
+admits, and then ask the scope question with the node their target
+belongs to. A binding is itself a governance act, so it is audited
+like one.
+
+The global node is a real row, created by the first migration,
+provider generic and kind global, and an organization-wide binding
+names it. Making it a row rather than a null keeps one code path for
+every check; a null scope meaning everywhere would have put the most
+powerful grant in the value that is easiest to write by accident.
+
+Administration stays global in this version: an administrator bound
+at an account cannot yet create users or bind roles, because
+per-node administration needs the per-team views that have not been
+built, and a half-built one would hand out authority nobody can see.
+That refusal is tested rather than assumed.
+
+Revocation over deletion is the same rule the rest of the record
+follows (D-006): who could act, when, and who granted it, survives
+the end of the grant. A deleted binding would erase exactly the fact
+an investigation needs.
+
+Rejected: keeping the column and adding bindings beside it, which
+leaves two sources of authority and a question about which wins;
+scope as a string on the user, which cannot express a tree or carry
+attribution; and inferring scope from the target's account on the
+caller's behalf, which is authority derived from data the caller
+supplied.

@@ -10,6 +10,7 @@
 let token = null;
 let currentUser = null;
 let currentRole = null;
+let currentRoles = [];
 let detailId = null;
 let selectedGroup = null;
 
@@ -84,12 +85,18 @@ async function signIn(username, password) {
   const body = await response.json();
   token = body.token;
   currentUser = username;
+  // The highest role the user holds anywhere drives what the page
+  // offers; the full set is shown beside the name, because a user
+  // bound as an operator in one place and a reviewer in another is
+  // now an ordinary case (D-072).
   currentRole = body.role;
+  currentRoles = body.roles || [body.role];
   return body.role;
 }
 
 const VIEWS = [
   "inventory", "detail", "groups", "campaigns", "campaign-detail", "imports",
+  "scopes",
 ];
 
 function signOut() {
@@ -97,6 +104,7 @@ function signOut() {
   token = null;
   currentUser = null;
   currentRole = null;
+  currentRoles = [];
   detailId = null;
   selectedGroup = null;
   for (const id of VIEWS) hide(id);
@@ -410,6 +418,20 @@ function selectGroup(g) {
   kind.dispatchEvent(new Event("change"));
 }
 
+async function loadScopes() {
+  switchView("scopes");
+  const rows = await (await api("/admin/scopes")).json();
+  const names = new Map(rows.map((n) => [n.id, n.display_name]));
+  const tbody = $("scope-rows");
+  tbody.replaceChildren();
+  for (const n of rows) {
+    tbody.appendChild(row([
+      n.provider, n.partition, n.kind, n.external_id, n.display_name,
+      n.parent_id === null ? "" : (names.get(n.parent_id) || n.parent_id),
+    ]));
+  }
+}
+
 async function loadImports() {
   switchView("imports");
   const rows = await (await api("/imports")).json();
@@ -433,7 +455,11 @@ async function refreshAsOf() {
 function enterApp(role) {
   hide("signin");
   show("nav");
-  $("whoami").textContent = currentUser + " (" + role + ")";
+  $("whoami").textContent =
+    currentUser + " (" + currentRoles.join(", ") + ")";
+  // The scope tree is read through an administrative route, so the
+  // button only appears for the role that may call it.
+  $("nav-scopes").hidden = !currentRoles.includes("administrator");
   refreshAsOf();
   loadInventory();
 }
@@ -635,6 +661,7 @@ $("nav").addEventListener("click", (e) => {
   else if (view === "groups") loadGroups();
   else if (view === "campaigns") loadCampaigns();
   else if (view === "imports") loadImports();
+  else if (view === "scopes") loadScopes();
 });
 $("signout").addEventListener("click", signOut);
 $("back").addEventListener("click", loadInventory);
