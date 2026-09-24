@@ -72,7 +72,8 @@ data.
   shape through a mapping with a dry run, authorize from observed,
   and an export shaped for the import. **Built.**
 - The delta, computed at read: held but not authorized, authorized but
-  not held, expired and still held, owner disagreement.
+  not held, expired and still held, owner disagreement, and the role
+  changed after it was authorized. **Built.**
 - Home, relationships, and grant paths with a mode on each hop; the
   "holds now" and "can obtain" columns.
 - Role definitions as versioned observations, and the finding when a

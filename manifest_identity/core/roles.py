@@ -75,6 +75,10 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /authorizations/{authorization_id}/revoke": frozenset(
         {Role.operator, Role.administrator}
     ),
+    # The delta is the product, and it is a read for every role: a
+    # reviewer who cannot see the difference cannot review anything.
+    "GET /delta": ALL_ROLES,
+    "GET /identities/{identity_id}/delta": ALL_ROLES,
     # Reading the observed side in the authorized side's shape is a
     # read: it prefills a decision and never makes one (D-024).
     "GET /identities/{identity_id}/observed-grants": ALL_ROLES,

@@ -78,7 +78,7 @@ def for_identity(db: Session, identity: Identity) -> list[ObservedGrant]:
     node = db.get(ScopeNode, identity.scope_node_id)
     account = node.external_id if node else ""
     live = {
-        authorizations.path_key(row.path) + "|" + row.role_definition_external_id
+        authorizations.grant_key(row.path, row.role_definition_external_id)
         for row in authorizations.active(db, identity.id)
     }
     out: list[ObservedGrant] = []
@@ -116,7 +116,7 @@ def _candidate(
     source_kind: str,
     live: set[str],
 ) -> ObservedGrant:
-    key = authorizations.path_key(path) + "|" + definition.external_id
+    key = authorizations.grant_key(path, definition.external_id)
     return ObservedGrant(
         identity_id=identity.id,
         identity_external_id=identity.external_id,

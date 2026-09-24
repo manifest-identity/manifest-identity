@@ -96,7 +96,7 @@ async function signIn(username, password) {
 
 const VIEWS = [
   "inventory", "detail", "groups", "campaigns", "campaign-detail", "imports",
-  "scopes",
+  "scopes", "delta",
 ];
 
 function signOut() {
@@ -472,6 +472,32 @@ function selectGroup(g) {
   kind.dispatchEvent(new Event("change"));
 }
 
+// The delta, grouped by what is wrong: the tile is the count and the
+// table is the detail, so a reader starts from the class that matters
+// rather than from an alphabet of identities.
+async function loadDelta() {
+  switchView("delta");
+  const body = await (await api("/delta")).json();
+  const tiles = $("delta-tiles");
+  tiles.replaceChildren();
+  let total = 0;
+  for (const [kind, count] of Object.entries(body.counts)) {
+    total += count;
+    tiles.appendChild(tile(body.titles[kind], count, kind));
+  }
+  $("delta-empty").hidden = total > 0;
+  const rows = $("delta-rows");
+  rows.replaceChildren();
+  for (const f of body.findings) {
+    const hops = f.path.map(
+      (h) => h.via + (h.ref ? " " + h.ref : "")).join(" then ");
+    rows.appendChild(row([
+      f.title, f.account, f.display_name, f.role, hops, f.detail,
+      f.observed_as_of || "never", f.authorized_as_of || "never",
+    ], () => loadDetail(f.identity_id)));
+  }
+}
+
 async function loadScopes() {
   switchView("scopes");
   const rows = await (await api("/admin/scopes")).json();
@@ -716,6 +742,7 @@ $("nav").addEventListener("click", (e) => {
   else if (view === "campaigns") loadCampaigns();
   else if (view === "imports") loadImports();
   else if (view === "scopes") loadScopes();
+  else if (view === "delta") loadDelta();
 });
 $("signout").addEventListener("click", signOut);
 $("back").addEventListener("click", loadInventory);

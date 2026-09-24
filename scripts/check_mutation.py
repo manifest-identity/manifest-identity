@@ -69,6 +69,23 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         ["tests/test_csv_import.py"],
     ),
     (
+        "the delta stops noticing access nobody authorized",
+        # The product's central finding. Without it the page reports
+        # agreement on an estate full of unauthorized access, which is
+        # the failure that looks like success.
+        "manifest_identity/compare/delta.py",
+        "        if key not in live_keys:",
+        "        if False:",
+        ["tests/test_delta.py"],
+    ),
+    (
+        "an expired authorization still covers the access it granted",
+        "manifest_identity/compare/delta.py",
+        "        if status == AuthorizationStatus.expired:",
+        "        if False:",
+        ["tests/test_delta.py"],
+    ),
+    (
         "audit rows silently dropped",
         "manifest_identity/core/audit.py",
         "    db.add(event)",

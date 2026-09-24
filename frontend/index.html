@@ -21,6 +21,7 @@
       <button data-view="groups">Groups</button>
       <button data-view="campaigns">Campaigns</button>
       <button data-view="imports">Imports</button>
+      <button data-view="delta">Delta</button>
       <button id="nav-scopes" data-view="scopes" hidden>Scopes</button>
       <span class="spacer"></span>
       <span id="whoami"></span>
@@ -285,6 +286,24 @@
       </div>
       <output id="campaign-detail-result" hidden></output>
       <div id="campaign-items"></div>
+    </section>
+
+    <section id="delta" hidden>
+      <h2>The difference</h2>
+      <p class="empty">What each identity holds, against what somebody
+      authorized it to hold. Nothing here is stored: it is computed
+      from the two records every time you ask, and each finding says
+      when each side was last heard from, because a stale side makes a
+      difference look like agreement.</p>
+      <div id="delta-tiles" class="tiles"></div>
+      <p id="delta-empty" class="empty" hidden>No differences. Either every held access is authorized and every authorization is held, or nothing has been imported yet.</p>
+      <table>
+        <thead><tr>
+          <th>what</th><th>account</th><th>identity</th><th>role</th>
+          <th>by</th><th>detail</th><th>observed</th><th>authorized</th>
+        </tr></thead>
+        <tbody id="delta-rows"></tbody>
+      </table>
     </section>
 
     <section id="scopes" hidden>

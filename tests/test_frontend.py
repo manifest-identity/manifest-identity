@@ -283,3 +283,15 @@ def test_a_revocation_asks_for_its_reason() -> None:
     js = (FRONTEND / "app.js").read_text()
     assert 'window.prompt("Why is this being revoked?")' in js
     assert "if (!reason || !reason.trim()) return;" in js
+
+
+def test_the_delta_view_says_when_each_side_was_last_heard_from() -> None:
+    """A finding without its two timestamps is a claim, so the table
+    carries both columns and the page says why they are there."""
+    html = (FRONTEND / "index.html").read_text()
+    assert '<section id="delta" hidden>' in html
+    assert "<th>observed</th><th>authorized</th>" in html
+    assert "stale side makes a" in html
+    js = (FRONTEND / "app.js").read_text()
+    assert 'f.observed_as_of || "never"' in js
+    assert 'f.authorized_as_of || "never"' in js
