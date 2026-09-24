@@ -42,6 +42,15 @@ repos:
         entry: python3 scripts/check_actions_inventory.py
         language: system
         pass_filenames: false
+      # Lint and types at commit time, not only in the pipeline. A
+      # commit once passed every hook here while failing mypy, which
+      # is the false assurance a hook set exists to prevent.
+      - id: python-checks
+        name: lint and type check
+        entry: bash scripts/check_python.sh
+        language: system
+        pass_filenames: false
+        types_or: [python]
       # The compose file's hardening is a property, not a comment: no
       # scanner in the container job reads a compose file, so this one
       # does.

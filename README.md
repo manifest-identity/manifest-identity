@@ -869,7 +869,7 @@ holds the reviews and the alerts.
 | `requirements*.in` / `*.txt` | Chosen packages, and the hash-pinned trees that install |
 | `Dockerfile` / `docker-compose.yml` | Digest-pinned base, non-root user, the composed stack |
 | `.github/workflows/` | The pipeline: tests, types, scanners, the container jobs, and the software bill of materials each run delivers |
-| `.pre-commit-config.yaml` | Secret scan, writing rules, and the truth gates at commit time |
+| `.pre-commit-config.yaml` | Secret scan, writing rules, lint, types, and the truth gates at commit time |
 | `.env.example` | Documents required configuration without containing it |
 
 -------------------------------------------------------------------------------
