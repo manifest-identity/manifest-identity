@@ -100,6 +100,8 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
     ),
     "GET /admin/scopes": ("get", "/admin/scopes", {}),
     "GET /admin/settings": ("get", "/admin/settings", {}),
+    "GET /delta": ("get", "/delta", {}),
+    "GET /identities/{identity_id}/delta": ("get", "/identities/1/delta", {}),
     "GET /identities/{identity_id}/observed-grants": (
         "get", "/identities/1/observed-grants", {},
     ),

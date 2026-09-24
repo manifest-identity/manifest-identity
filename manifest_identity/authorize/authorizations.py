@@ -74,13 +74,26 @@ class Request:
 
 
 def path_key(path: list[dict[str, str]]) -> str:
-    """Two authorizations are about the same access when they name the
-    same hops in the same order. The key is derived rather than stored
-    so a path written two ways cannot become two live authorizations."""
+    """The hops, in order, as one string. Derived rather than stored so
+    a path written two ways cannot become two live authorizations."""
     return "|".join(
         f"{hop.get('via', '')}:{hop.get('ref', '')}:{hop.get('mode', '')}"
         for hop in path
     )
+
+
+def grant_key(path: list[dict[str, str]], role: str) -> str:
+    """What makes two authorizations about the same access: the same
+    role, arriving by the same hops.
+
+    The role has to be in here. An earlier version keyed supersession
+    on the path alone, and because most access arrives directly, every
+    identity's second authorization silently replaced its first. The
+    runtime proof found it: authorizing one role made the delta report
+    another as unauthorized. One key, used by the write path and the
+    delta both, so they cannot disagree about what "the same access"
+    means."""
+    return path_key(path) + "|" + role
 
 
 def _aware(moment: datetime) -> datetime:
@@ -145,11 +158,11 @@ def active(
     ]
 
 
-def active_for_path(
+def active_for_grant(
     db: Session, identity_id: int, key: str, now: datetime | None = None
 ) -> Authorization | None:
     for row in active(db, identity_id, now):
-        if path_key(row.path) == key:
+        if grant_key(row.path, row.role_definition_external_id) == key:
             return row
     return None
 
@@ -226,8 +239,8 @@ def authorize(
     its audit row in the same transaction. The caller commits."""
     moment = now or utcnow()
     valid_from, valid_until = check_only(db, request, moment)
-    key = path_key(request.path)
-    previous = active_for_path(db, request.identity_id, key, moment)
+    key = grant_key(request.path, request.role_definition_external_id)
+    previous = active_for_grant(db, request.identity_id, key, moment)
     row = Authorization(
         identity_id=request.identity_id,
         role_definition_external_id=request.role_definition_external_id,

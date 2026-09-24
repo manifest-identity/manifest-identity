@@ -410,3 +410,44 @@ def test_an_unknown_identity_is_404_before_anything_else(
         "/identities/999999/authorizations", headers=auth_header(token), json=body()
     )
     assert r.status_code == 404
+
+
+def test_two_roles_held_the_same_way_both_stand(
+    client: TestClient, db: Session
+) -> None:
+    """Supersession keys on the role and the path together. Keying on
+    the path alone made every second authorization replace the first,
+    because most access arrives directly; the runtime proof found it
+    when authorizing one role made the delta report another as
+    unauthorized."""
+    identity_id = seed_identity(client, db)
+    token = admin_token(client, db)
+    first = client.post(
+        f"/identities/{identity_id}/authorizations",
+        headers=auth_header(token), json=body(),
+    ).json()
+    second = client.post(
+        f"/identities/{identity_id}/authorizations",
+        headers=auth_header(token),
+        json=body(role_definition_external_id="arn:aws:iam::aws:policy/ReadOnlyAccess"),
+    ).json()
+    assert second["supersedes_id"] is None, "a different role superseded the first"
+    live = authorizations.active(db, identity_id)
+    assert {row.id for row in live} == {first["id"], second["id"]}
+
+
+def test_the_same_role_by_the_same_path_still_supersedes(
+    client: TestClient, db: Session
+) -> None:
+    identity_id = seed_identity(client, db)
+    token = admin_token(client, db)
+    first = client.post(
+        f"/identities/{identity_id}/authorizations",
+        headers=auth_header(token), json=body(),
+    ).json()
+    second = client.post(
+        f"/identities/{identity_id}/authorizations",
+        headers=auth_header(token), json=body(justification="renewed"),
+    ).json()
+    assert second["supersedes_id"] == first["id"]
+    assert len(authorizations.active(db, identity_id)) == 1

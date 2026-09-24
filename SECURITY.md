@@ -112,6 +112,8 @@ refer to the ranked threats in [THREAT-MODEL.md](THREAT-MODEL.md).
 | Reading the observed side in the authorized side's shape writes nothing: it prefills a decision and never makes one (D-024) | 8 | tests/test_from_observed.py |
 | The export of observed grants passes the same formula escaping as every other spreadsheet exit | 7 | tests/test_from_observed.py |
 | Access arriving through a group is offered with its hop recorded, so an export cannot silently omit a class of privilege | 8 | tests/test_from_observed.py |
+| The delta is computed at read and stored nowhere, so it cannot go stale, be edited, or disagree with the records it came from (D-006) | 3 | tests/test_delta.py |
+| Every delta finding carries the last word from each side, so a stale record cannot make a difference look like agreement | 15 | tests/test_delta.py |
 | The runtime database role holds data rights only, no schema and no deletes; migrations run separately as the owner (D-013, D-051) | 3 | the pipeline probe: schema change attempted as the runtime role must be refused |
 | An administrator ends all of a user's sessions in one audited act | 6 | tests/test_admin_users.py |
 | Read-only root filesystems, dropped capabilities, no privilege escalation, bounded resources, and no host-published database port (D-042) | 1, 9 | verifiable by the commands in the README, run against the live stack at adoption |
