@@ -71,7 +71,7 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **210 tests in 29 files**, coverage 94 over a 90 percent floor |
+| Tests | **213 tests in 29 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **44 routes**, every one in the role matrix the tests walk |
 | Record | **74 recorded decisions**, each with its rejected alternatives |
@@ -737,7 +737,8 @@ audit_events
   column, never a job that might not run. Which fields an
   authorization must carry is the administrator's choice, shipped
   strict, and every change to that choice is audited (D-070).
-  Authorizations arrive through the form or through a file. A file
+  Authorizations arrive through the form on an identity's page or
+  through a file. A file
   keeps its own shape: the import carries a **mapping** that names
   which of their columns holds each field, or a constant for a field
   their file does not have, so nobody is asked to transform their

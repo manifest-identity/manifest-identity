@@ -244,3 +244,42 @@ def test_the_scopes_view_ships_hidden_and_is_gated_by_role() -> None:
     # The view is in the switcher's list, or showing it would leave the
     # previous view on the page beneath it.
     assert '"scopes",' in js
+
+
+def test_the_authorization_form_offers_only_what_the_rules_need() -> None:
+    """The second owner appears when a person owns it, and the group
+    name when access arrives through one. A form that always asks for
+    everything teaches people to fill fields in without reading them,
+    and a form that never asks cannot express the rule the server
+    enforces (D-038, D-073)."""
+    html = (FRONTEND / "index.html").read_text()
+    assert '<form id="auth-form" hidden>' in html
+    # Both conditional blocks ship hidden, so the server's rule and the
+    # page's first paint agree before any script runs.
+    assert '<label id="auth-ref-label" hidden>' in html
+    assert '<fieldset id="auth-secondary" hidden>' in html
+    js = (FRONTEND / "app.js").read_text()
+    assert '$("auth-secondary").hidden = ownerKind.value !== "individual";' in js
+    assert '$("auth-ref-label").hidden = via.value === "direct";' in js
+    # Written by the operator and the administrator, read by everyone,
+    # matching the matrix rather than restating it.
+    assert '$("auth-form").hidden = currentRole === "reviewer";' in js
+
+
+def test_the_page_never_asks_who_authorized_something() -> None:
+    """The authorizer comes from the session (threat 14). A field for
+    it on the page would be the first step toward a field for it in
+    the request, so there is not one."""
+    html = (FRONTEND / "index.html").read_text()
+    start = html.index('<form id="auth-form"')
+    form = html[start:html.index("</form>", start)]
+    for forbidden in ("authorizer", "authorized_at", "status"):
+        assert forbidden not in form, f"the form offers {forbidden}"
+
+
+def test_a_revocation_asks_for_its_reason() -> None:
+    """The server refuses an empty reason; the page refuses to send
+    one, so the person hears it before the round trip."""
+    js = (FRONTEND / "app.js").read_text()
+    assert 'window.prompt("Why is this being revoked?")' in js
+    assert "if (!reason || !reason.trim()) return;" in js

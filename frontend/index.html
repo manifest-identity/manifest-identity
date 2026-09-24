@@ -93,6 +93,66 @@
       <ul id="detail-findings"></ul>
       <h3>Privilege sources</h3>
       <ul id="detail-sources"></ul>
+      <h3>Authorized to hold</h3>
+      <p id="auth-empty" class="empty" hidden>Nothing is authorized for this identity yet. What it holds is observed above; what it is supposed to hold is written here, and the difference between the two is the point.</p>
+      <ul id="auth-active"></ul>
+      <form id="auth-form" hidden>
+        <label>Role or policy <input name="role_definition_external_id" maxlength="2048" required></label>
+        <label>Arrives by
+          <select name="via">
+            <option value="direct">directly</option>
+            <option value="membership">a group membership</option>
+            <option value="trust">a trust</option>
+            <option value="delegation">a delegation</option>
+            <option value="federation">a federation</option>
+          </select>
+        </label>
+        <label id="auth-ref-label" hidden>Through <input name="ref" maxlength="255"></label>
+        <label>Mode
+          <select name="mode">
+            <option value="standing">standing</option>
+            <option value="eligible">eligible</option>
+            <option value="session">session</option>
+          </select>
+        </label>
+        <label>Owner type
+          <select name="owner_kind">
+            <option value="team">team</option>
+            <option value="business_unit">business unit</option>
+            <option value="individual">individual</option>
+            <option value="vendor">vendor</option>
+            <option value="unknown">unknown</option>
+          </select>
+        </label>
+        <label>Owner <input name="owner_ref" maxlength="255" required></label>
+        <fieldset id="auth-secondary" hidden>
+          <legend>Second owner, because one owner who leaves is one orphaned access</legend>
+          <label>Second owner type
+            <select name="secondary_owner_kind">
+              <option value="team">team</option>
+              <option value="business_unit">business unit</option>
+              <option value="individual">individual</option>
+              <option value="vendor">vendor</option>
+            </select>
+          </label>
+          <label>Second owner <input name="secondary_owner_ref" maxlength="255"></label>
+        </fieldset>
+        <label>Justification <input name="justification" maxlength="1000"></label>
+        <label>Reference <input name="reference" maxlength="500"></label>
+        <label>Control <input name="control_reference" maxlength="64" placeholder="AC-2"></label>
+        <label>Until <input name="valid_until" type="date"></label>
+        <button type="submit">Authorize</button>
+        <output id="auth-result" hidden></output>
+      </form>
+      <h4>Authorization history</h4>
+      <table>
+        <thead><tr>
+          <th>role</th><th>mode</th><th>owner</th><th>status</th>
+          <th>by</th><th>at</th><th>until</th>
+        </tr></thead>
+        <tbody id="auth-history"></tbody>
+      </table>
+
       <h3>Governance</h3>
       <ul id="gov-active"></ul>
       <form id="gov-form" hidden>
