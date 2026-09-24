@@ -17,6 +17,22 @@ refuse() {
   fail=1
 }
 
+# The subject leads with the identifier, because a narrow panel
+# truncates around thirty characters and the identifying part must
+# survive. A decision identifier, a subphase number from the plan, or
+# a capitalised area: D-017, 1.5, CI, README.
+#
+# This ran nowhere for a long time. The scorer reads the last thirty
+# subjects after the fact, so a new subject form went unnoticed until
+# it had been used five times (D-030). A rule checked only in arrears
+# is a rule people learn by being told off.
+subject="$(printf '%s' "$message" | grep -v '^[[:space:]]*$' | head -1)"
+if [ -n "$subject" ] \
+   && ! printf '%s' "$subject" | grep -qE '^(Merge |Revert )' \
+   && ! printf '%s' "$subject" | grep -qE '^(D-[0-9]+|[0-9]+\.[0-9]+[a-z]?|[A-Z][A-Z0-9-]{1,30}): '; then
+  refuse "a subject that does not lead with an identifier, such as D-017, 1.5, or CI"
+fi
+
 if printf '%s' "$message" | grep -qP '\x{2014}|\x{2013}'; then
   refuse "an em or en dash; write the sentence without it"
 fi
