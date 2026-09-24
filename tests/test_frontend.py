@@ -12,7 +12,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from manifest_identity.roles import Role
+from manifest_identity.core.roles import Role
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 from tests.reportlib import HEADER
 
@@ -162,7 +162,7 @@ def test_the_timeline_names_each_source_correctly(
         f"/identities/{target['id']}", headers=auth_header(token)
     ).json()
     sources = {entry["source"] for entry in detail["timeline"]}
-    assert sources == {"credential_report", "authorization_details"}
+    assert sources == {"aws_credential_report", "aws_authorization_details"}
 
 
 def test_hostile_names_survive_as_data_and_never_as_markup(

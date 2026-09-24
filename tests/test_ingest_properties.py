@@ -12,7 +12,7 @@ import io
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 
-from manifest_identity.ingest.credential_report import (
+from manifest_identity.observe.providers.aws.credential_report import (
     ParseError,
     parse_credential_report,
 )
@@ -114,7 +114,7 @@ def test_valid_reports_parse_completely(names: list[str]) -> None:
 def test_the_row_bound_is_enforced() -> None:
     big = report(*[user_row(f"user{i}") for i in range(60)])
     # Shrink the bound rather than generating fifty thousand rows.
-    import manifest_identity.ingest.credential_report as cr
+    import manifest_identity.observe.providers.aws.credential_report as cr
 
     original = cr.MAX_ROWS
     cr.MAX_ROWS = 50

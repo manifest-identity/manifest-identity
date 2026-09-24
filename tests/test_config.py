@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from manifest_identity.config import Settings
+from manifest_identity.core.config import Settings
 
 
 def test_missing_database_url_raises(monkeypatch: pytest.MonkeyPatch) -> None:

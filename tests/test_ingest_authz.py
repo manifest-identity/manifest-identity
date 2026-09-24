@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.models import Group, GroupObservation, Identity, PolicyDocumentRecord
-from manifest_identity.roles import Role
+from manifest_identity.core.roles import Role
+from manifest_identity.models import Grant, Identity, IdentityKind, Membership, RoleDefinition
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 from tests.reportlib import ACCOUNT, report, user_row
 
@@ -85,7 +85,7 @@ def test_provisional_identity_upgrades_to_real_identifier(
     )
     assert r.status_code == 201
     before = db.execute(select(Identity)).scalar_one()
-    assert before.provisional and before.provider_identifier.startswith("cr:")
+    assert before.provisional and before.external_id.startswith("cr:")
     # Then the authorization details supply the real identifier.
     r = _upload(
         client,
@@ -101,7 +101,7 @@ def test_provisional_identity_upgrades_to_real_identifier(
     db.expire_all()
     after = db.execute(select(Identity)).scalar_one()
     assert after.id == before.id  # same identity, same history
-    assert after.provider_identifier == "AIDAALICE0000000000001"
+    assert after.external_id == "AIDAALICE0000000000001"
     assert after.provisional is False
 
 
@@ -132,18 +132,21 @@ def test_roles_groups_membership_and_policy_documents(
     r = _upload(client, token, payload, "2026-08-02T00:00:00+00:00")
     assert r.status_code == 201, r.text
     types = {
-        i.first_display_name: i.identity_type
+        i.first_display_name: i.provider_type
         for i in db.execute(select(Identity)).scalars()
+        if i.kind != IdentityKind.group
     }
     assert types == {"bob": "user", "deploy-role": "role"}
-    group = db.execute(select(Group)).scalar_one()
-    assert group.display_name == "admins"
-    membership = db.execute(select(GroupObservation)).scalar_one()
-    assert membership.member_identifiers == ["AIDABOB00000000000001"]
-    doc = db.execute(select(PolicyDocumentRecord)).scalar_one()
-    assert doc.aws_managed is False
-    assert isinstance(doc.document, dict)
-    assert doc.document["Statement"][0]["Action"] == "*"
+    group = db.execute(select(Identity).where(Identity.kind == IdentityKind.group)).scalar_one()
+    assert group.first_display_name == "admins"
+    membership = db.execute(select(Membership)).scalar_one()
+    member = db.get(Identity, membership.member_id)
+    assert member is not None and member.external_id == "AIDABOB00000000000001"
+    definitions = db.execute(select(RoleDefinition)).scalars().all()
+    customer = [d for d in definitions if d.managed_by == "customer" and d.contents]
+    assert customer, "the customer policy document is a versioned role definition"
+    assert customer[0].contents["Statement"][0]["Action"] == "*"
+    assert db.execute(select(Grant)).scalars().all(), "attachments became grants"
 
 
 def test_resurrection_is_a_new_identity_and_visible(

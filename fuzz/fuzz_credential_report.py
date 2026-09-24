@@ -12,7 +12,7 @@ import sys
 import atheris
 
 with atheris.instrument_imports():
-    from manifest_identity.ingest.credential_report import parse_credential_report
+    from manifest_identity.observe.providers.aws.credential_report import parse_credential_report
 
 
 def test_one_input(data: bytes) -> None:

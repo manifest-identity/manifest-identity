@@ -2,25 +2,62 @@
 
 from datetime import UTC, datetime, timedelta
 
-from manifest_identity.derive import derive
-from manifest_identity.findings import evaluate
-from manifest_identity.models import Observation
+from manifest_identity.observe.derive import derive
+from manifest_identity.observe.findings import evaluate
+from manifest_identity.observe.models import Credential, CredentialKind, IdentityObservation
 
 AS_OF = datetime(2026, 8, 15, tzinfo=UTC)
 
 
-def obs(**fields: object) -> Observation:
-    base: dict[str, object] = {"display_name": "x", "identity_id": 1, "snapshot_id": 1}
-    base.update(fields)
-    return Observation(**base)  # type: ignore[arg-type]
+class Seen:
+    """One import's view of an identity: the observation row and its
+    credential rows, built from the provider's slot-shaped facts the
+    way the importer builds them."""
+
+    def __init__(self, observation: IdentityObservation, credentials: list[Credential]):
+        self.observation = observation
+        self.credentials = credentials
+
+
+def obs(**fields: object) -> Seen:
+    o = IdentityObservation(display_name="x", identity_id=1, import_id=1)
+    creds: list[Credential] = []
+    if "mfa_active" in fields:
+        o.mfa_active = fields["mfa_active"]  # type: ignore[assignment]
+    if "password_enabled" in fields:
+        creds.append(Credential(
+            identity_id=1, import_id=1, kind=CredentialKind.password, external_id="console",
+            active=bool(fields["password_enabled"]), last_used=fields.get("password_last_used"),  # type: ignore[arg-type]
+        ))
+    elif "password_last_used" in fields:
+        o.last_activity = fields["password_last_used"]  # type: ignore[assignment]
+    for slot in ("key1", "key2"):
+        if f"{slot}_active" in fields:
+            creds.append(Credential(
+                identity_id=1, import_id=1, kind=CredentialKind.access_key,
+                external_id="first" if slot == "key1" else "second",
+                active=bool(fields[f"{slot}_active"]),
+                last_rotated=fields.get(f"{slot}_last_rotated"),  # type: ignore[arg-type]
+                last_used=fields.get(f"{slot}_last_used"),  # type: ignore[arg-type]
+            ))
+    for slot in ("cert1", "cert2"):
+        if f"{slot}_active" in fields:
+            creds.append(Credential(
+                identity_id=1, import_id=1, kind=CredentialKind.certificate,
+                external_id="first" if slot == "cert1" else "second",
+                active=bool(fields[f"{slot}_active"]),
+            ))
+    return Seen(o, creds)
 
 
 def days_ago(n: int) -> datetime:
     return AS_OF - timedelta(days=n)
 
 
-def state_of(rows: list[tuple[Observation, datetime]], kind: str = "user"):
-    s = derive(rows, AS_OF)
+def state_of(rows: list[tuple[Seen, datetime]], kind: str = "user"):
+    observations = [(seen.observation, captured) for seen, captured in rows]
+    credentials = [(c, captured) for seen, captured in rows for c in seen.credentials]
+    s = derive(observations, credentials, AS_OF)
     s.identity_type = kind
     return s
 
@@ -86,14 +123,15 @@ def test_recent_activity_clears_unused() -> None:
 
 
 def test_merged_view_takes_each_field_from_its_freshest_source() -> None:
-    # Credential report knows keys; authorization details knows groups.
+    # Credential report knows keys; authorization details carries no
+    # credential rows, so the keys survive into the merged view, and the
+    # newer observation's display name wins.
     s = state_of([
         (obs(key1_active=True, key1_last_rotated=days_ago(100)), days_ago(9)),
-        (obs(group_names=["admins"], attached_policies=[{"name": "p", "arn": "a"}]),
-         days_ago(2)),
+        (obs(mfa_active=True), days_ago(2)),
     ])
-    assert s.key1_active is True and s.group_names == ["admins"]
-    assert s.attached_policies == 1
+    assert s.has_active_key and s.active("access_key")[0].age_days == 100
+    assert s.mfa_active is True
 
 
 def test_multiple_keys_and_legacy_certificate() -> None:

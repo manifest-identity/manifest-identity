@@ -73,7 +73,7 @@ platform phases, and the program's own documents live there.
 |---|---|
 | Tests | **157 tests in 26 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **31 routes**, every one in the role matrix the tests walk |
+| Surface | **35 routes**, every one in the role matrix the tests walk |
 | Record | **70 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
@@ -722,6 +722,10 @@ POST /auth/logout
 GET /admin/users
 POST /admin/users
 POST /admin/users/{username}/sessions/revoke
+POST /admin/users/{username}/bindings
+POST /admin/users/{username}/bindings/{binding_id}/revoke
+GET /admin/scopes
+POST /admin/scopes
 POST /imports/credential-report
 POST /imports/authorization-details
 GET /imports

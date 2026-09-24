@@ -6,10 +6,10 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.bootstrap import bootstrap_admin
-from manifest_identity.config import Settings
+from manifest_identity.core.bootstrap import bootstrap_admin
+from manifest_identity.core.config import Settings
+from manifest_identity.core.security import PasswordPolicyError
 from manifest_identity.models import User
-from manifest_identity.security import PasswordPolicyError
 
 GOOD_PASSWORD = "pw-" + secrets.token_urlsafe(16)
 
@@ -30,7 +30,8 @@ def test_two_runs_one_admin(client: object, db: Session) -> None:
     bootstrap_admin(db, settings)
     rows = db.execute(select(User).where(User.username == "boot.admin")).scalars().all()
     assert len(rows) == 1
-    assert rows[0].role == "administrator"
+    from manifest_identity.core.scope import roles_held
+    assert roles_held(db, rows[0]) == {"administrator"}
 
 
 def test_existing_user_is_never_modified(client: object, db: Session) -> None:

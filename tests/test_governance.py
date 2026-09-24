@@ -14,8 +14,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.models import AuditEvent, GovernanceRecord, Group, Identity
-from manifest_identity.roles import Role
+from manifest_identity.core.roles import Role
+from manifest_identity.models import AuditEvent, GovernanceRecord, Identity, IdentityKind
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 
 ACCOUNT = "123456789012"
@@ -385,7 +385,9 @@ def test_group_governance_owner_and_flag(
         "Policies": [admin_policy()],
     })
     group_id = db.execute(
-        select(Group.id).where(Group.display_name == "admins")
+        select(Identity.id).where(
+            Identity.kind == IdentityKind.group, Identity.first_display_name == "admins"
+        )
     ).scalar_one()
 
     groups = client.get("/groups", headers=auth_header(token)).json()

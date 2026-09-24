@@ -12,7 +12,9 @@ import sys
 import atheris
 
 with atheris.instrument_imports():
-    from manifest_identity.ingest.authorization_details import parse_authorization_details
+    from manifest_identity.observe.providers.aws.authorization_details import (
+        parse_authorization_details,
+    )
 
 
 def test_one_input(data: bytes) -> None:

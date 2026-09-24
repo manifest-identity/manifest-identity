@@ -21,19 +21,21 @@ from pathlib import Path
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from manifest_identity import audit
-from manifest_identity.bootstrap import bootstrap_admin
-from manifest_identity.config import get_settings
-from manifest_identity.db import get_engine
-from manifest_identity.ingest.authorization_details import parse_authorization_details
-from manifest_identity.ingest.credential_report import parse_credential_report
-from manifest_identity.ingest.importer import (
+from manifest_identity.core import audit
+from manifest_identity.core.bootstrap import bootstrap_admin
+from manifest_identity.core.config import get_settings
+from manifest_identity.core.db import get_engine
+from manifest_identity.decide.routes_campaigns import build_campaign
+from manifest_identity.models import Campaign, CampaignItem, Identity, User
+from manifest_identity.observe.importer import (
     DuplicateSnapshot,
     import_authorization_details,
     import_credential_report,
 )
-from manifest_identity.models import Campaign, CampaignItem, Identity, User
-from manifest_identity.routes.campaigns import build_campaign
+from manifest_identity.observe.providers.aws.authorization_details import (
+    parse_authorization_details,
+)
+from manifest_identity.observe.providers.aws.credential_report import parse_credential_report
 from manifest_identity.sample_data import GENERATIONS, file_set
 
 DEMO_CAMPAIGN = "Quarterly access review (demo)"
@@ -134,8 +136,10 @@ def main() -> int:
         else:
             print("campaign already present, kept")
 
+        # Groups are identities of kind group (D-019); the count the
+        # README states is the people, services, and roles.
         identities = db.execute(
-            select(func.count()).select_from(Identity)
+            select(func.count()).select_from(Identity).where(Identity.kind != "group")
         ).scalar_one()
         items_count = db.execute(
             select(func.count()).select_from(CampaignItem)

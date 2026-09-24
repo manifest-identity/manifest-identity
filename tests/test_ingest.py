@@ -4,8 +4,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.models import AuditEvent, Identity, Observation, Snapshot
-from manifest_identity.roles import Role
+from manifest_identity.core.roles import Role
+from manifest_identity.models import AuditEvent, Identity, IdentityObservation, Import
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 from tests.reportlib import ACCOUNT, report, root_row, user_row
 
@@ -63,14 +63,14 @@ def test_second_capture_appends_and_never_mutates(
         client, token, report(user_row("alice", mfa="FALSE")),
         captured="2026-08-01T00:00:00+00:00",
     ).status_code == 201
-    first = db.execute(select(Observation)).scalar_one()
+    first = db.execute(select(IdentityObservation)).scalar_one()
     first_id, first_mfa = first.id, first.mfa_active
     assert _upload(
         client, token, report(user_row("alice", mfa="TRUE")),
         captured="2026-08-08T00:00:00+00:00",
     ).status_code == 201
     db.expire_all()
-    rows = db.execute(select(Observation).order_by(Observation.id)).scalars().all()
+    rows = db.execute(select(IdentityObservation).order_by(IdentityObservation.id)).scalars().all()
     assert len(rows) == 2
     # The old observation is untouched; history accumulates (D-006).
     assert rows[0].id == first_id and rows[0].mfa_active == first_mfa
@@ -87,7 +87,7 @@ def test_out_of_order_import_is_harmless(client: TestClient, db: Session) -> Non
     assert _upload(
         client, token, report(user_row("alice")), captured="2026-08-01T00:00:00+00:00"
     ).status_code == 201
-    snapshots = db.execute(select(Snapshot)).scalars().all()
+    snapshots = db.execute(select(Import)).scalars().all()
     assert len(snapshots) == 2
 
 
@@ -121,7 +121,7 @@ def test_mixed_accounts_reject_the_whole_file(
     assert r.status_code == 422
     assert "mixes accounts" in r.json()["detail"]
     # Nothing partial: the transaction never happened.
-    assert db.execute(select(Snapshot)).scalars().all() == []
+    assert db.execute(select(Import)).scalars().all() == []
     assert db.execute(select(Identity)).scalars().all() == []
 
 

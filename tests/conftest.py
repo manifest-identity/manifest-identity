@@ -22,11 +22,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from manifest_identity import db as db_module
-from manifest_identity.db import Base
-from manifest_identity.ratelimit import LOGIN_LIMITER, WRITE_LIMITER
-from manifest_identity.roles import Role
-from manifest_identity.security import hash_password
+from manifest_identity.core import db as db_module
+from manifest_identity.core.db import Base
+from manifest_identity.core.ratelimit import LOGIN_LIMITER, WRITE_LIMITER
+from manifest_identity.core.roles import Role
+from manifest_identity.core.security import hash_password
 
 # One shared in-memory database for the whole test process; StaticPool
 # hands every connection the same underlying store.
@@ -87,18 +87,20 @@ def db() -> Iterator[Session]:
         s.close()
 
 
-def make_user(db: Session, role: Role, username: str | None = None) -> str:
-    """Create a user directly in the database; returns the username."""
-    from manifest_identity.models import User
+def make_user(
+    db: Session, role: Role, username: str | None = None, scope_node_id: int | None = None
+) -> str:
+    """Create a user directly in the database with one binding, at the
+    global node unless a scope is given; returns the username."""
+    from manifest_identity.core.scope import bind, global_node
+    from manifest_identity.models import ScopeNode, User
 
     name = username or ROLE_USERS[role]
-    db.add(
-        User(
-            username=name,
-            password_hash=hash_password(TEST_PASSWORD),
-            role=role.value,
-        )
-    )
+    user = User(username=name, password_hash=hash_password(TEST_PASSWORD))
+    db.add(user)
+    db.flush()
+    node = db.get(ScopeNode, scope_node_id) if scope_node_id else global_node(db)
+    bind(db, user, role, node, None)
     db.commit()
     return name
 
