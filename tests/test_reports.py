@@ -11,8 +11,8 @@ import io
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from manifest_identity.reports import EVIDENCE_CSV_COLUMNS, csv_safe
-from manifest_identity.roles import Role
+from manifest_identity.core.roles import Role
+from manifest_identity.decide.reports import EVIDENCE_CSV_COLUMNS, csv_safe
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 from tests.test_campaigns import create_campaign, detail, dispose
 from tests.test_governance import (

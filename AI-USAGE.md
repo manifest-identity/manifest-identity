@@ -333,6 +333,18 @@ manufactured entry would defeat the reason this file exists.
   lesson is that a documented command is verified by running it as
   documented, not by testing the function it wraps (September 2026).
 
+- **A push went out under the wrong identity because a token was
+  empty.** The agent app mints a short-lived token before each push
+  (D-045). The mint failed, returned nothing, and the push command
+  used the empty value; git fell back to the maintainer's stored
+  credential and the push succeeded, so nothing looked wrong. The
+  branch carried the maintainer as the pusher on a change the app was
+  supposed to propose, which is exactly the two-party property the
+  arrangement exists to hold. Caught by reading the push output
+  rather than its exit code. The push path now refuses to run at all
+  when the token is empty, because a credential that falls back
+  silently is worse than one that fails loudly (September 2026).
+
 Each entry changed a rule, a checklist, or a design, which is the point:
 the catches compound, the mistakes do not. The provenance entry
 changed the attribution itself, and its lesson is the whole file's

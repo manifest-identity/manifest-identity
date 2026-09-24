@@ -4,8 +4,8 @@ The policies here are written to be exactly one thing each, so a
 failure names the heuristic that broke rather than a soup of them.
 """
 
-from manifest_identity.policy_analysis import read_policy, read_trust_policy
-from manifest_identity.privilege import (
+from manifest_identity.observe.policy_analysis import read_policy, read_trust_policy
+from manifest_identity.observe.privilege import (
     GroupFacts,
     PolicyIndex,
     evaluate_group,

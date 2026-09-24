@@ -11,11 +11,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.campaigns import Recommendation, evidence_delta, recommend
-from manifest_identity.derive import MIN_OBSERVATION_DAYS
-from manifest_identity.findings import Finding
+from manifest_identity.core.roles import Role
+from manifest_identity.decide.campaigns import Recommendation, evidence_delta, recommend
 from manifest_identity.models import AuditEvent
-from manifest_identity.roles import Role
+from manifest_identity.observe.derive import MIN_OBSERVATION_DAYS
+from manifest_identity.observe.findings import Finding
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 from tests.test_governance import (
     admin_policy,

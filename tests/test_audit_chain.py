@@ -11,9 +11,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from manifest_identity import audit
+from manifest_identity.core import audit
+from manifest_identity.core.roles import Role
 from manifest_identity.models import AuditEvent
-from manifest_identity.roles import Role
 from manifest_identity.sample_data import GENERATIONS, file_set
 from tests.conftest import auth_header, login, make_user
 

@@ -14,8 +14,8 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from manifest_identity.core.roles import PUBLIC_ROUTES, ROUTE_ROLES, Role
 from manifest_identity.main import app
-from manifest_identity.roles import PUBLIC_ROUTES, ROUTE_ROLES, Role
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 
 SAMPLE_REPORT = (
@@ -79,6 +79,23 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
         "post",
         "/admin/users/nobody.here/sessions/revoke",
         {},
+    ),
+    "POST /admin/users/{username}/bindings": (
+        "post",
+        "/admin/users/nobody.here/bindings",
+        {"json": {"role": "reviewer"}},
+    ),
+    "POST /admin/users/{username}/bindings/{binding_id}/revoke": (
+        "post",
+        "/admin/users/nobody.here/bindings/1/revoke",
+        {},
+    ),
+    "GET /admin/scopes": ("get", "/admin/scopes", {}),
+    "POST /admin/scopes": (
+        "post",
+        "/admin/scopes",
+        {"json": {"provider": "aws", "partition": "aws_commercial", "kind": "account",
+                  "external_id": "000000000000", "display_name": "test"}},
     ),
     "GET /imports": ("get", "/imports", {}),
     "GET /identities": ("get", "/identities", {}),

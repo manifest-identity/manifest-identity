@@ -47,10 +47,25 @@ than the shape of the tables. Eight objects:
 | Grant | An identity holding a role definition at a scope | With a **mode**: standing, eligible (may be obtained: PIM eligible, an assumable role, a Privileged Access Manager entitlement), or session (active because an eligibility was activated); and a **path**: direct, or via one or more hops, each hop a membership (active or eligible), a trust, a delegation, with the mode on each hop. The page shows "holds now" and "can obtain" |
 | Declaration | Intent about one grant | Identity, grant path, owner (a team, or a person with a required secondary owner), approver from the session and approval time, justification, reference, valid from, valid until, control reference, intended mode, status (declared, expired, revoked) with append-only history; bound to the role definition hash at approval |
 
-Version one's tables hold the AWS vocabulary of the first six
-objects; the declared half's first subphase decides whether they are
-migrated to the neutral shape or mapped to it at read, which is the
-first risk the maintainer's plan names.
+The tables are these objects, not a translation of them (D-071).
+Version one's tables held the AWS vocabulary, two key columns and a
+snapshot belonging to an account; they were rebuilt rather than
+mapped at read, and no data was migrated, because the only estate the
+product had ever held was a demo that regenerates.
+
+Above every provider's tree sits one synthetic node named **global**,
+created by the first migration. It is where an organization-wide
+binding attaches, and it is a real row rather than an absent value,
+so every authority check walks the same path: the target's node, then
+its ancestors, then global (D-072).
+
+Two more objects carry the authority and the history of the record
+itself:
+
+| Object | What it is | Notes |
+|---|---|---|
+| Role binding | A user holding a role at a scope node | The only source of authority. Covers that node and everything beneath it; revoked, never deleted, so who could act and when survives. Users carry no role of their own |
+| Import | One file or pull that produced observations | Keyed by scope node, source kind, and the capture time taken from the file's own content (D-008), so the same file twice is refused. Every observed row names the import that saw it |
 
 ## Data flow
 

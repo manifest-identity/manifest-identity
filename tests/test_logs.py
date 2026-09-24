@@ -9,7 +9,7 @@ import logging
 
 import pytest
 
-from manifest_identity.logs import ALLOWED_FIELDS, DisallowedLogField, log_event
+from manifest_identity.core.logs import ALLOWED_FIELDS, DisallowedLogField, log_event
 
 
 def test_disallowed_field_raises_and_writes_nothing(

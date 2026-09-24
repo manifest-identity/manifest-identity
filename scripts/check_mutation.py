@@ -20,28 +20,38 @@ from pathlib import Path
 MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
     (
         "authorization check removed",
-        "manifest_identity/deps.py",
-        "        if auth.user.role not in allowed:",
+        "manifest_identity/core/deps.py",
+        "        if not held & {r.value for r in allowed}:",
         "        if False:",
         ["tests/test_matrix.py"],
     ),
     (
+        "the scope check answers yes for every node",
+        # The control D-070 and D-072 add: a binding at one node must
+        # not act on another. Removing it leaves the matrix check
+        # passing, which is exactly why the scoped pass exists.
+        "manifest_identity/core/scope.py",
+        "        if binding.role in wanted and binding.scope_node_id in covering:",
+        "        if binding.role in wanted:",
+        ["tests/test_scope.py"],
+    ),
+    (
         "audit rows silently dropped",
-        "manifest_identity/audit.py",
-        "    db.add(",
-        "    return\n    db.add(",
+        "manifest_identity/core/audit.py",
+        "    db.add(event)",
+        "    return\n    db.add(event)",
         ["tests/test_governance.py"],
     ),
     (
         "session tokens no longer hashed uniquely",
-        "manifest_identity/security.py",
+        "manifest_identity/core/security.py",
         "    return hashlib.sha256(token.encode()).hexdigest()",
         "    return \"0\" * 64",
         ["tests/test_auth.py"],
     ),
     (
         "rate limiter always allows",
-        "manifest_identity/ratelimit.py",
+        "manifest_identity/core/ratelimit.py",
         "        kept = [t for t in self._failures.get(key, [])"
         " if now - t < self.window_seconds]",
         "        kept: list[float] = []\n"
@@ -51,21 +61,21 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
     ),
     (
         "formula escaping removed from the CSV exit",
-        "manifest_identity/reports.py",
+        "manifest_identity/decide/reports.py",
         "    if text.startswith(FORMULA_LEADERS):",
         "    if False:",
         ["tests/test_reports.py"],
     ),
     (
         "assigned owners no longer answer the unowned finding",
-        "manifest_identity/governance.py",
+        "manifest_identity/declare/governance.py",
         "    if effective is not None and effective.source == \"assigned\":",
         "    if False:",
         ["tests/test_governance.py"],
     ),
     (
         "campaigns close with undecided items",
-        "manifest_identity/routes/campaigns.py",
+        "manifest_identity/decide/routes_campaigns.py",
         "    if open_items:",
         "    if False:",
         ["tests/test_campaigns.py"],

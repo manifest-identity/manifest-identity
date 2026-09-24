@@ -11,8 +11,8 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 import manifest_identity.models  # noqa: F401  (registers the tables on Base.metadata)
-from manifest_identity.config import get_settings
-from manifest_identity.db import Base
+from manifest_identity.core.config import get_settings
+from manifest_identity.core.db import Base
 
 config = context.config
 

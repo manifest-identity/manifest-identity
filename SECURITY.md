@@ -93,9 +93,14 @@ refer to the ranked threats in [THREAT-MODEL.md](THREAT-MODEL.md).
 | The evidence export states population, coverage, and every decision with actor and time | 8 | tests/test_reports.py |
 | A per-user write budget on imports and campaign creation; keep-alive bounded in the serve command (D-041) | 9 | tests/test_ratelimit.py |
 | The documented route surface asserted against the live route table, in both directions | 2 | tests/test_matrix.py |
+| Authority is a binding at a scope node, answered in one function over the node, its ancestors, and the global node (D-072) | 2 | tests/test_scope.py |
+| Every scoped write refuses a caller whose binding sits outside the target's scope, and says it is the scope | 2 | tests/test_scope.py |
+| Administration is global in this version: an administrator bound at an account is refused every administrative route (D-070) | 2 | tests/test_scope.py |
+| Bindings are revoked, never deleted, so who could act and when survives the end of the grant (D-006, D-072) | 8 | tests/test_scope.py, tests/test_admin_users.py |
 | The runtime database role holds data rights only, no schema and no deletes; migrations run separately as the owner (D-013, D-051) | 3 | the pipeline probe: schema change attempted as the runtime role must be refused |
 | An administrator ends all of a user's sessions in one audited act | 6 | tests/test_admin_users.py |
 | Read-only root filesystems, dropped capabilities, no privilege escalation, bounded resources, and no host-published database port (D-042) | 1, 9 | verifiable by the commands in the README, run against the live stack at adoption |
+| The compose file keeps those properties: every service drops all capabilities, refuses privilege escalation, and mounts a read-only root | 1, 9 | scripts/check_compose_hardening.py, in the pipeline and the commit hooks |
 
 ## Controls still planned
 

@@ -21,7 +21,7 @@ def demo_env(tmp_path, monkeypatch):
     monkeypatch.setenv("MANIFEST_IDENTITY_ADMIN_PASSWORD", "demo-" + "x" * 12)
     from sqlalchemy import create_engine
 
-    from manifest_identity import config, db
+    from manifest_identity.core import config, db
 
     config.get_settings.cache_clear()
     engine = create_engine(url)
@@ -49,7 +49,7 @@ def test_demo_populates_and_converges(demo_env, capsys) -> None:
 
 def test_demo_refuses_without_admin_env(demo_env, monkeypatch, capsys) -> None:
     monkeypatch.setenv("MANIFEST_IDENTITY_ADMIN_USERNAME", "")
-    from manifest_identity import config
+    from manifest_identity.core import config
 
     config.get_settings.cache_clear()
     from manifest_identity import demo

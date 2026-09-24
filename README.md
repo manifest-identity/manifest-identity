@@ -71,10 +71,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **157 tests in 26 files**, coverage 94 over a 90 percent floor |
+| Tests | **168 tests in 27 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **31 routes**, every one in the role matrix the tests walk |
-| Record | **70 recorded decisions**, each with its rejected alternatives |
+| Surface | **35 routes**, every one in the role matrix the tests walk |
+| Record | **72 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -137,7 +137,7 @@ application in twelve review-gated subphases whose order was fixed
 before any code ([the plan](#the-plan-fixed-before-code)): a fresh
 clone with Docker starts the stack, migrates the schema, serves
 sign-in with three roles behind a tested authorization matrix,
-imports identity snapshots append-only, derives the inventory with
+imports identity exports append-only, derives the inventory with
 its credential and privilege findings, carries governance records and
 review campaigns, and produces the risk report and the escaped
 exports. Phase 2 put the same digest-built image on a hardened local
@@ -160,10 +160,10 @@ documents say so.
 
 ## What this is
 
-You feed manifest-identity snapshot files: a record of every identity in a
-cloud account at one moment. It keeps every snapshot and never edits
+You feed manifest-identity export files: a record of every identity in a
+cloud account at one moment. It keeps every import and never edits
 an old one. When you open the inventory, it works out each identity's
-situation at that moment: compare the newest snapshot with the history,
+situation at that moment: compare the newest import with the history,
 add what humans have recorded, and show the result. No status is ever
 stored, so no status can go stale or be quietly changed; the answer is
 recomputed from the evidence every time you ask.
@@ -182,7 +182,7 @@ in, reports go out, and nothing else moves.
 Four operations, and nothing else:
 
 - An operator authenticates, into one of three roles.
-- An identity snapshot file is imported, recorded append-only, with
+- An identity export file is imported, recorded append-only, with
   synthetic sample data shipped so a stranger with only Docker can run
   the demo.
 - The operator views the enriched inventory and produces the
@@ -239,7 +239,7 @@ your .env. No password or secret is written anywhere in this
 repository; you create all of them locally.
 
 Then import the sample account that ships in
-[sample-data](sample-data): three snapshot generations, both file
+[sample-data](sample-data): three import generations, both file
 formats, the capture time in each file's name. Import them oldest
 first from the Imports view, because state is derived from history and
 the history should arrive in the order it happened; then read the
@@ -407,14 +407,14 @@ Four people, and the design answers their questions in their order.
   leaving the page, and when the answer is not there, "insufficient
   evidence, here is what was missing" is a recorded outcome that
   steers what gets built next.
-- **The operator** imports snapshots, runs campaigns, and triages
+- **The operator** imports files, runs campaigns, and triages
   findings.
 - **The auditor** consumes proof: the population statement, coverage,
   each decision with its actor and time.
 - **The administrator** manages users and roles, and nothing else.
 
 Three roles. A reviewer reads everything and records attestations and
-review decisions. An operator additionally imports snapshots and sets
+review decisions. An operator additionally imports files and sets
 governance: owners, purposes, flags. An administrator additionally
 manages the application's local users.
 
@@ -436,11 +436,11 @@ single click. Nothing here is a
 stored status: every figure is computed at read time from the
 observation history, because a stored security status that drifts
 from reality is worse than none, people trust it. The computation
-runs against the newest snapshot's capture time, never the wall
+runs against the newest import's capture time, never the wall
 clock, so a month-old import shows month-old staleness rather than
 aging by itself, and the as-of line states what the page knows. Hiding an identity from
 this inventory requires tampering with the stored history again after
-every future sync, because each sync is a full snapshot and state is
+every future sync, because each sync is a full picture and state is
 re-derived from all of it.
 
 **Identity detail.** The observation timeline, the findings, and the
@@ -480,7 +480,7 @@ show.
 **Groups.** Privilege sources with members, owners, and their own
 findings. An empty privileged group is reported before anyone joins
 it, because it is a standing grant waiting for its next member with
-nobody reviewing it today. What changed since the previous snapshot,
+nobody reviewing it today. What changed since the previous import,
 who joined and who left, is computed and shown, because the delta is
 what a review actually reviews; re-reading the full list every
 quarter produces approval without attention.
@@ -553,12 +553,21 @@ gate exists because of a specific failure:
   they can act on, and separating no identity from insufficient
   authority costs an attacker nothing they could not learn anyway.
 - **The role matrix.** May this role call this route. One data
-  structure in [manifest_identity/roles.py](manifest_identity/roles.py) is the single
+  structure in [manifest_identity/core/roles.py](manifest_identity/core/roles.py) is the single
   answer: the route dependencies read it to enforce and the tests
   read it to verify, so the enforced matrix and the tested matrix
   cannot drift apart. A route missing from the matrix fails the
   build, and a typo in a matrix key crashes the process at startup
   rather than leaving a route unguarded.
+- **The scope check.** May this caller act *here*. The matrix answers
+  which roles a route admits; a write whose target belongs to a place
+  in the estate asks a second question, answered by bindings at that
+  node, at any node above it, or at the global node (D-072). An
+  operator for one account holding the role the matrix admits is
+  still refused on another account's identity, and the refusal says
+  it is the scope, not the role. Authority is answered in one
+  function so the tests can walk it and the mutation check can
+  remove it and watch them fail.
 - **Typed validation.** Is the request sane. Every body passes a
   typed model with bounds, and a rejected value is never echoed back,
   because an error message that repeats attacker input is a
@@ -597,14 +606,14 @@ failure happened, not what was typed.
 
 Three boundaries, in order of hostility:
 
-1. **The imported snapshot file.** The only input the application
+1. **The imported file.** The only input the application
    accepts from outside, treated as hostile in every particular even
    though it nominally comes from a cloud provider's own reporting:
    bounded, parsed in memory, verified against its own claims, never
    echoed.
 2. **The browser session.** Authenticated on every request; nothing
    about a session is trusted from one request to the next. Identity
-   names, tags, and paths inside snapshot data are
+   names, tags, and paths inside imported data are
    attacker-influenceable and are rendered as text, never markup,
    because the person most exposed to this data is the operator
    reading it.
@@ -639,7 +648,7 @@ network, and identity controls it adds apply inside it.
 |---|---|
 | Frontend | A single page served by the application; renders every value as text through the document interface with no markup sink, holds the session token in memory rather than browser storage, and runs under a content policy that forbids inline script and style (D-036) |
 | Routes | The trust boundary; authentication checked on every request, every response shaped by a declared model |
-| Snapshot ingestion | Parses an imported identity snapshot file, bounded on every axis, in memory, append-only |
+| Import parsing | Parses an imported identity export file, bounded on every axis, in memory, append-only |
 | Derivation engine | Computes each identity's state and enrichment from the observation history at read time |
 | Governance records | The human layer: owners, flags, attestations, written with attribution and an audit row in one transaction |
 | Report builder | Produces the self-contained risk report and the escaped CSV and JSON exports |
@@ -650,7 +659,7 @@ network, and identity controls it adds apply inside it.
 ```mermaid
 flowchart LR
     O[Operator browser] -- session token --> R[Routes]
-    R --> I[Snapshot ingestion]
+    R --> I[Import parsing]
     I -- observations, append only --> P[(PostgreSQL)]
     R --> D[Derivation engine]
     P -- history --> D
@@ -670,28 +679,51 @@ disagree with the screen.
 
 ### The data model shape
 
+The model is provider-neutral: no table carries a word only one cloud
+uses, and the provider's own vocabulary ends at the parser (D-071).
+
 ```
-accounts --< snapshots --< observations >-- identities
-groups --< group_observations (snapshots also point here)
-snapshots --< policy_documents
+scope_nodes --< scope_nodes (the tree, global at the top)
+scope_nodes --< imports --< identity_observations >-- identities
+imports --< credentials >-- identities
+imports --< grants >-- identities, role_definitions, scope_nodes
+imports --< memberships >-- identities (groups are identities)
+imports --< observed_relationships >-- identities
 identities --< governance_records
+users --< role_bindings >-- scope_nodes
 campaigns --< campaign_items
-users, audit_events
+alerts --< alert_deliveries
+audit_events
 ```
 
-- An **identity** is one principal in one account, keyed by the
-  account plus the provider's immutable identifier, never the name or
-  ARN, which are display attributes (D-016). A recreated principal is
-  a new identity.
-- A **snapshot** is one imported file: one account at one point in
-  time, unique on that pair, so a re-import is rejected rather than
+- A **scope node** is one place in a provider's hierarchy: an
+  organization, an account, a tenant, a subscription, a cluster. Each
+  names its partition explicitly, commercial or government, so a
+  government estate is labeled on every record rather than inferred.
+  One synthetic node named **global** sits above all of them.
+- An **identity** is one principal at one scope node, keyed by the
+  provider's immutable identifier, never the name or ARN, which are
+  display attributes (D-016). A recreated principal is a new identity.
+  Groups are identities of kind group: governable sources of
+  privilege, never actors (D-019).
+- An **import** is one file or pull: one scope node, one source kind,
+  one capture time taken from the file's own content (D-008), unique
+  on that triple, so a re-import is rejected rather than
   double-counted.
-- An **observation** is the append-only fact that a snapshot saw an
-  identity, carrying the attributes seen at that moment: credentials
-  and their ages, permission summaries, last-use marks. Groups get
-  their own observations, membership and policies per snapshot
-  (D-019), and each snapshot stores the managed policy documents it
-  saw in force.
+- A **credential** is one credential as one import saw it. Two access
+  keys are two rows and a provider with five is five rows, so nothing
+  in the model assumes a cloud that offers exactly two.
+- A **grant** is an identity holding a **role definition** at a scope,
+  by a path and in a mode. The path records how the privilege arrives,
+  hop by hop, through a membership or a trust; the mode records
+  whether it is held now or can be obtained, which is what PIM-style
+  eligibility is. A role definition is versioned by the hash of its
+  contents, so a changed built-in role is a new row and a review can
+  show what the role allowed on the day of the decision.
+- A **role binding** is authority: a user holding a role at a scope
+  node, covering that node and everything beneath it (D-072). Users
+  carry no role column. A binding is revoked, never deleted, so the
+  record of who could act when survives.
 - A **governance record** is the human layer: an owner, a purpose, a
   flag, or an attestation, on an identity or a group (D-019),
   attributed and audited, stored rather than derived because it IS the
@@ -701,9 +733,8 @@ users, audit_events
   disposition, including insufficient evidence, and the campaign
   closes into an evidence export.
 - Everything shown about an identity's state, current, stale, unused,
-  unowned, over-privileged, is derived by the engine from observations
-  plus governance records at read time. No status column exists
-  anywhere.
+  unowned, over-privileged, is derived from the observed rows plus
+  governance records at read time. No status column exists anywhere.
 
 ### The route surface
 
@@ -722,6 +753,10 @@ POST /auth/logout
 GET /admin/users
 POST /admin/users
 POST /admin/users/{username}/sessions/revoke
+POST /admin/users/{username}/bindings
+POST /admin/users/{username}/bindings/{binding_id}/revoke
+GET /admin/scopes
+POST /admin/scopes
 POST /imports/credential-report
 POST /imports/authorization-details
 GET /imports
@@ -759,23 +794,32 @@ stays derived at read (D-006).
 
 ### Repository map
 
+The package is split by part, and each part owns its own tables, its
+own routes, and nothing else: core holds who may act and where,
+observe holds what was seen, declare holds what people said, decide
+holds the reviews and the alerts.
+
 | Path | Role |
 |---|---|
 | `manifest_identity/main.py` | Application assembly: routes, security headers, the static shell |
-| `manifest_identity/roles.py` | The role matrix, single source: who may call what |
-| `manifest_identity/deps.py` | Authentication, authorization, and the write budget, as dependencies |
-| `manifest_identity/ingest/` | The two snapshot parsers: bounded, in memory, distrusting their own preconditions |
-| `manifest_identity/models.py` | The tables; append-only observation history as structure |
-| `manifest_identity/derive.py` | State from history at read time; the freshest value per field |
-| `manifest_identity/findings.py` | Credential findings, each explaining itself with its OWASP anchor |
-| `manifest_identity/policy_analysis.py` | What a policy document grants, read by capability |
-| `manifest_identity/privilege.py` | The privilege picture with source attribution; shadow admin detection |
-| `manifest_identity/governance.py` | The human layer: typed owners, purposes, flags, attestations |
-| `manifest_identity/campaigns.py` | Recommendations with reasons, and the delta since last certification |
-| `manifest_identity/assessment.py` | The one computation the page, the campaigns, and the exports all read |
-| `manifest_identity/reports.py` | The ranked report and the escaped exports |
-| `manifest_identity/routes/` | The route handlers, every one in the matrix or named public |
-| `manifest_identity/audit.py` | The audit spine: the record commits with the action |
+| `manifest_identity/models.py` | One import surface over every part's tables |
+| `manifest_identity/core/roles.py` | The role matrix, single source: who may call what |
+| `manifest_identity/core/scope.py` | The scope tree and the one authority question, asked nowhere else |
+| `manifest_identity/core/deps.py` | Authentication, the matrix check, the scope check, and the write budget |
+| `manifest_identity/core/models.py` | Users, sessions, scope nodes, role bindings, settings, the audit chain |
+| `manifest_identity/core/audit.py` | The audit spine: the record commits with the action |
+| `manifest_identity/core/verify_chain.py` | The offline verifier: recompute the chain, compare to an anchor |
+| `manifest_identity/observe/providers/` | The two parsers: bounded, in memory, distrusting their own preconditions |
+| `manifest_identity/observe/importer.py` | Provider records become neutral rows; the vocabulary ends here |
+| `manifest_identity/observe/models.py` | Imports, identities, credentials, grants, role definitions, relationships |
+| `manifest_identity/observe/derive.py` | State from history at read time; the freshest value per field |
+| `manifest_identity/observe/findings.py` | Credential findings, each explaining itself with its OWASP anchor |
+| `manifest_identity/observe/policy_analysis.py` | What a policy document grants, read by capability |
+| `manifest_identity/observe/privilege.py` | The privilege picture with source attribution; shadow admin detection |
+| `manifest_identity/observe/assessment.py` | The one computation the page, the campaigns, and the exports all read |
+| `manifest_identity/declare/governance.py` | The human layer: typed owners, purposes, flags, attestations |
+| `manifest_identity/decide/campaigns.py` | Recommendations with reasons, and the delta since last certification |
+| `manifest_identity/decide/reports.py` | The ranked report and the escaped exports |
 | `manifest_identity/sample_data.py` | The deterministic sample account generator |
 | `frontend/` | One page, no build step; every value rendered as text |
 | `migrations/` | The schema from the first table |
@@ -821,7 +865,7 @@ edition before anything claims conformance.
 | NIST SP 800-53, AC-6(7) | Periodic review of privileges, with removal when no longer fit | Privilege findings with source attribution, and the revoke-recommended disposition carrying its reasons into the evidence export |
 | ISO/IEC 27002:2022, 5.16 | Identity lifecycle management, explicitly including non-human | The whole product |
 | ISO/IEC 27002:2022, 5.18 | Access rights reviewed at planned intervals and on change | Campaigns with the delta-since-last-certification view, so the review reads what changed rather than re-reading everything |
-| CIS Controls v8, 5.1 and 5.5 | An inventory of accounts, and a dedicated, validated service account inventory | The inventory, derived from snapshots, with the as-of statement on every view |
+| CIS Controls v8, 5.1 and 5.5 | An inventory of accounts, and a dedicated, validated service account inventory | The inventory, derived from imports, with the as-of statement on every view |
 | CIS Controls v8, 5.3 | Dormant accounts disabled after a defined period | Staleness findings with the minimum observation age; action itself deferred (D-005) |
 | SOX ITGC and SOC 2 CC6 practice | Complete population, independent reviewer, evidence per decision, timely remediation | The frozen population statement, attribution on every decision, the evidence export, and a close that refuses gaps, all present |
 
@@ -848,7 +892,7 @@ nothing worth keeping. One command produces a dated, compressed dump:
 docker compose exec -T db pg_dump -U manifest-identity -Fc manifest-identity > manifest-identity-$(date +%Y-%m-%d).dump
 ```
 
-The dump contains every snapshot, observation, governance record,
+The dump contains every import, observation, governance record,
 campaign, and audit row. It contains password hashes and session token
 hashes but no passwords and no tokens, because none are ever stored.
 Store it where the database's readers are the only readers: the
@@ -900,14 +944,14 @@ reaches it, which is what catches history rewritten after the export
 was taken:
 
 ```bash
-docker compose exec app python -m manifest_identity.verify_chain --anchor <audit_chain_head from an evidence export>
+docker compose exec app python -m manifest_identity.core.verify_chain --anchor <audit_chain_head from an evidence export>
 ```
 
 Keep one evidence export per campaign outside the database; the
 anchor is only as independent as its copy.
 
-**The clean-slate reset**, development only, deletes every imported
-snapshot, every governance record, and the audit history:
+**The clean-slate reset**, development only, deletes every import,
+every governance record, and the audit history:
 
 ```
 docker compose down -v
@@ -1222,7 +1266,7 @@ subphase is proof, not retrofit.
    paths, external trust exposure, ownership and group findings,
    membership drift, privilege attributed to its source.
 7. **Sample data.** The synthetic generator producing both file
-   formats across three snapshot generations and every archetype the
+   formats across three import generations and every archetype the
    rules need; moved up from eleventh with the reason recorded in
    D-034, because every subphase since the first parser had needed
    demo input made by hand, and hand-made input was wrong three times.

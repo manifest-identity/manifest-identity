@@ -11,8 +11,8 @@ from datetime import UTC, datetime
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from manifest_identity.derive import DerivedState, classify
-from manifest_identity.roles import Role
+from manifest_identity.core.roles import Role
+from manifest_identity.observe.derive import CredentialState, DerivedState, classify
 from manifest_identity.sample_data import GENERATIONS, file_set
 from tests.conftest import auth_header, login, make_user
 
@@ -35,17 +35,22 @@ def _seed(client: TestClient, db: Session) -> dict[str, str]:
     return auth_header(token)
 
 
-def _state(**overrides: object) -> DerivedState:
-    base = dict(
+def _state(
+    identity_type: str = "user", password_enabled: bool | None = None,
+    mfa_active: bool | None = None, key1_active: bool | None = None,
+) -> DerivedState:
+    creds = []
+    if password_enabled is not None:
+        creds.append(
+            CredentialState("password", "console", bool(password_enabled), None, None, None)
+        )
+    if key1_active is not None:
+        creds.append(CredentialState("access_key", "first", bool(key1_active), None, None, None))
+    return DerivedState(
         as_of=datetime(2026, 8, 1, tzinfo=UTC), observed_days=30, display_name="x",
-        identity_type="user", identity_created_at=None, password_enabled=None,
-        mfa_active=None, key1_active=None, key1_age_days=None, key2_active=None,
-        key2_age_days=None, cert1_active=None, cert2_active=None,
-        last_activity=None, last_activity_days=None, attached_policies=0,
-        inline_policies=0, group_names=[],
+        identity_type=identity_type, identity_created_at=None, mfa_active=mfa_active,
+        credentials=creds,
     )
-    base.update(overrides)
-    return DerivedState(**base)  # type: ignore[arg-type]
 
 
 def test_the_three_heuristic_cases_and_the_fixed_types() -> None:

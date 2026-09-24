@@ -4,8 +4,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.core.roles import Role
 from manifest_identity.models import AuditEvent
-from manifest_identity.roles import Role
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 
 NEW_USER_PASSWORD = "pw-" + __import__("secrets").token_urlsafe(16)
