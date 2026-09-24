@@ -38,6 +38,10 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     ),
     "GET /admin/scopes": frozenset({Role.administrator}),
     "POST /admin/scopes": frozenset({Role.administrator}),
+    # Which fields an authorization must carry is the organization's
+    # choice, and choosing is the administrator's act (D-070).
+    "GET /admin/settings": frozenset({Role.administrator}),
+    "PUT /admin/settings": frozenset({Role.administrator}),
     # Reviewers read; importing changes the record, so it is the
     # operator's and administrator's act.
     "POST /imports/credential-report": frozenset({Role.operator, Role.administrator}),
@@ -59,6 +63,16 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /identities/{identity_id}/attest": ALL_ROLES,
     "POST /groups/{group_id}/attest": ALL_ROLES,
     "DELETE /governance/{record_id}": frozenset(
+        {Role.operator, Role.administrator}
+    ),
+    # Authorizing access is the operator's and administrator's act;
+    # reading the record is every role's, because a reviewer who
+    # cannot see what was authorized cannot review anything (D-073).
+    "GET /identities/{identity_id}/authorizations": ALL_ROLES,
+    "POST /identities/{identity_id}/authorizations": frozenset(
+        {Role.operator, Role.administrator}
+    ),
+    "POST /authorizations/{authorization_id}/revoke": frozenset(
         {Role.operator, Role.administrator}
     ),
     # Creating and closing a campaign shape the review; deciding an

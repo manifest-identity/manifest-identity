@@ -65,9 +65,9 @@ data.
 ### v0.3: authorize and compare
 
 - Scope tree and scoped administration: the three roles gain a scope
-  node, every write route checks it.
+  node, every write route checks it. **Built.**
 - The authorization record: append-only, attributed, with required
-  fields the administrator sets and secure defaults.
+  fields the administrator sets and secure defaults. **Built.**
 - Entry paths: the form, CSV import with a shipped template, authorize
   from observed, and an export shaped for the import.
 - The delta, computed at read: held but not authorized, authorized but
@@ -75,7 +75,7 @@ data.
 - Home, relationships, and grant paths with a mode on each hop; the
   "holds now" and "can obtain" columns.
 - Role definitions as versioned observations, and the finding when a
-  definition changes after approval.
+  definition changes after it was authorized.
 - The first release published to the package index under the
   project's name.
 

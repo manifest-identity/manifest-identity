@@ -16,6 +16,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from manifest_identity.authorize import routes_authorizations as authorize
 from manifest_identity.authorize import routes_governance as governance
 from manifest_identity.core import routes_admin as admin
 from manifest_identity.core import routes_auth as auth
@@ -123,6 +124,7 @@ def create_app() -> FastAPI:
     app.include_router(imports.router)
     app.include_router(inventory.router)
     app.include_router(governance.router)
+    app.include_router(authorize.router)
     app.include_router(campaigns.router)
     app.include_router(reports.router)
 

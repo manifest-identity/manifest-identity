@@ -97,6 +97,12 @@ refer to the ranked threats in [THREAT-MODEL.md](THREAT-MODEL.md).
 | Every scoped write refuses a caller whose binding sits outside the target's scope, and says it is the scope | 2 | tests/test_scope.py |
 | Administration is global in this version: an administrator bound at an account is refused every administrative route (D-070) | 2 | tests/test_scope.py |
 | Bindings are revoked, never deleted, so who could act and when survives the end of the grant (D-006, D-072) | 8 | tests/test_scope.py, tests/test_admin_users.py |
+| An authorization names an authorizer taken from the session; no request model carries a field for one (threat 14, D-073) | 8 | tests/test_authorizations.py |
+| Authorizations are append-only: a renewal supersedes and a revocation is a new row, so no past state is erasable (D-006) | 3, 8 | tests/test_authorizations.py |
+| Expiry is the clock compared to a column, so a lapsed authorization cannot read as live because a job did not run | 15 | tests/test_authorizations.py |
+| A person may own an authorization only with a second owner named (D-038) | 8 | tests/test_authorizations.py |
+| Required fields ship strict, are the administrator's to relax, and every change is audited with its old and new value (D-070) | 8 | tests/test_authorizations.py |
+| A setting outside the registry cannot be written, and one bad value in a batch changes none of it | 8 | tests/test_authorizations.py |
 | The runtime database role holds data rights only, no schema and no deletes; migrations run separately as the owner (D-013, D-051) | 3 | the pipeline probe: schema change attempted as the runtime role must be refused |
 | An administrator ends all of a user's sessions in one audited act | 6 | tests/test_admin_users.py |
 | Read-only root filesystems, dropped capabilities, no privilege escalation, bounded resources, and no host-published database port (D-042) | 1, 9 | verifiable by the commands in the README, run against the live stack at adoption |
