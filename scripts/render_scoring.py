@@ -29,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SNAPSHOT = ROOT / "scoring" / "snapshot.json"
 PAGE = ROOT / "SCORING.md"
-REPO = "tltaylor1/manifest-identity"
+REPO = "manifest-identity/manifest-identity"
 BEST_PRACTICES_ID = 14563
 SONAR_KEY = "manifest-identity_manifest-identity"
 
