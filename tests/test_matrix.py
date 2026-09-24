@@ -91,6 +91,12 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
         {},
     ),
     "GET /admin/scopes": ("get", "/admin/scopes", {}),
+    "GET /admin/settings": ("get", "/admin/settings", {}),
+    "PUT /admin/settings": (
+        "put",
+        "/admin/settings",
+        {"json": {"values": {"authorization.reference_required": "false"}}},
+    ),
     "POST /admin/scopes": (
         "post",
         "/admin/scopes",
@@ -126,6 +132,25 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
         {"json": {"value": "matrix attestation"}},
     ),
     "DELETE /governance/{record_id}": ("delete", "/governance/999999", {}),
+    "GET /identities/{identity_id}/authorizations": (
+        "get", "/identities/1/authorizations", {},
+    ),
+    "POST /identities/{identity_id}/authorizations": (
+        "post",
+        "/identities/1/authorizations",
+        {"json": {
+            "role_definition_external_id": "arn:aws:iam::aws:policy/ReadOnlyAccess",
+            "path": [{"via": "direct", "ref": "", "mode": "active"}],
+            "owner_kind": "team",
+            "owner_ref": "matrix-team",
+            "justification": "matrix exercise",
+        }},
+    ),
+    "POST /authorizations/{authorization_id}/revoke": (
+        "post",
+        "/authorizations/999999/revoke",
+        {"json": {"reason": "matrix exercise"}},
+    ),
     "POST /campaigns": (
         "post",
         "/campaigns",

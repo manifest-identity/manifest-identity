@@ -71,9 +71,9 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **168 tests in 27 files**, coverage 94 over a 90 percent floor |
+| Tests | **187 tests in 28 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **35 routes**, every one in the role matrix the tests walk |
+| Surface | **40 routes**, every one in the role matrix the tests walk |
 | Record | **73 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
@@ -693,6 +693,7 @@ imports --< grants >-- identities, role_definitions, scope_nodes
 imports --< memberships >-- identities (groups are identities)
 imports --< observed_relationships >-- identities
 identities --< governance_records
+identities --< authorizations >-- scope_nodes
 users --< role_bindings >-- scope_nodes
 campaigns --< campaign_items
 alerts --< alert_deliveries
@@ -727,6 +728,15 @@ audit_events
   node, covering that node and everything beneath it (D-072). Users
   carry no role column. A binding is revoked, never deleted, so the
   record of who could act when survives.
+- An **authorization** is what a person said an identity may hold:
+  one grant path, an owner, the authorizer taken from the session, a
+  justification, and a window that ends (D-073). Nothing is edited. A
+  renewal writes a new row that supersedes the old one and a
+  revocation writes one too, so the chain from the first authorization
+  to the last is the history. Expiry is the clock compared to a
+  column, never a job that might not run. Which fields an
+  authorization must carry is the administrator's choice, shipped
+  strict, and every change to that choice is audited (D-070).
 - A **governance record** is the human layer: an owner, a purpose, a
   flag, or an attestation, on an identity or a group (D-019),
   attributed and audited, stored rather than derived because it IS the
@@ -760,6 +770,8 @@ POST /admin/users/{username}/bindings
 POST /admin/users/{username}/bindings/{binding_id}/revoke
 GET /admin/scopes
 POST /admin/scopes
+GET /admin/settings
+PUT /admin/settings
 POST /imports/credential-report
 POST /imports/authorization-details
 GET /imports
@@ -771,6 +783,9 @@ POST /groups/{group_id}/governance
 POST /identities/{identity_id}/attest
 POST /groups/{group_id}/attest
 DELETE /governance/{record_id}
+GET /identities/{identity_id}/authorizations
+POST /identities/{identity_id}/authorizations
+POST /authorizations/{authorization_id}/revoke
 POST /campaigns
 GET /campaigns
 GET /campaigns/rollup
@@ -820,7 +835,9 @@ holds the reviews and the alerts.
 | `manifest_identity/observe/policy_analysis.py` | What a policy document grants, read by capability |
 | `manifest_identity/observe/privilege.py` | The privilege picture with source attribution; shadow admin detection |
 | `manifest_identity/observe/assessment.py` | The one computation the page, the campaigns, and the exports all read |
+| `manifest_identity/authorize/authorizations.py` | The authorization write path: attributed, append-only, bounded |
 | `manifest_identity/authorize/governance.py` | The human layer: typed owners, purposes, flags, attestations |
+| `manifest_identity/core/options.py` | Administrator settings, secure by default, audited on every change |
 | `manifest_identity/decide/campaigns.py` | Recommendations with reasons, and the delta since last certification |
 | `manifest_identity/decide/reports.py` | The ranked report and the escaped exports |
 | `manifest_identity/sample_data.py` | The deterministic sample account generator |

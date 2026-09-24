@@ -36,6 +36,23 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         ["tests/test_scope.py"],
     ),
     (
+        "the organization's required fields stop being enforced",
+        "manifest_identity/authorize/authorizations.py",
+        '    if options.get_bool(db, "authorization.justification_required") and not (',
+        "    if False and not (",
+        ["tests/test_authorizations.py"],
+    ),
+    (
+        "an expired authorization still reads as live",
+        # Expiry is the clock compared to a column (D-073's record): if
+        # the comparison goes, every lapsed access reports as current
+        # and the delta lies in the safest-looking direction.
+        "manifest_identity/authorize/authorizations.py",
+        "    if row.status == AuthorizationStatus.authorized and is_expired(row, now):",
+        "    if False:",
+        ["tests/test_authorizations.py"],
+    ),
+    (
         "audit rows silently dropped",
         "manifest_identity/core/audit.py",
         "    db.add(event)",

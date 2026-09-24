@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.core import audit, security
+from manifest_identity.core import audit, options, security
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, require_roles, require_scope
 from manifest_identity.core.models import (
@@ -24,6 +24,7 @@ from manifest_identity.core.models import (
     Provider,
     RoleBinding,
     ScopeNode,
+    Setting,
     User,
     utcnow,
 )
@@ -266,3 +267,64 @@ def create_scope(
     )
     db.commit()
     return ScopeNodeView(**{k: getattr(node, k) for k in ScopeNodeView.model_fields})
+
+
+class SettingView(BaseModel):
+    key: str
+    value: str
+    default: str
+    kind: str
+    description: str
+    changed_by: str | None
+    changed_at: str | None
+
+
+class ChangeSettings(BaseModel):
+    # One call may change several, because a policy is usually decided
+    # in one sitting; each change still writes its own audit row.
+    values: dict[str, str] = Field(min_length=1, max_length=32)
+
+
+def _setting_views(db: Session) -> list[SettingView]:
+    rows = {
+        s.key: s for s in db.execute(select(Setting)).scalars()
+    }
+    out: list[SettingView] = []
+    for key, option in options.OPTIONS.items():
+        row = rows.get(key)
+        out.append(SettingView(
+            key=key,
+            value=row.value if row else option.default,
+            default=option.default,
+            kind=option.kind,
+            description=option.description,
+            changed_by=row.changed_by_username if row else None,
+            changed_at=row.changed_at.isoformat(timespec="seconds") if row else None,
+        ))
+    return out
+
+
+@router.get("/settings", dependencies=[require_roles("GET /admin/settings")])
+def list_settings(db: Annotated[Session, Depends(get_session)]) -> list[SettingView]:
+    """Every setting with its shipped default beside its current value,
+    so a reader can see at a glance what this organization changed."""
+    return _setting_views(db)
+
+
+@router.put("/settings")
+def change_settings(
+    body: ChangeSettings,
+    db: Annotated[Session, Depends(get_session)],
+    auth: Annotated[AuthContext, require_roles("PUT /admin/settings")],
+) -> list[SettingView]:
+    require_scope(db, auth, "PUT /admin/settings", None)
+    try:
+        for key, value in body.values.items():
+            options.set_value(db, key, value, auth.user)
+    except options.OptionError as exc:
+        # Nothing is committed, so a batch with one bad value changes
+        # neither it nor its neighbours.
+        db.rollback()
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    db.commit()
+    return _setting_views(db)
