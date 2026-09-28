@@ -3,7 +3,7 @@
 [![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/manifest-identity/manifest-identity?label=OpenSSF%20Scorecard&style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/manifest-identity/manifest-identity)
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/14563?label=OpenSSF%20Best%20Practices&style=for-the-badge)](https://www.bestpractices.dev/projects/14563)
 [![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Ftltaylor1%2Fbuild-doctrine%2Fmain%2Fbadges%2Fmanifest-identity.json&style=for-the-badge)](https://github.com/tltaylor1/build-doctrine/blob/main/SCORES.md)
-[![Coverage](https://img.shields.io/codecov/c/github/tltaylor1/manifest-identity?label=Coverage&style=for-the-badge)](https://codecov.io/gh/manifest-identity/manifest-identity)
+[![Coverage](https://img.shields.io/codecov/c/github/manifest-identity/manifest-identity?label=Coverage&style=for-the-badge)](https://codecov.io/gh/manifest-identity/manifest-identity)
 [![Quality gate](https://img.shields.io/sonar/quality_gate/manifest-identity_manifest-identity?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=manifest-identity_manifest-identity)
 
 **Documentation site**, this document with side navigation and search:
@@ -1148,7 +1148,7 @@ them found real defects here before they were merged.
 package registry, `ghcr.io/manifest-identity/manifest-identity`, tagged with the
 version, so a consumer can pull instead of build, and attests the
 image digest the same way it attests every artifact. A pulled image
-verifies with `gh attestation verify oci://ghcr.io/manifest-identity/manifest-identity:<tag> -R tltaylor1/manifest-identity`.
+verifies with `gh attestation verify oci://ghcr.io/manifest-identity/manifest-identity:<tag> -R manifest-identity/manifest-identity`.
 
 **attest-release** is started by hand with a tag name and attests a
 release that was cut before the release workflow gained its
@@ -1288,7 +1288,7 @@ word; the attestation bundle also ships as a release asset, so the
 same proof reads offline and by raters that only look at assets:
 
 ```bash
-gh attestation verify sbom-v0.2.0.json -R tltaylor1/manifest-identity
+gh attestation verify sbom-v0.2.0.json -R manifest-identity/manifest-identity
 ```
 
 ### The plan, fixed before code

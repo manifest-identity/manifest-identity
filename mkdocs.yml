@@ -6,7 +6,7 @@ site_name: manifest-identity
 site_description: Inventory and governance for non-human identities in AWS accounts
 site_url: https://manifest-identity.github.io/manifest-identity/
 repo_url: https://github.com/manifest-identity/manifest-identity
-repo_name: tltaylor1/manifest-identity
+repo_name: manifest-identity/manifest-identity
 docs_dir: docs/site
 site_dir: site
 strict: true

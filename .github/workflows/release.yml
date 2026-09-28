@@ -5,7 +5,7 @@
 # artifact through GitHub's attestation service, so a consumer can
 # verify what was released and how it was built without trusting this
 # repository's word:
-#   gh attestation verify <artifact> -R tltaylor1/manifest-identity
+#   gh attestation verify <artifact> -R manifest-identity/manifest-identity
 name: release
 
 permissions:
