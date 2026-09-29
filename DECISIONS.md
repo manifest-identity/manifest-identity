@@ -1941,3 +1941,64 @@ The cost is that the inventory's account, type, and kind columns are no
 longer separate sortable headers, since the row is built around the
 name with those three as its subline; type and kind stay reachable
 through the filters, and the sort by name and by tier remains.
+
+## D-076: The second provider is one document assembled from the provider's own objects
+
+GitHub was chosen as the second provider because it is the estate most
+organizations govern least and the one whose vocabulary is furthest
+from AWS: no policy documents, no actions, five fixed permission
+levels on a repository and three roles on an organization, teams that
+nest, apps installed with a permissions map, deploy keys that are
+credentials belonging to no person, and outside collaborators who are
+not members at all. If the neutral model holds there, it holds.
+
+GitHub ships no export of who holds what. So the observed side reads
+one JSON document whose lists are the REST API's own objects, each
+list naming the endpoint it came from, and the parser documents that
+shape as this product's contract. A collector that walks those
+endpoints and writes the document is an operator's private act on
+their own estate and is not part of this repository; the shipped
+sample is a generated organization, as every demonstration is (the
+standing rule from September 24).
+
+What each thing becomes is stated in the importer and repeated here
+because two of the choices are readings rather than facts. Every member
+signs in with a password, which the export does not carry and the
+platform guarantees, so a password credential is written per member
+and the second-factor state is the observation's MFA field; the
+alternative was no credential row, which would have made the
+missing-second-factor finding impossible on the one provider where it
+matters most. Activity comes from the audit log's newest event per
+actor when the collector joins it in, because the members list carries
+none, and a member with no activity in the export reads as unused,
+which is true of the export and is the reason the field exists.
+
+The permission levels are provider-managed role definitions whose
+contents are a capability document: what the level can do, in the
+terms the privilege reading already uses (administers, changes access,
+writes, reads). The reading gained one branch that accepts such a
+document beside a policy document, so an organization owner, a
+repository admin, and an app that may write members all read as
+administrator equivalent through the same finding as an AWS
+administrator policy, and the engine never learns the word maintain.
+An installation's permissions map is its own customer-managed
+definition, versioned by hash, so an app that quietly gains
+administration is a changed definition the way a rewritten policy is.
+
+A child team's members are written as members of every ancestor,
+which is the provider's rule, so the membership hop reads without a
+second mechanism; the nesting itself is recorded as a relationship.
+
+Rejected: a synthetic policy document per level in the AWS statement
+shape, which would have made the reading work without a change and
+would have taught the model that every provider is AWS in disguise;
+teams as scope nodes rather than groups, because a team is a source of
+privilege people inherit, which is what a group is here (D-019); and a
+finding for a token near expiry, because a fine-grained token must
+expire and expiry is the platform doing its job.
+
+The cost is a first-order one: an export shape of this product's own
+means a collector has to be written before a real organization can be
+read, and that collector is deferred with the connect phases. The
+model, the delta, the campaigns, and the page work on the second
+provider from this subphase on.

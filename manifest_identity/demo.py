@@ -2,9 +2,10 @@
 
 python -m manifest_identity.demo migrates the schema, creates the
 administrator from the environment, imports the three shipped sample
-months for both sources oldest first, and opens one review campaign,
-so a fresh clone lands in an inventory of twenty identities with
-tiered findings and a review in progress. Idempotent on purpose:
+months for every source oldest first (the AWS account and the GitHub
+organization), and opens one review campaign, so a fresh clone lands
+in an inventory of thirty-two identities with tiered findings and a
+review in progress. Idempotent on purpose:
 running it again converges, re-imports are refused as duplicates and
 an existing campaign is kept, so the command is safe to run twice.
 
@@ -27,6 +28,7 @@ from manifest_identity.core.config import get_settings
 from manifest_identity.core.db import get_engine
 from manifest_identity.decide.routes_campaigns import build_campaign
 from manifest_identity.models import Campaign, CampaignItem, Identity, User
+from manifest_identity.observe.github_importer import import_github_organization
 from manifest_identity.observe.importer import (
     DuplicateSnapshot,
     import_authorization_details,
@@ -36,6 +38,9 @@ from manifest_identity.observe.providers.aws.authorization_details import (
     parse_authorization_details,
 )
 from manifest_identity.observe.providers.aws.credential_report import parse_credential_report
+from manifest_identity.observe.providers.github.organization_export import (
+    parse_organization_export,
+)
 from manifest_identity.sample_data import GENERATIONS, file_set
 
 DEMO_CAMPAIGN = "Quarterly access review (demo)"
@@ -81,7 +86,7 @@ def main() -> int:
         files = file_set()
         for captured in GENERATIONS:
             day = captured.strftime("%Y-%m-%d")
-            for kind in ("credential-report", "authorization-details"):
+            for kind in ("credential-report", "authorization-details", "github-organization"):
                 suffix = "csv" if kind == "credential-report" else "json"
                 name = f"{day}-{kind}.{suffix}"
                 data = files[name].encode()
@@ -90,6 +95,15 @@ def main() -> int:
                         import_credential_report(
                             db,
                             report=parse_credential_report(data),
+                            captured_at=captured,
+                            source_filename=name,
+                            actor_user_id=admin.id,
+                            actor_username=admin.username,
+                        )
+                    elif kind == "github-organization":
+                        import_github_organization(
+                            db,
+                            export=parse_organization_export(data),
                             captured_at=captured,
                             source_filename=name,
                             actor_user_id=admin.id,

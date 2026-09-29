@@ -582,6 +582,159 @@ def authorizations_template() -> str:
     return "\n".join(lines) + "\n"
 
 
+# The GitHub organization: the second provider's estate, generated the
+# same way, with the same rule that every archetype the engine can find
+# there exists once. Every login and id is invented; nothing here is
+# anyone's real organization.
+
+ORGANIZATION = "sample-org"
+
+
+@dataclass
+class Member:
+    login: str
+    id: int
+    why: str
+    role: str = "member"
+    two_factor: bool = True
+    created: datetime | None = None
+    last_active: datetime | None = None
+
+
+def members(generation: int) -> list[Member]:
+    d = datetime
+    everyone = [
+        Member(login="sam-owner", id=1001, role="owner", created=d(2021, 4, 2, tzinfo=UTC),
+               why="an organization owner: administrator equivalence by role",
+               last_active=d(2026, 5, 30, tzinfo=UTC) + timedelta(days=30 * generation)),
+        Member(login="rita-ops", id=1002, role="owner", created=d(2022, 8, 19, tzinfo=UTC),
+               why="an owner without a second factor until the third month",
+               two_factor=generation >= 2,
+               last_active=d(2026, 5, 28, tzinfo=UTC) + timedelta(days=30 * generation)),
+        Member(login="dev-amir", id=1003, created=d(2023, 1, 9, tzinfo=UTC),
+               why="an ordinary developer, who must stay quiet",
+               last_active=d(2026, 5, 31, tzinfo=UTC) + timedelta(days=30 * generation)),
+        Member(login="dev-chen", id=1004, created=d(2023, 6, 14, tzinfo=UTC),
+               why="joins the platform team in the third month: membership drift",
+               last_active=d(2026, 5, 29, tzinfo=UTC) + timedelta(days=30 * generation)),
+        Member(login="legacy-mike", id=1005, created=d(2019, 11, 3, tzinfo=UTC),
+               why="no second factor and no activity: the account nobody uses",
+               two_factor=False, last_active=d(2025, 11, 20, tzinfo=UTC)),
+        Member(login="release-bot", id=1006, created=d(2024, 2, 27, tzinfo=UTC),
+               why="a machine account holding a token and a repository grant",
+               last_active=d(2026, 5, 31, tzinfo=UTC) + timedelta(days=30 * generation)),
+    ]
+    if generation >= 1:
+        everyone.append(Member(
+            login="new-dev", id=1007, created=d(2026, 6, 10, tzinfo=UTC),
+            why="a late arrival, so the second month differs from the first",
+            last_active=d(2026, 6, 28, tzinfo=UTC) + timedelta(days=30 * (generation - 1)),
+        ))
+    return everyone
+
+
+def teams(generation: int) -> list[dict[str, object]]:
+    platform = ["sam-owner", "rita-ops"]
+    if generation >= 2:
+        platform = [*platform, "dev-chen"]
+    developers = ["dev-amir", "dev-chen"]
+    frontend = ["new-dev"] if generation >= 1 else []
+    return [
+        {"slug": "platform", "id": 301, "name": "platform", "parent": None,
+         "members": platform,
+         "repositories": [{"name": "infra", "permission": "admin"},
+                          {"name": "api", "permission": "maintain"}]},
+        {"slug": "developers", "id": 302, "name": "developers", "parent": None,
+         "members": developers,
+         "repositories": [{"name": "api", "permission": "write"},
+                          {"name": "website", "permission": "write"}]},
+        {"slug": "frontend", "id": 305, "name": "frontend", "parent": "developers",
+         "members": frontend,
+         "repositories": [{"name": "website", "permission": "write"}]},
+        # Privilege waiting for its first member.
+        {"slug": "incident-commanders", "id": 303, "name": "incident-commanders",
+         "parent": None, "members": [],
+         "repositories": [{"name": "api", "permission": "admin"},
+                          {"name": "infra", "permission": "admin"},
+                          {"name": "website", "permission": "admin"}]},
+        {"slug": "auditors", "id": 304, "name": "auditors", "parent": None,
+         "members": ["legacy-mike"],
+         "repositories": [{"name": "api", "permission": "read"},
+                          {"name": "infra", "permission": "read"}]},
+    ]
+
+
+def repositories(generation: int) -> list[dict[str, object]]:
+    # The contractor's grant grows from write to admin in the second
+    # month, which is what a delta exists to notice.
+    contractor = "write" if generation == 0 else "admin"
+    return [
+        {"name": "api", "id": 401, "visibility": "private",
+         "collaborators": [{"login": "release-bot", "permission": "write"}],
+         "deploy_keys": []},
+        {"name": "infra", "id": 402, "visibility": "private",
+         "collaborators": [],
+         "deploy_keys": [{"id": 501, "title": "terraform-runner", "read_only": False,
+                          "created_at": "2024-01-15T00:00:00+00:00",
+                          "last_used": _stamp(
+                              datetime(2026, 5, 28, tzinfo=UTC)
+                              + timedelta(days=30 * generation))}]},
+        {"name": "website", "id": 403, "visibility": "public",
+         "collaborators": [{"login": "contractor-lee", "permission": contractor}],
+         "deploy_keys": [{"id": 502, "title": "pages-deploy", "read_only": True,
+                          "created_at": "2026-05-02T00:00:00+00:00",
+                          "last_used": None}]},
+    ]
+
+
+def installations() -> list[dict[str, object]]:
+    return [
+        {"id": 601, "app_slug": "ci-runner", "app_id": 71,
+         "permissions": {"contents": "write", "checks": "write", "metadata": "read"},
+         "repository_selection": "all", "created_at": "2025-03-04T00:00:00+00:00"},
+        # An app that can change who holds what is an administrator.
+        {"id": 602, "app_slug": "org-admin-tool", "app_id": 72,
+         "permissions": {"administration": "write", "members": "write", "metadata": "read"},
+         "repository_selection": "all", "created_at": "2025-09-18T00:00:00+00:00"},
+    ]
+
+
+def tokens(generation: int) -> list[dict[str, object]]:
+    used = datetime(2026, 5, 27, tzinfo=UTC) + timedelta(days=30 * generation)
+    return [
+        {"id": 701, "owner": "rita-ops", "created_at": "2026-03-01T00:00:00+00:00",
+         "expires_at": "2026-09-01T00:00:00+00:00", "last_used_at": _stamp(used),
+         "token_expired": False},
+        {"id": 702, "owner": "release-bot", "created_at": "2025-12-01T00:00:00+00:00",
+         "expires_at": "2026-12-01T00:00:00+00:00", "last_used_at": _stamp(used),
+         "token_expired": False},
+        {"id": 703, "owner": "legacy-mike", "created_at": "2025-01-01T00:00:00+00:00",
+         "expires_at": "2026-01-01T00:00:00+00:00", "last_used_at": None,
+         "token_expired": True},
+    ]
+
+
+def github_organization(generation: int) -> str:
+    """The organization export at one generation, in the shape the
+    parser documents."""
+    document = {
+        "organization": {"login": ORGANIZATION, "id": 9001},
+        "members": [
+            {"login": m.login, "id": m.id, "type": "User", "role": m.role,
+             "two_factor_enabled": m.two_factor,
+             "created_at": _stamp(m.created) if m.created else None,
+             "last_active_at": _stamp(m.last_active) if m.last_active else None}
+            for m in members(generation)
+        ],
+        "outside_collaborators": [{"login": "contractor-lee", "id": 2001, "type": "User"}],
+        "teams": teams(generation),
+        "repositories": repositories(generation),
+        "installations": installations(),
+        "tokens": tokens(generation),
+    }
+    return json.dumps(document, indent=2) + "\n"
+
+
 def file_set(scale: int = 0) -> dict[str, str]:
     """Every sample file, by name, deterministic and complete. A zero
     scale is the committed curated set, byte for byte; any other scale
@@ -593,6 +746,7 @@ def file_set(scale: int = 0) -> dict[str, str]:
         out[f"{day}-authorization-details.json"] = authorization_details(
             generation, scale
         )
+        out[f"{day}-github-organization.json"] = github_organization(generation)
     out["authorizations-template.csv"] = authorizations_template()
     out["observed-template.csv"] = observed_template()
     return out

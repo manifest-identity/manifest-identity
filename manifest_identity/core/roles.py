@@ -51,6 +51,7 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     # operator's and administrator's act.
     "POST /imports/credential-report": frozenset({Role.operator, Role.administrator}),
     "POST /imports/authorization-details": frozenset({Role.operator, Role.administrator}),
+    "POST /imports/github-organization": frozenset({Role.operator, Role.administrator}),
     # Any provider's table through a mapping (1.11): the observed side's
     # file door, the same actors as the parsers' routes.
     "POST /imports/observed/dry-run": frozenset({Role.operator, Role.administrator}),

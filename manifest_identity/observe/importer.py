@@ -55,19 +55,25 @@ SOURCE_AUTHORIZATION = "aws_authorization_details"
 
 SHAPE_AUTHORIZATION = "authorization-details"
 SHAPE_CREDENTIAL = "credential-report"
+SHAPE_GITHUB = "github-organization"
 SHAPE_TABLE = "table"
 
 
 def detect_source(data: bytes) -> str | None:
     """What a file is shaped like, read from its first bytes: an AWS
-    authorization details export is JSON carrying a user list, an AWS
+    authorization details export is JSON carrying a user list, a GitHub
+    organization export is JSON carrying an organization object, an AWS
     credential report is a CSV whose header starts with user and arn,
     and anything else with a header row is a table for a mapping. A
     file named as one source and shaped as another is refused with this
     answer rather than parsed into nonsense (1.11)."""
     head = data[:4096].lstrip()
     if head.startswith(b"{"):
-        return SHAPE_AUTHORIZATION if b"UserDetailList" in data[:65536] else None
+        if b"UserDetailList" in data[:65536]:
+            return SHAPE_AUTHORIZATION
+        if b'"organization"' in data[:65536]:
+            return SHAPE_GITHUB
+        return None
     first = head.split(b"\n", 1)[0].decode("utf-8", errors="replace").strip().lower()
     if first.startswith("user,arn,"):
         return SHAPE_CREDENTIAL

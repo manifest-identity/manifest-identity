@@ -206,6 +206,26 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         "    if False:",
         ["tests/test_campaigns.py"],
     ),
+    (
+        # 1.12: a provider whose roles are fixed levels reaches the
+        # finding engine through a capability document. If the reading
+        # ignored it, an organization owner would read as nobody.
+        "a capability document that administers reads as nothing",
+        "manifest_identity/observe/policy_analysis.py",
+        '        reading.admin_equivalent = document.get("administers") is True',
+        "        reading.admin_equivalent = False",
+        ["tests/test_github_import.py"],
+    ),
+    (
+        # A child team's members hold what the parent holds, by the
+        # provider's rule; writing only the child's membership would
+        # hide the parent's grants from everyone who inherits them.
+        "a child team's members are not the parent's members",
+        "manifest_identity/observe/github_importer.py",
+        "            for ancestor in chain:",
+        "            for ancestor in chain[:1]:",
+        ["tests/test_github_import.py"],
+    ),
 ]
 
 

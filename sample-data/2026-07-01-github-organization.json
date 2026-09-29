@@ -1,0 +1,276 @@
+{
+  "organization": {
+    "login": "sample-org",
+    "id": 9001
+  },
+  "members": [
+    {
+      "login": "sam-owner",
+      "id": 1001,
+      "type": "User",
+      "role": "owner",
+      "two_factor_enabled": true,
+      "created_at": "2021-04-02T00:00:00+00:00",
+      "last_active_at": "2026-06-29T00:00:00+00:00"
+    },
+    {
+      "login": "rita-ops",
+      "id": 1002,
+      "type": "User",
+      "role": "owner",
+      "two_factor_enabled": false,
+      "created_at": "2022-08-19T00:00:00+00:00",
+      "last_active_at": "2026-06-27T00:00:00+00:00"
+    },
+    {
+      "login": "dev-amir",
+      "id": 1003,
+      "type": "User",
+      "role": "member",
+      "two_factor_enabled": true,
+      "created_at": "2023-01-09T00:00:00+00:00",
+      "last_active_at": "2026-06-30T00:00:00+00:00"
+    },
+    {
+      "login": "dev-chen",
+      "id": 1004,
+      "type": "User",
+      "role": "member",
+      "two_factor_enabled": true,
+      "created_at": "2023-06-14T00:00:00+00:00",
+      "last_active_at": "2026-06-28T00:00:00+00:00"
+    },
+    {
+      "login": "legacy-mike",
+      "id": 1005,
+      "type": "User",
+      "role": "member",
+      "two_factor_enabled": false,
+      "created_at": "2019-11-03T00:00:00+00:00",
+      "last_active_at": "2025-11-20T00:00:00+00:00"
+    },
+    {
+      "login": "release-bot",
+      "id": 1006,
+      "type": "User",
+      "role": "member",
+      "two_factor_enabled": true,
+      "created_at": "2024-02-27T00:00:00+00:00",
+      "last_active_at": "2026-06-30T00:00:00+00:00"
+    },
+    {
+      "login": "new-dev",
+      "id": 1007,
+      "type": "User",
+      "role": "member",
+      "two_factor_enabled": true,
+      "created_at": "2026-06-10T00:00:00+00:00",
+      "last_active_at": "2026-06-28T00:00:00+00:00"
+    }
+  ],
+  "outside_collaborators": [
+    {
+      "login": "contractor-lee",
+      "id": 2001,
+      "type": "User"
+    }
+  ],
+  "teams": [
+    {
+      "slug": "platform",
+      "id": 301,
+      "name": "platform",
+      "parent": null,
+      "members": [
+        "sam-owner",
+        "rita-ops"
+      ],
+      "repositories": [
+        {
+          "name": "infra",
+          "permission": "admin"
+        },
+        {
+          "name": "api",
+          "permission": "maintain"
+        }
+      ]
+    },
+    {
+      "slug": "developers",
+      "id": 302,
+      "name": "developers",
+      "parent": null,
+      "members": [
+        "dev-amir",
+        "dev-chen"
+      ],
+      "repositories": [
+        {
+          "name": "api",
+          "permission": "write"
+        },
+        {
+          "name": "website",
+          "permission": "write"
+        }
+      ]
+    },
+    {
+      "slug": "frontend",
+      "id": 305,
+      "name": "frontend",
+      "parent": "developers",
+      "members": [
+        "new-dev"
+      ],
+      "repositories": [
+        {
+          "name": "website",
+          "permission": "write"
+        }
+      ]
+    },
+    {
+      "slug": "incident-commanders",
+      "id": 303,
+      "name": "incident-commanders",
+      "parent": null,
+      "members": [],
+      "repositories": [
+        {
+          "name": "api",
+          "permission": "admin"
+        },
+        {
+          "name": "infra",
+          "permission": "admin"
+        },
+        {
+          "name": "website",
+          "permission": "admin"
+        }
+      ]
+    },
+    {
+      "slug": "auditors",
+      "id": 304,
+      "name": "auditors",
+      "parent": null,
+      "members": [
+        "legacy-mike"
+      ],
+      "repositories": [
+        {
+          "name": "api",
+          "permission": "read"
+        },
+        {
+          "name": "infra",
+          "permission": "read"
+        }
+      ]
+    }
+  ],
+  "repositories": [
+    {
+      "name": "api",
+      "id": 401,
+      "visibility": "private",
+      "collaborators": [
+        {
+          "login": "release-bot",
+          "permission": "write"
+        }
+      ],
+      "deploy_keys": []
+    },
+    {
+      "name": "infra",
+      "id": 402,
+      "visibility": "private",
+      "collaborators": [],
+      "deploy_keys": [
+        {
+          "id": 501,
+          "title": "terraform-runner",
+          "read_only": false,
+          "created_at": "2024-01-15T00:00:00+00:00",
+          "last_used": "2026-06-27T00:00:00+00:00"
+        }
+      ]
+    },
+    {
+      "name": "website",
+      "id": 403,
+      "visibility": "public",
+      "collaborators": [
+        {
+          "login": "contractor-lee",
+          "permission": "admin"
+        }
+      ],
+      "deploy_keys": [
+        {
+          "id": 502,
+          "title": "pages-deploy",
+          "read_only": true,
+          "created_at": "2026-05-02T00:00:00+00:00",
+          "last_used": null
+        }
+      ]
+    }
+  ],
+  "installations": [
+    {
+      "id": 601,
+      "app_slug": "ci-runner",
+      "app_id": 71,
+      "permissions": {
+        "contents": "write",
+        "checks": "write",
+        "metadata": "read"
+      },
+      "repository_selection": "all",
+      "created_at": "2025-03-04T00:00:00+00:00"
+    },
+    {
+      "id": 602,
+      "app_slug": "org-admin-tool",
+      "app_id": 72,
+      "permissions": {
+        "administration": "write",
+        "members": "write",
+        "metadata": "read"
+      },
+      "repository_selection": "all",
+      "created_at": "2025-09-18T00:00:00+00:00"
+    }
+  ],
+  "tokens": [
+    {
+      "id": 701,
+      "owner": "rita-ops",
+      "created_at": "2026-03-01T00:00:00+00:00",
+      "expires_at": "2026-09-01T00:00:00+00:00",
+      "last_used_at": "2026-06-26T00:00:00+00:00",
+      "token_expired": false
+    },
+    {
+      "id": 702,
+      "owner": "release-bot",
+      "created_at": "2025-12-01T00:00:00+00:00",
+      "expires_at": "2026-12-01T00:00:00+00:00",
+      "last_used_at": "2026-06-26T00:00:00+00:00",
+      "token_expired": false
+    },
+    {
+      "id": 703,
+      "owner": "legacy-mike",
+      "created_at": "2025-01-01T00:00:00+00:00",
+      "expires_at": "2026-01-01T00:00:00+00:00",
+      "last_used_at": null,
+      "token_expired": true
+    }
+  ]
+}
