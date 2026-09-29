@@ -40,6 +40,7 @@
   --radius: 8px;
   --radius-pill: 999px;
   --sidebar: 15rem;
+  --detail: 34rem;
 
   /* Motion. Short enough to read as a response rather than an effect,
      and switched off entirely for anyone who asked their system for
@@ -161,9 +162,33 @@ nav .spacer { flex: 1; }
 .icon { width: 1.1em; height: 1.1em; flex: none; fill: none; stroke: currentColor;
         stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
-/* A wide table scrolls inside the content column; the page never
-   scrolls sideways. */
-main { padding: var(--space-5) var(--space-6); min-width: 0; overflow-x: auto; }
+/* A wide table scrolls inside its own section; the page never scrolls
+   sideways. The scroll sits on the section and not on the content
+   column, because a column that scrolls is a box the detail panel
+   would stick to, and that box never moves: the panel has to stick to
+   the window. The content column is itself a grid so the split view
+   can open the detail beside the list rather than on top of it: the
+   one list section that is showing takes the first column and the
+   detail panel the second, and each scrolls on its own. */
+main { padding: var(--space-5) var(--space-6); min-width: 0;
+       display: grid; grid-template-columns: minmax(0, 1fr); align-items: start;
+       gap: var(--space-5); }
+main > section { min-width: 0; overflow-x: auto; }
+main.split { grid-template-columns: minmax(0, 1fr) var(--detail); }
+main.split > #detail { grid-column: 2; grid-row: 1; position: sticky; top: 0;
+                       max-height: 100vh; overflow-y: auto;
+                       padding: var(--space-5) var(--space-4); margin: calc(-1 * var(--space-5)) 0;
+                       border-left: 1px solid var(--line); }
+main.split > #detail table { min-width: 0; }
+/* On a window too narrow for two columns the detail takes the whole
+   column and the list waits behind it, which is what the back button
+   is for. */
+@media (max-width: 80rem) {
+  main.split { grid-template-columns: minmax(0, 1fr); }
+  main.split > section:not(#detail) { display: none; }
+  main.split > #detail { grid-column: 1; position: static; max-height: none;
+                         margin: 0; padding: 0; border-left: 0; }
+}
 
 /* Every view opens with a page head: the title on the left, the
    actions for that view on the right. */
@@ -298,6 +323,17 @@ h3, h4 { font-size: var(--text-sm); color: var(--quiet); text-transform: upperca
 
 /* Empty views say what to do next; the text is static and set in markup. */
 .empty { color: var(--quiet); margin: 1em 0; max-width: 48rem; }
+.empty button { margin-left: var(--space-2); }
+
+/* A skeleton stands where a list will be while its fetch is out: grey
+   bones the shape of the rows, shimmering unless motion is reduced.
+   The script only adds the rows and takes them away again. */
+.bone { display: block; height: 0.9em; border-radius: var(--radius-sm); width: 60%;
+        background: linear-gradient(90deg, var(--hover) 25%, var(--line) 50%, var(--hover) 75%);
+        background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+tr.skeleton td:nth-child(2n) .bone { width: 35%; }
+.tile.skeleton .tile-value .bone { height: 1.6rem; width: 2.5rem; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: 0 0; } }
 
 /* A narrow window stacks the shell: the sidebar becomes a band across
    the top and the views run along it. */

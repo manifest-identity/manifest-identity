@@ -2002,3 +2002,62 @@ means a collector has to be written before a real organization can be
 read, and that collector is deferred with the connect phases. The
 model, the delta, the campaigns, and the page work on the second
 provider from this subphase on.
+
+## D-077: The detail opens beside the list, and the page is proven by use
+
+Two choices for the page, both about what a review actually does.
+
+A reviewer reads a list and opens one thing at a time, many times.
+When the detail replaced the list, each opening was a round trip and
+each return was a re-render, and the place in the list was lost.
+The content column is a grid, and the detail takes a second column
+while the list keeps the first, so the reviewer reads the finding and
+the list it came from at once; closing the detail is a class removed,
+not a view switched. A window too narrow for two columns lets the
+detail take the whole column, which is the old behavior kept for
+where it fits. The same column serves the inventory and the delta, so
+a difference opens the identity it names beside the differences.
+
+Every list now stands a skeleton where its rows will be while the
+fetch is out, and every empty list says what to do next in its own
+sentence: nothing imported apart from nothing matching, nothing left
+to decide apart from no items at all. The delta's tiles read by one
+class, because a reviewer starts from what is wrong rather than from
+an alphabet of identities (the product plan's statement 31). None of
+this changed the constraint D-036 set and D-075 kept: the script adds
+and removes elements, classes, and attributes, and sets no style.
+
+The second choice is how the page is proven. Every earlier test of it
+scans the markup, reads the routes, or measures the stylesheet. Those
+prove properties of the files and not that a person can use the page.
+So a real browser now drives it, in the pipeline's browser job and on
+any machine with the browser tree installed: sign in, open an identity
+beside the list, write an authorization and see it held, decide a
+campaign item, read the delta by one class, switch the theme, sign
+out, with a script error anywhere failing the walk. The application
+under it runs on a throwaway database seeded by the demo command, so
+the page proven is the page a fresh clone shows.
+
+The browser tree is pinned by hash in its own file and installed by
+its own job. It never enters the image, the ordinary suite, or the
+floor job, so a browser and its driver cannot become a dependency of
+the product by accident, and the suite stays runnable with nothing but
+the two trees it has always had; without the browser tree the walk
+skips and says so. The browser binary is the one the pinned driver
+names, fetched by the driver, which is the one pin this repository
+takes by version rather than by digest, and it is stated here rather
+than hidden.
+
+The walk found what the scans could not, on its first run: the
+content policy that forbids inline script also forbids a test that
+waits on a page function, because the driver evaluates such a
+function as a string in the page. The waits are written against
+selectors and counts polled from outside instead, which is the policy
+doing its job on the test as well as on the page.
+
+Rejected: a component library for the split view, for the reasons in
+D-075; the browser tree in the development requirements, because a
+tree a container job installs should not carry a browser it never
+opens; and a recorded-screenshot comparison, because a pixel
+difference says a pixel differs and not whether a person can still
+review an identity.

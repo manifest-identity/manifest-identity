@@ -116,6 +116,7 @@
         <tbody id="identity-rows"></tbody>
       </table>
       <p id="inventory-empty" class="empty" hidden>No identities yet. Import a credential report or an authorization details file from the Imports view, and the inventory fills from it.</p>
+      <p id="inventory-filtered-empty" class="empty" hidden>Nothing matches these filters.<button id="clear-filters" type="button" class="secondary">Clear the filters</button></p>
       <div class="filters">
         <button id="page-prev" type="button">Previous</button>
         <span id="page-status"></span>
@@ -127,7 +128,7 @@
       <div class="page-head">
         <h2 id="detail-name"></h2>
         <span class="spacer"></span>
-        <button id="back" class="secondary">Back to inventory</button>
+        <button id="back" class="secondary" aria-label="Close the detail">Close</button>
       </div>
       <dl id="detail-facts"></dl>
       <h3>Findings</h3>
@@ -339,6 +340,8 @@
         <button id="campaign-x" class="close-x secondary" type="button" aria-label="Close campaign details">&#215;</button>
       </div>
       <p id="campaign-facts" class="empty"></p>
+      <p id="campaign-done" class="empty" hidden>Every item is decided. Close the campaign to record the outcome; a recurring campaign opens its next cycle when it closes.</p>
+      <p id="campaign-items-empty" class="empty" hidden>This campaign holds no items: its scope matched nothing when it was created.</p>
       <output id="campaign-detail-result" hidden></output>
       <div id="campaign-items"></div>
     </section>
@@ -352,6 +355,7 @@
       difference look like agreement.</p>
       <div id="delta-tiles" class="tiles"></div>
       <p id="delta-empty" class="empty" hidden>No differences. Either every held access is authorized and every authorization is held, or nothing has been imported yet.</p>
+      <p id="delta-filtered" class="empty" hidden>Showing one class of difference.<button id="delta-show-all" type="button" class="secondary">Show every class</button></p>
       <table>
         <thead><tr>
           <th>what</th><th>account</th><th>identity</th><th>role</th>
@@ -374,6 +378,7 @@
         </tr></thead>
         <tbody id="scope-rows"></tbody>
       </table>
+      <p id="scopes-empty" class="empty" hidden>No scopes yet. The first import creates the provider's nodes, and bindings attach to them.</p>
     </section>
 
     <section id="imports" hidden>
@@ -400,6 +405,7 @@
         </tr></thead>
         <tbody id="import-rows"></tbody>
       </table>
+      <p id="imports-empty" class="empty" hidden>No imports yet. Choose a file above, oldest capture first: an AWS credential report or authorization details export, a GitHub organization export, or any provider's table through a mapping. The sample estate in the repository's sample-data directory is a good first import.</p>
     </section>
   </main>
   <script src="/static/app.js"></script>

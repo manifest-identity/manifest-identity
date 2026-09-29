@@ -73,10 +73,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **329 tests in 37 files**, coverage 94 over a 90 percent floor |
+| Tests | **342 tests in 38 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **64 routes**, every one in the role matrix the tests walk |
-| Record | **76 recorded decisions**, each with its rejected alternatives |
+| Record | **77 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -400,11 +400,15 @@ so these images are reproducible rather than asserted):
 
 ![The risk report: identities ranked by the engine, every finding naming its reason](docs/screenshots/report.png)
 
-The page is one document with no build step (D-036, D-075). The views
-sit in a sidebar, the theme follows the system until a person chooses
-one from the bottom of that sidebar, every row that opens something
-can be reached and opened from the keyboard, and the palette is a set
-of tokens whose contrast a script checks in both themes.
+The page is one document with no build step (D-036, D-075, D-077).
+The views sit in a sidebar, the theme follows the system until a
+person chooses one from the bottom of that sidebar, every row that
+opens something can be reached and opened from the keyboard, and the
+palette is a set of tokens whose contrast a script checks in both
+themes. An identity opens beside the list it came from rather than on
+top of it, every list stands a skeleton while it loads and says what
+to do next when it is empty, and the delta's tiles narrow the table to
+one class of difference.
 
 Four people, and the design answers their questions in their order.
 
@@ -664,7 +668,7 @@ network, and identity controls it adds apply inside it.
 
 | Component | Job |
 |---|---|
-| Frontend | A single page served by the application; renders every value as text through the document interface with no markup sink, holds the session token in memory rather than browser storage, and runs under a content policy that forbids inline script and style (D-036) |
+| Frontend | A single page served by the application; renders every value as text through the document interface with no markup sink, holds the session token in memory rather than browser storage, and runs under a content policy that forbids inline script and style (D-036). The look is tokens and a sidebar shell (D-075); the detail opens beside the list, every list has a skeleton and an empty state, and a real browser proves the page by use (D-077) |
 | Routes | The trust boundary; authentication checked on every request, every response shaped by a declared model |
 | Import parsing | Parses an imported identity export file, bounded on every axis, in memory, append-only |
 | Derivation engine | Computes each identity's state and enrichment from the observation history at read time |
@@ -1175,7 +1179,10 @@ else is the most expensive kind; `links` walks every cross-reference
 offline, fragments included; `floor` runs the whole suite on the
 oldest supported interpreter, Python 3.11, because the shipped image
 runs 3.14 and 3.14 alone forgives annotation patterns older
-interpreters refuse (D-053); `application` runs the linter, strict
+interpreters refuse (D-053); `browser` drives the page with a real
+browser from a tree pinned apart in `requirements-browser.txt`, so
+the page is proven by use and the browser never enters the image or
+the ordinary suite (D-077); `application` runs the linter, strict
 typing, every test under the coverage floor, the mutation check,
 the migrations against a real PostgreSQL with drift detection, the
 dependency audits, and generates the software bill of materials as
@@ -1534,6 +1541,14 @@ load-bearing ones:
   style property, and every text and background pair in both themes
   meets the accessibility contrast ratio, computed from the
   stylesheet's own tokens by `scripts/check_contrast.py`.
+- `test_browser.py`: the page proven by use (D-077). A real browser
+  signs in, opens an identity beside the list, writes an
+  authorization and sees it held, decides a campaign item, reads the
+  delta by one class, switches the theme, and signs out, against the
+  application on a throwaway database seeded by the demo; a script
+  error anywhere fails the walk. It runs in the pipeline's `browser`
+  job from a tree pinned by hash in `requirements-browser.txt`, and
+  skips wherever that tree is not installed.
 - `test_auth.py` and `test_ratelimit.py`: indistinguishable login
   failures, revocation, expiry, a forged token refused beside a live
   session, and the write budget holding.
