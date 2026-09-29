@@ -78,6 +78,23 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         ["tests/test_alerts.py"],
     ),
     (
+        # 1.10: a revoked token must stop opening the read surface.
+        "a revoked integration token still reads",
+        "manifest_identity/api/deps.py",
+        "    if row is None or row.revoked_at is not None:",
+        "    if row is None:",
+        ["tests/test_api.py"],
+    ),
+    (
+        # 1.11: the source check must refuse a file shaped as another
+        # source, or a credential report gets parsed as a table.
+        "the source check accepts a mismatched file",
+        "manifest_identity/observe/routes_imports.py",
+        "    if found is not None and found != expected:",
+        "    if False:",
+        ["tests/test_generic_import.py"],
+    ),
+    (
         "authorization check removed",
         "manifest_identity/core/deps.py",
         "        if not held & {r.value for r in allowed}:",

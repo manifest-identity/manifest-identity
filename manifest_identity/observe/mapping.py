@@ -247,3 +247,23 @@ def apply(
             continue
         reading.rows.append(ReadRow(row=number, values=values))
     return reading
+
+
+def parse_path(text: str | None) -> list[dict[str, str]]:
+    """A spreadsheet cell is a bad place for JSON. A blank cell is the
+    ordinary case, a direct hop; anything else is hops separated by
+    `>`, each `via` or `via:ref`, so a membership path reads
+    `membership:platform-admins`."""
+    if not text:
+        return [{"via": "direct", "ref": "", "mode": "active"}]
+    hops: list[dict[str, str]] = []
+    for piece in text.split(">"):
+        piece = piece.strip()
+        if not piece:
+            raise ValueError("the path has an empty hop")
+        via, _, ref = piece.partition(":")
+        via = via.strip().lower()
+        if not via.replace("_", "").isalpha():
+            raise ValueError("a hop names how access arrives, in letters")
+        hops.append({"via": via, "ref": ref.strip(), "mode": "active"})
+    return hops

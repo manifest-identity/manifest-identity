@@ -36,6 +36,11 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /admin/users/{username}/bindings/{binding_id}/revoke": frozenset(
         {Role.administrator}
     ),
+    # An integration token is a second kind of credential, and minting
+    # or revoking one is the administrator's act (1.10).
+    "GET /admin/tokens": frozenset({Role.administrator}),
+    "POST /admin/tokens": frozenset({Role.administrator}),
+    "POST /admin/tokens/{token_id}/revoke": frozenset({Role.administrator}),
     "GET /admin/scopes": frozenset({Role.administrator}),
     "POST /admin/scopes": frozenset({Role.administrator}),
     # Which fields an authorization must carry is the organization's
@@ -46,6 +51,10 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     # operator's and administrator's act.
     "POST /imports/credential-report": frozenset({Role.operator, Role.administrator}),
     "POST /imports/authorization-details": frozenset({Role.operator, Role.administrator}),
+    # Any provider's table through a mapping (1.11): the observed side's
+    # file door, the same actors as the parsers' routes.
+    "POST /imports/observed/dry-run": frozenset({Role.operator, Role.administrator}),
+    "POST /imports/observed": frozenset({Role.operator, Role.administrator}),
     "GET /imports": ALL_ROLES,
     # A door into the estate is read by everyone who reviews and
     # written by the same actors who write an authorization, because
@@ -140,5 +149,17 @@ PUBLIC_ROUTES: frozenset[str] = frozenset(
         "GET /health",  # liveness for the platform
         "GET /health/database",  # readiness for the platform
         "GET /",  # the page shell, which carries no data
+    }
+)
+
+# Routes an integration token opens and a session does not (1.10). They
+# are not in the matrix because a token holds no role; they are named
+# here so the surface enumeration can hold that every route is either
+# governed by a role, public, or under a token, and nothing else.
+TOKEN_ROUTES: frozenset[str] = frozenset(
+    {
+        "GET /api/v1/identities",
+        "GET /api/v1/delta",
+        "GET /api/v1/changes",
     }
 )

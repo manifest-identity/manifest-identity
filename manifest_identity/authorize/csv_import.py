@@ -134,24 +134,6 @@ def _specs(row: ImportMapping) -> dict[str, tabular.FieldSpec]:
     return specs
 
 
-def _path_from(text: str | None) -> list[dict[str, str]]:
-    """A spreadsheet cell is a bad place for JSON. A blank cell is the
-    ordinary case, a direct hop; anything else is hops separated by
-    `>`, each `via` or `via:ref`, so a membership path reads
-    `membership:platform-admins`."""
-    if not text:
-        return [{"via": "direct", "ref": "", "mode": "active"}]
-    hops: list[dict[str, str]] = []
-    for piece in text.split(">"):
-        piece = piece.strip()
-        if not piece:
-            raise ValueError("the path has an empty hop")
-        via, _, ref = piece.partition(":")
-        via = via.strip().lower()
-        if not via.replace("_", "").isalpha():
-            raise ValueError("a hop names how access arrives, in letters")
-        hops.append({"via": via, "ref": ref.strip(), "mode": "active"})
-    return hops
 
 
 def read(db: Session, row: ImportMapping, data: bytes) -> tabular.Reading:
@@ -190,7 +172,7 @@ def _requests(
             identities[external_id] = found
             identity = found
         try:
-            path = _path_from(values.get("path"))
+            path = tabular.parse_path(values.get("path"))
         except ValueError as exc:
             refusals.append(tabular.RowRefusal(row=number, reason=str(exc)))
             continue

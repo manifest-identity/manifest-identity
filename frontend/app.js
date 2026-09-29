@@ -941,6 +941,9 @@ $("import-form").addEventListener("submit", async (e) => {
   const body = new FormData();
   body.append("file", form.get("file"));
   body.append("captured_at", form.get("captured_at"));
+  if (kind === "observed" && form.get("mapping_id")) {
+    body.append("mapping_id", form.get("mapping_id"));
+  }
   const result = $("import-result");
   result.hidden = false;
   result.textContent = "importing...";
@@ -948,8 +951,11 @@ $("import-form").addEventListener("submit", async (e) => {
     const response = await api("/imports/" + encodeURIComponent(kind), { method: "POST", body });
     const data = await response.json();
     if (response.ok) {
-      result.textContent = "imported " + data.observations + " observations, "
-        + data.identities_new + " new, " + data.skipped_rows + " skipped";
+      result.textContent = kind === "observed"
+        ? "imported " + data.written.length + " grants through " + data.mapping_name
+          + ", " + data.refusals.length + " rows refused"
+        : "imported " + data.observations + " observations, "
+          + data.identities_new + " new, " + data.skipped_rows + " skipped";
       e.target.reset();
       loadImports();
       refreshAsOf();
