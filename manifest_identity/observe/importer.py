@@ -59,6 +59,7 @@ SHAPE_GITHUB = "github-organization"
 SHAPE_KUBERNETES = "kubernetes-rbac"
 SHAPE_GOOGLE = "google-cloud"
 SHAPE_AZURE = "azure-tenant"
+SHAPE_OKTA = "okta-org"
 SHAPE_TABLE = "table"
 
 
@@ -83,6 +84,8 @@ def detect_source(data: bytes) -> str | None:
             return SHAPE_GOOGLE
         if b'"tenant"' in window and b'"users"' in window:
             return SHAPE_AZURE
+        if b'"org"' in window and b'"subdomain"' in window:
+            return SHAPE_OKTA
         if b'"organization"' in window:
             return SHAPE_GITHUB
         return None

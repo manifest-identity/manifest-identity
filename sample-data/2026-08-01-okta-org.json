@@ -1,0 +1,241 @@
+{
+  "org": {
+    "id": "00osample00000000001",
+    "subdomain": "sample-org"
+  },
+  "users": [
+    {
+      "id": "00usample00000000001",
+      "status": "ACTIVE",
+      "created": "2021-04-02T00:00:00.000Z",
+      "lastLogin": "2026-07-29T00:00:00+00:00",
+      "passwordChanged": "2021-04-02T00:00:00.000Z",
+      "profile": {
+        "login": "sam@example.test",
+        "email": "sam@example.test"
+      },
+      "credentials": {
+        "provider": {
+          "type": "OKTA",
+          "name": "OKTA"
+        }
+      },
+      "factors": [
+        "OKTA_VERIFY"
+      ]
+    },
+    {
+      "id": "00usample00000000002",
+      "status": "ACTIVE",
+      "created": "2022-08-19T00:00:00.000Z",
+      "lastLogin": "2026-07-29T00:00:00+00:00",
+      "passwordChanged": "2022-08-19T00:00:00.000Z",
+      "profile": {
+        "login": "rita@example.test",
+        "email": "rita@example.test"
+      },
+      "credentials": {
+        "provider": {
+          "type": "OKTA",
+          "name": "OKTA"
+        }
+      },
+      "factors": [
+        "OKTA_VERIFY",
+        "WEBAUTHN"
+      ]
+    },
+    {
+      "id": "00usample00000000003",
+      "status": "ACTIVE",
+      "created": "2019-11-03T00:00:00.000Z",
+      "lastLogin": "2025-11-20T00:00:00.000Z",
+      "passwordChanged": "2019-11-03T00:00:00.000Z",
+      "profile": {
+        "login": "mike@example.test",
+        "email": "mike@example.test"
+      },
+      "credentials": {
+        "provider": {
+          "type": "OKTA",
+          "name": "OKTA"
+        }
+      },
+      "factors": []
+    },
+    {
+      "id": "00usample00000000004",
+      "status": "ACTIVE",
+      "created": "2023-01-09T00:00:00.000Z",
+      "lastLogin": "2026-07-29T00:00:00+00:00",
+      "passwordChanged": "2023-01-09T00:00:00.000Z",
+      "profile": {
+        "login": "dev@example.test",
+        "email": "dev@example.test"
+      },
+      "credentials": {
+        "provider": {
+          "type": "FEDERATION",
+          "name": "FEDERATION"
+        }
+      }
+    },
+    {
+      "id": "00usample00000000005",
+      "status": "DEPROVISIONED",
+      "created": "2020-01-06T00:00:00.000Z",
+      "lastLogin": "2025-06-01T00:00:00.000Z",
+      "passwordChanged": "2020-01-06T00:00:00.000Z",
+      "profile": {
+        "login": "former@example.test",
+        "email": "former@example.test"
+      },
+      "credentials": {
+        "provider": {
+          "type": "OKTA",
+          "name": "OKTA"
+        }
+      },
+      "factors": []
+    },
+    {
+      "id": "00usample00000000006",
+      "status": "ACTIVE",
+      "created": "2024-02-27T00:00:00.000Z",
+      "lastLogin": "2026-07-29T00:00:00+00:00",
+      "passwordChanged": "2024-02-27T00:00:00.000Z",
+      "profile": {
+        "login": "helpdesk@example.test",
+        "email": "helpdesk@example.test"
+      },
+      "credentials": {
+        "provider": {
+          "type": "OKTA",
+          "name": "OKTA"
+        }
+      },
+      "factors": [
+        "SMS"
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "00gsample00000000001",
+      "type": "OKTA_GROUP",
+      "profile": {
+        "name": "okta-admins"
+      },
+      "members": [
+        "00usample00000000002"
+      ]
+    },
+    {
+      "id": "00gsample00000000002",
+      "type": "OKTA_GROUP",
+      "profile": {
+        "name": "engineering"
+      },
+      "members": [
+        "00usample00000000004",
+        "00usample00000000003"
+      ]
+    },
+    {
+      "id": "00gsample00000000003",
+      "type": "BUILT_IN",
+      "profile": {
+        "name": "Everyone"
+      },
+      "members": [
+        "00usample00000000001",
+        "00usample00000000002",
+        "00usample00000000003",
+        "00usample00000000004",
+        "00usample00000000006"
+      ]
+    }
+  ],
+  "role_assignments": [
+    {
+      "id": "ra0sample00000000001",
+      "type": "SUPER_ADMIN",
+      "label": "Super Organization Administrator",
+      "status": "ACTIVE",
+      "assignmentType": "USER",
+      "principal_id": "00usample00000000001"
+    },
+    {
+      "id": "ra0sample00000000002",
+      "type": "ORG_ADMIN",
+      "label": "Organization Administrator",
+      "status": "ACTIVE",
+      "assignmentType": "GROUP",
+      "principal_id": "00gsample00000000001"
+    },
+    {
+      "id": "ra0sample00000000003",
+      "type": "USER_ADMIN",
+      "label": "User Administrator",
+      "status": "ACTIVE",
+      "assignmentType": "USER",
+      "principal_id": "00usample00000000006"
+    },
+    {
+      "id": "ra0sample00000000004",
+      "type": "CUSTOM",
+      "label": "Auditor",
+      "status": "ACTIVE",
+      "assignmentType": "USER",
+      "principal_id": "00usample00000000003",
+      "role": "cr0sample00000000001"
+    },
+    {
+      "id": "ra0sample00000000005",
+      "type": "READ_ONLY_ADMIN",
+      "label": "Read Only Administrator",
+      "status": "INACTIVE",
+      "assignmentType": "USER",
+      "principal_id": "00usample00000000005"
+    }
+  ],
+  "custom_roles": [
+    {
+      "id": "cr0sample00000000001",
+      "label": "Auditor",
+      "permissions": [
+        "okta.users.read",
+        "okta.groups.read",
+        "okta.users.manage"
+      ]
+    }
+  ],
+  "apps": [
+    {
+      "id": "0oasample00000000001",
+      "label": "Payroll",
+      "status": "ACTIVE",
+      "assignments": [
+        {
+          "principal_id": "00gsample00000000001",
+          "scope": "GROUP"
+        },
+        {
+          "principal_id": "00usample00000000003",
+          "scope": "USER"
+        }
+      ]
+    },
+    {
+      "id": "0oasample00000000002",
+      "label": "Source control",
+      "status": "ACTIVE",
+      "assignments": [
+        {
+          "principal_id": "00gsample00000000002",
+          "scope": "GROUP"
+        }
+      ]
+    }
+  ]
+}

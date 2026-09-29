@@ -2297,3 +2297,50 @@ and arrives with it.
 The cost is the reading of names for the roles the export does not
 describe, and the open question on eligible administrators, both
 stated so they are not mistaken for settled.
+
+## D-082: An Okta organization is the management API's objects under one roof, and an application is something to authorize
+
+Okta is the sixth native provider and the one whose whole purpose is
+to sign people into other systems, so what it holds is mostly which
+applications a person can open. It ships no export, so the file
+is one document assembled from the management API's own objects in
+the pattern D-076 set: users with their status, their credential
+provider, their last login, and their enrolled factors when the
+collector joined them in; groups with members; the administrator role
+assignments, each against the principal it was read from; custom
+roles with their permissions; and applications with their
+assignments. The assembly is the operator's private act.
+
+Three readings are stated. A user whose credentials Okta holds has a
+password credential here, active while the account is in a status it
+can be signed into; a user whose credentials come from a directory or
+a federation signs in elsewhere and has no password here, so it is not
+flagged for a second factor Okta does not hold and not read as unused
+when Okta never sees it sign in. A role assigned to a group is
+recorded once against the group and reaches its members through the
+membership hop with the group's name kept, rather than once per user
+with the group's name lost, which is what the per-user read alone
+would give. And an application is a definition of its own, customer
+managed, that reads and nothing more, so every assignment of it is a
+grant: an application a person can open is something somebody can be
+asked to authorize, which is the access review this provider is
+usually bought for.
+
+Administrator roles are provider managed and read from a table of what
+each type may do: the super administrator administers; the roles that
+manage users, groups, credentials, or other roles change access, the
+help desk administrator among them because resetting a password is
+minting a credential; the application and mobile administrators
+write; the read-only and report administrators read. A custom role is
+customer managed and read from its permissions, which ride as actions
+so a role that grows names what it gained.
+
+Rejected: a password credential for every user, for the reason above;
+reading the built-in everyone group as anything but a group, because
+it is one and the collector lists its members; and a finding for an
+application assignment, because an application is access to authorize
+and not a fault to report.
+
+The cost is that an organization with many applications produces many
+differences on the first import, one per assignment, which is the
+truth of an unreviewed estate and the reason the campaigns exist.

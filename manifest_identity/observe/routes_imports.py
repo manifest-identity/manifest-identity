@@ -25,6 +25,7 @@ from manifest_identity.observe import (
     github_importer,
     google_cloud_importer,
     kubernetes_importer,
+    okta_importer,
 )
 from manifest_identity.observe import mapping as tabular
 from manifest_identity.observe.estate import root_node_id
@@ -35,6 +36,7 @@ from manifest_identity.observe.importer import (
     SHAPE_GITHUB,
     SHAPE_GOOGLE,
     SHAPE_KUBERNETES,
+    SHAPE_OKTA,
     SHAPE_TABLE,
     CaptureTimeInvalid,
     DuplicateSnapshot,
@@ -54,6 +56,7 @@ from manifest_identity.observe.providers.azure import tenant_export as azure_exp
 from manifest_identity.observe.providers.github import organization_export as github_export
 from manifest_identity.observe.providers.google_cloud import project_export as google_export
 from manifest_identity.observe.providers.kubernetes import rbac_dump
+from manifest_identity.observe.providers.okta import org_export as okta_export
 
 router = APIRouter(prefix="/imports")
 
@@ -97,6 +100,7 @@ SHAPE_NAMES = {
     SHAPE_KUBERNETES: "a Kubernetes role-based access control dump",
     SHAPE_GOOGLE: "a Google Cloud project export",
     SHAPE_AZURE: "an Azure and Entra tenant export",
+    SHAPE_OKTA: "an Okta organization export",
     SHAPE_TABLE: "a table for a mapping",
 }
 
@@ -437,6 +441,29 @@ def import_azure(
             actor_user_id=auth.user.id, actor_username=auth.user.username,
         ),
     )
+
+@router.post("/okta-org", status_code=201)
+def import_okta(
+    file: UploadFile,
+    captured_at: Annotated[datetime, Form()],
+    db: Annotated[Session, Depends(get_session)],
+    auth: Annotated[AuthContext, require_roles("POST /imports/okta-org")],
+    _budget: ThrottledWrite,
+) -> ImportResponse:
+    """The sixth provider's door (1.14e): the organization export
+    assembled from the management API's objects."""
+    return _document_import(
+        file=file, captured_at=captured_at, db=db, auth=auth,
+        key="POST /imports/okta-org",
+        shape=SHAPE_OKTA, max_bytes=okta_export.MAX_FILE_BYTES,
+        parse=okta_export.parse_org_export, error=okta_export.ParseError,
+        node_id=lambda export: root_node_id(db, Provider.okta, "organization", export.id),
+        run=lambda export, when: okta_importer.import_org_export(
+            db, export=export, captured_at=when, source_filename=file.filename,
+            actor_user_id=auth.user.id, actor_username=auth.user.username,
+        ),
+    )
+
 
 @router.get("", dependencies=[require_roles("GET /imports")])
 def list_imports(db: Annotated[Session, Depends(get_session)]) -> list[SnapshotView]:
