@@ -1884,3 +1884,60 @@ where the observed side needs the same door and now uses the same
 mechanism rather than a second one. The screen for building a mapping,
 rather than sending one, moves to the page work with the rest of the
 frontend.
+
+## D-075: The look is a set of tokens and a shell, not a component library
+
+D-036 accepted that the page would stay plain while the questions the
+tool answers, and not the interface, were what the project was about.
+Phase 1 puts a person in front of the page for every subphase, so the
+interface is now part of the answer, and the question was how to make
+it look finished without giving up what D-036 bought.
+
+Four component libraries were read and passed: HeroUI, Pico, daisyUI,
+and Preline. daisyUI was the strongest of them, since it ships no
+JavaScript to the browser, and it still brings a build step and a
+second toolchain to pin and audit beside the Python one, for a result
+this stylesheet can reach on its own. What makes an application look
+finished is mostly not a library. It is a type scale, a color system
+with a dark theme, consistent spacing, a real page shell, and restraint
+with motion, and all of that is custom properties, class names, and
+writing.
+
+So the stylesheet is built from tokens. A type scale and a spacing
+scale that every rule reads, so a change to the look is a change to one
+line. A color system defined once for the light theme and redefined for
+the dark one, applied when the system asks for it and again when the
+person chooses it, so an explicit choice wins in both directions; the
+choice is a data attribute on the root element, which is not an inline
+style, so the content policy is untouched. The shell is a grid with the
+header laid out as a sidebar column and the views in the content
+column, with room for the detail panel the page work opens beside the
+list rather than on top of it. Keyboard focus is drawn on everything.
+Motion is short and is switched off for anyone who asked their system
+for less of it. The icons are one inline sprite at the top of the page,
+so nothing is fetched and the policy needs no image origin.
+
+The palette is checked rather than described. A script reads the color
+tokens from the stylesheet itself, computes the contrast of every text
+and background pair in every theme the way the browser paints it,
+including the tinted chips where a tier color sits over itself mixed
+into the card, and fails the build below the accessibility ratio. Its
+first run found the critical red from the design sketch a few
+hundredths short on its own tint, and the token was darkened; that is
+the kind of finding an opinion does not produce.
+
+The constraint that governs all of it is D-036's: no inline style, no
+outside origin, every value reaching the page as text. The script may
+add and remove classes and attributes and may not set a style property,
+and the page's own test suite grew to hold that rule rather than being
+relaxed for the new look.
+
+Rejected: the component libraries above, for the toolchain each brings;
+a second stylesheet for the dark theme, because two files answering one
+question drift; and colors chosen by eye, because the sketch's red had
+already failed the ratio before anyone looked at it.
+
+The cost is that the inventory's account, type, and kind columns are no
+longer separate sortable headers, since the row is built around the
+name with those three as its subline; type and kind stay reachable
+through the filters, and the sort by name and by tier remains.

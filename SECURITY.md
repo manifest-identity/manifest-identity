@@ -1,6 +1,6 @@
 # Security
 
-What protects this project today, what will protect the application, and
+What protects this project, what will protect the application, and
 how to report a problem privately.
 
 ## Reporting a vulnerability
@@ -30,7 +30,7 @@ same timelines. This is one person's project: there is no bounty
 program, and the timelines above are commitments of attention, not of
 around-the-clock response.
 
-## Controls in place today
+## Controls in place
 
 The application exists and grows subphase by subphase; the controls
 here guard the repository, the pipeline, and the application code that
