@@ -73,10 +73,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **364 tests in 40 files**, coverage 94 over a 90 percent floor |
+| Tests | **376 tests in 41 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **65 routes**, every one in the role matrix the tests walk |
-| Record | **79 recorded decisions**, each with its rejected alternatives |
+| Surface | **66 routes**, every one in the role matrix the tests walk |
+| Record | **80 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -551,9 +551,10 @@ style, and the page needs neither.
 
 ## Every provider's file
 
-Three providers are read natively: AWS through its two export
-formats, GitHub through the assembled organization export (D-076), and
-Kubernetes through the cluster's own dump (D-079). Every other provider
+Four providers are read natively: AWS through its two export
+formats, GitHub through the assembled organization export (D-076),
+Kubernetes through the cluster's own dump (D-079), and Google Cloud
+through a document of gcloud's own answers (D-080). Every other provider
 on the list enters through the table door (D-074, D-078): a file of who holds what, read through a mapping, with the
 shipped template's columns as the default. A provider through the door
 gets the inventory, the authorization record, the delta, and campaigns
@@ -573,7 +574,7 @@ their sample tables are the tested half.
 | Provider | The provider's own export | Recipe | Sample table |
 |---|---|---|---|
 | Kubernetes | Read natively (D-079): `kubectl get roles,clusterroles,rolebindings,clusterrolebindings,serviceaccounts -A -o json` through `POST /imports/kubernetes-rbac`, the cluster's name given beside the file | `recipes/kubernetes.jq` remains for the table door | `observed-kubernetes.csv` and the three `kubernetes-rbac.json` months |
-| Google Cloud | `gcloud projects get-iam-policy PROJECT_ID --format=json` | `recipes/google-cloud.jq` with `--arg project PROJECT_ID` | `observed-gcp.csv` |
+| Google Cloud | Read natively (D-080): one document holding `gcloud projects describe`, `get-iam-policy`, `iam service-accounts list`, and `keys list` outputs verbatim, through `POST /imports/google-cloud` | `recipes/google-cloud.jq` remains for the table door | `observed-gcp.csv` and the three `google-cloud.json` months |
 | Azure | `az role assignment list --all --include-inherited --scope /subscriptions/ID -o json`, once per subscription | `recipes/azure.jq` | `observed-azure.csv` |
 | Okta | `GET /api/v1/iam/assignees/users` and `GET /api/v1/users/{id}/roles`, assembled as one array | `recipes/okta.jq` with `--arg org SUBDOMAIN` | `observed-okta.csv` |
 | Active Directory | The directory cmdlets, run by the script | `recipes/active-directory.ps1 -Domain corp -Groups ...` | `observed-active-directory.csv` |
@@ -882,6 +883,15 @@ audit_events
   changing access and a rule for every verb on every resource reads
   as administering. The rules ride as actions, so a changed custom
   role names what it gained.
+- **Google Cloud is the fourth native provider** (D-080): a document
+  of gcloud's own answers becomes the same rows, with the project as
+  the scope node, service accounts keyed by the identifier the
+  provider never reuses and their user-managed keys as credentials
+  with ages, every member form a policy can write read (a group, a
+  domain, the two public forms, a deleted principal a binding still
+  names, a federated principal), and a role read from its permission
+  list when the export carries one, from a table of the fixed roles
+  otherwise, and from its name as the last resort.
 - The **observed side reads any provider's table** through the same
   mapping mechanism the authorized side uses, with its own field set
   and a shipped template. An organization with a spreadsheet of
@@ -935,6 +945,7 @@ POST /imports/credential-report
 POST /imports/authorization-details
 POST /imports/github-organization
 POST /imports/kubernetes-rbac
+POST /imports/google-cloud
 POST /imports/observed/dry-run
 POST /imports/observed
 GET /imports
@@ -1008,10 +1019,11 @@ holds the reviews and the alerts.
 | `manifest_identity/core/models.py` | Users, sessions, scope nodes, role bindings, settings, the audit chain |
 | `manifest_identity/core/audit.py` | The audit spine: the record commits with the action |
 | `manifest_identity/core/verify_chain.py` | The offline verifier: recompute the chain, compare to an anchor |
-| `manifest_identity/observe/providers/` | The four parsers, AWS, GitHub, and Kubernetes: bounded, in memory, distrusting their own preconditions |
+| `manifest_identity/observe/providers/` | The five parsers, AWS, GitHub, Kubernetes, and Google Cloud: bounded, in memory, distrusting their own preconditions |
 | `manifest_identity/observe/importer.py` | AWS records become neutral rows; the vocabulary ends here |
 | `manifest_identity/observe/github_importer.py` | GitHub records become the same neutral rows: teams as groups, permission levels as capability documents |
 | `manifest_identity/observe/kubernetes_importer.py` | A cluster's dump becomes the same rows: rules read as capabilities, bindings as grants at the namespace or the cluster |
+| `manifest_identity/observe/google_cloud_importer.py` | A project export becomes the same rows: user-managed keys as credentials, every member form a policy writes, roles read from permissions, a table, or a name |
 | `manifest_identity/observe/models.py` | Imports, identities, credentials, grants, role definitions, relationships |
 | `manifest_identity/observe/derive.py` | State from history at read time; the freshest value per field |
 | `manifest_identity/observe/principals.py` | Who a trust policy names, one principal per row, allow statements only |

@@ -1,0 +1,137 @@
+{
+  "project": {
+    "projectId": "sample-project",
+    "projectNumber": "123456789012",
+    "lifecycleState": "ACTIVE"
+  },
+  "policy": {
+    "bindings": [
+      {
+        "role": "roles/owner",
+        "members": [
+          "user:sam@example.test"
+        ]
+      },
+      {
+        "role": "roles/editor",
+        "members": [
+          "serviceAccount:ci@sample-project.iam.gserviceaccount.com",
+          "group:developers@example.test",
+          "serviceAccount:123456789012-compute@developer.gserviceaccount.com"
+        ]
+      },
+      {
+        "role": "roles/viewer",
+        "members": [
+          "group:auditors@example.test"
+        ]
+      },
+      {
+        "role": "roles/iam.serviceAccountKeyAdmin",
+        "members": [
+          "serviceAccount:legacy@sample-project.iam.gserviceaccount.com"
+        ]
+      },
+      {
+        "role": "roles/storage.objectViewer",
+        "members": [
+          "allUsers"
+        ]
+      },
+      {
+        "role": "projects/sample-project/roles/deployer",
+        "members": [
+          "serviceAccount:deploy@sample-project.iam.gserviceaccount.com"
+        ],
+        "condition": {
+          "title": "weekdays",
+          "expression": "request.time.getDayOfWeek('UTC') < 6"
+        }
+      }
+    ],
+    "etag": "BwX0sample=",
+    "version": 3
+  },
+  "service_accounts": [
+    {
+      "email": "ci@sample-project.iam.gserviceaccount.com",
+      "uniqueId": "100000000000000000010",
+      "displayName": "continuous integration",
+      "disabled": false
+    },
+    {
+      "email": "legacy@sample-project.iam.gserviceaccount.com",
+      "uniqueId": "100000000000000000020",
+      "displayName": "legacy sync",
+      "disabled": false
+    },
+    {
+      "email": "deploy@sample-project.iam.gserviceaccount.com",
+      "uniqueId": "100000000000000000030",
+      "displayName": "deployer",
+      "disabled": false
+    },
+    {
+      "email": "123456789012-compute@developer.gserviceaccount.com",
+      "uniqueId": "100000000000000000040",
+      "displayName": "Compute Engine default service account",
+      "disabled": false
+    }
+  ],
+  "keys": {
+    "ci@sample-project.iam.gserviceaccount.com": [
+      {
+        "name": "projects/sample-project/serviceAccounts/x/keys/a1",
+        "keyType": "USER_MANAGED",
+        "keyAlgorithm": "KEY_ALG_RSA_2048",
+        "validAfterTime": "2026-03-01T00:00:00Z",
+        "validBeforeTime": "9999-12-31T23:59:59Z"
+      }
+    ],
+    "legacy@sample-project.iam.gserviceaccount.com": [
+      {
+        "name": "projects/sample-project/serviceAccounts/x/keys/b1",
+        "keyType": "USER_MANAGED",
+        "keyAlgorithm": "KEY_ALG_RSA_2048",
+        "validAfterTime": "2023-02-01T00:00:00Z",
+        "validBeforeTime": "9999-12-31T23:59:59Z"
+      },
+      {
+        "name": "projects/sample-project/serviceAccounts/x/keys/b2",
+        "keyType": "USER_MANAGED",
+        "keyAlgorithm": "KEY_ALG_RSA_2048",
+        "validAfterTime": "2024-06-01T00:00:00Z",
+        "validBeforeTime": "9999-12-31T23:59:59Z"
+      }
+    ],
+    "deploy@sample-project.iam.gserviceaccount.com": [
+      {
+        "name": "projects/sample-project/serviceAccounts/x/keys/c0",
+        "keyType": "SYSTEM_MANAGED",
+        "keyAlgorithm": "KEY_ALG_RSA_2048",
+        "validAfterTime": "2026-01-01T00:00:00Z",
+        "validBeforeTime": "9999-12-31T23:59:59Z"
+      }
+    ],
+    "123456789012-compute@developer.gserviceaccount.com": []
+  },
+  "role_definitions": [
+    {
+      "name": "projects/sample-project/roles/deployer",
+      "title": "Deployer",
+      "includedPermissions": [
+        "compute.instances.create",
+        "compute.instances.delete",
+        "compute.instances.get",
+        "compute.instances.list",
+        "iam.serviceAccounts.actAs"
+      ],
+      "stage": "GA"
+    }
+  ],
+  "activity": {
+    "ci@sample-project.iam.gserviceaccount.com": "2026-05-27T00:00:00+00:00",
+    "deploy@sample-project.iam.gserviceaccount.com": "2026-05-27T00:00:00+00:00",
+    "123456789012-compute@developer.gserviceaccount.com": "2026-05-27T00:00:00+00:00"
+  }
+}

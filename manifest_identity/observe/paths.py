@@ -115,6 +115,7 @@ class AccessPath:
 # (1.11), so it is.
 GRANT_SOURCES = (
     "aws_authorization_details", "generic_observed", "github_organization", "kubernetes_rbac",
+    "google_cloud_project",
 )
 
 
