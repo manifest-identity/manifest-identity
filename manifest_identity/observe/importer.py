@@ -74,7 +74,9 @@ def detect_source(data: bytes) -> str | None:
         window = data[:65536]
         if b"UserDetailList" in window:
             return SHAPE_AUTHORIZATION
-        if b"rbac.authorization.k8s.io" in window or b'"kind": "List"' in window:
+        # A kubectl dump is a List of objects; the two spellings are
+        # what the two common serializers write.
+        if b'"kind": "List"' in window or b'"kind":"List"' in window:
             return SHAPE_KUBERNETES
         if b'"projectId"' in window and b'"policy"' in window:
             return SHAPE_GOOGLE
