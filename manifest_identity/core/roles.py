@@ -64,6 +64,8 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /role-definitions/{authorization_id}/revoke": frozenset(
         {Role.operator, Role.administrator}
     ),
+    # Who was told is part of the record every reviewer reads.
+    "GET /alerts": ALL_ROLES,
     "GET /identities": ALL_ROLES,
     "GET /identities/{identity_id}": ALL_ROLES,
     "GET /groups": ALL_ROLES,

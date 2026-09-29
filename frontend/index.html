@@ -251,6 +251,14 @@
             <option value="roles">roles</option>
           </select>
         </label>
+        <label>Driven by
+          <select name="trigger">
+            <option value="manual">the calendar: review a scope</option>
+            <option value="delta">the delta: whoever has something to answer</option>
+            <option value="expiry">expiry: authorizations ending soon</option>
+          </select>
+        </label>
+        <label>Within days <input name="within_days" type="number" min="1" max="365" value="30"></label>
         <label>Due <input name="due_at" placeholder="2026-09-30T00:00:00+00:00" required></label>
         <label>Recurrence
           <select name="recurrence">
