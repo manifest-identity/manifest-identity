@@ -864,6 +864,94 @@ def azure_tenant(generation: int) -> str:
     return json.dumps(document, indent=2) + "\n"
 
 
+# The Okta organization: the sixth provider's estate (1.14e), the
+# document the parser reads, assembled from the management API's objects.
+
+OKTA_ORG = "00osample00000000001"
+
+
+def _okta(prefix: str, number: int) -> str:
+    """An invented Okta identifier: twenty characters, a type prefix."""
+    return f"{prefix}sample{number:011d}"
+
+
+def _okta_user(number: int, login: str, status: str, provider: str, created: str,
+               last_login: str | None, factors: list[str] | None) -> dict[str, object]:
+    user: dict[str, object] = {
+        "id": _okta("00u", number), "status": status, "created": created,
+        "lastLogin": last_login, "passwordChanged": created,
+        "profile": {"login": login, "email": login},
+        "credentials": {"provider": {"type": provider, "name": provider}},
+    }
+    if factors is not None:
+        user["factors"] = factors
+    return user
+
+
+def okta_org(generation: int) -> str:
+    """The organization at one generation. The help desk administrator
+    becomes a user administrator in the third month; a custom auditor
+    role gains the permission to manage users in the second."""
+    sam, rita, mike, dev, former, help = (_okta("00u", n) for n in range(1, 7))
+    admins, engineering, everyone = (_okta("00g", n) for n in range(1, 4))
+    payroll, source = (_okta("0oa", n) for n in range(1, 3))
+    signed = _stamp(datetime(2026, 5, 30, tzinfo=UTC) + timedelta(days=30 * generation))
+    auditor_permissions = ["okta.users.read", "okta.groups.read"]
+    if generation >= 1:
+        auditor_permissions.append("okta.users.manage")
+    help_role = ("HELP_DESK_ADMIN", "Help Desk Administrator") if generation < 2 else (
+        "USER_ADMIN", "User Administrator")
+    document = {
+        "org": {"id": OKTA_ORG, "subdomain": "sample-org"},
+        "users": [
+            _okta_user(1, "sam@example.test", "ACTIVE", "OKTA", "2021-04-02T00:00:00.000Z",
+                       signed, ["OKTA_VERIFY"]),
+            _okta_user(2, "rita@example.test", "ACTIVE", "OKTA", "2022-08-19T00:00:00.000Z",
+                       signed, ["OKTA_VERIFY", "WEBAUTHN"]),
+            _okta_user(3, "mike@example.test", "ACTIVE", "OKTA", "2019-11-03T00:00:00.000Z",
+                       "2025-11-20T00:00:00.000Z", []),
+            _okta_user(4, "dev@example.test", "ACTIVE", "FEDERATION",
+                       "2023-01-09T00:00:00.000Z", signed, None),
+            _okta_user(5, "former@example.test", "DEPROVISIONED", "OKTA",
+                       "2020-01-06T00:00:00.000Z", "2025-06-01T00:00:00.000Z", []),
+            _okta_user(6, "helpdesk@example.test", "ACTIVE", "OKTA",
+                       "2024-02-27T00:00:00.000Z", signed, ["SMS"]),
+        ],
+        "groups": [
+            {"id": admins, "type": "OKTA_GROUP", "profile": {"name": "okta-admins"},
+             "members": [rita]},
+            {"id": engineering, "type": "OKTA_GROUP", "profile": {"name": "engineering"},
+             "members": [dev, mike]},
+            {"id": everyone, "type": "BUILT_IN", "profile": {"name": "Everyone"},
+             "members": [sam, rita, mike, dev, help]},
+        ],
+        "role_assignments": [
+            {"id": _okta("ra0", 1), "type": "SUPER_ADMIN",
+             "label": "Super Organization Administrator", "status": "ACTIVE",
+             "assignmentType": "USER", "principal_id": sam},
+            {"id": _okta("ra0", 2), "type": "ORG_ADMIN", "label": "Organization Administrator",
+             "status": "ACTIVE", "assignmentType": "GROUP", "principal_id": admins},
+            {"id": _okta("ra0", 3), "type": help_role[0], "label": help_role[1],
+             "status": "ACTIVE", "assignmentType": "USER", "principal_id": help},
+            {"id": _okta("ra0", 4), "type": "CUSTOM", "label": "Auditor", "status": "ACTIVE",
+             "assignmentType": "USER", "principal_id": mike, "role": _okta("cr0", 1)},
+            {"id": _okta("ra0", 5), "type": "READ_ONLY_ADMIN", "label": "Read Only Administrator",
+             "status": "INACTIVE", "assignmentType": "USER", "principal_id": former},
+        ],
+        "custom_roles": [
+            {"id": _okta("cr0", 1), "label": "Auditor", "permissions": auditor_permissions},
+        ],
+        "apps": [
+            {"id": payroll, "label": "Payroll", "status": "ACTIVE",
+             "assignments": [{"principal_id": admins, "scope": "GROUP"},
+                             {"principal_id": mike, "scope": "USER"}]},
+            {"id": source, "label": "Source control", "status": "ACTIVE",
+             "assignments": [{"principal_id": engineering, "scope": "GROUP"}]},
+        ],
+    }
+    return json.dumps(document, indent=2) + "\n"
+
+
 # One sample table per provider the table door reads and no parser
 # reads yet (1.14a): what a recipe under recipes/ produces from that
 # provider's own export, so a person can import each provider the day
@@ -1176,6 +1264,7 @@ def file_set(scale: int = 0) -> dict[str, str]:
         out[f"{day}-kubernetes-rbac.json"] = kubernetes_rbac(generation)
         out[f"{day}-google-cloud.json"] = google_cloud_project(generation)
         out[f"{day}-azure-tenant.json"] = azure_tenant(generation)
+        out[f"{day}-okta-org.json"] = okta_org(generation)
     out["authorizations-template.csv"] = authorizations_template()
     out["observed-template.csv"] = observed_template()
     for provider in PROVIDER_TABLES:

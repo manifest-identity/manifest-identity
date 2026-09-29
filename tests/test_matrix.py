@@ -100,6 +100,24 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
             "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
         },
     ),
+    "POST /imports/okta-org": (
+        "post",
+        "/imports/okta-org",
+        {
+            "files": {
+                "file": (
+                    "org.json",
+                    json.dumps({
+                        "org": {"id": "00omatrix00000000000", "subdomain": "matrix-org"},
+                        "users": [{"id": "00umatrix00000000000",
+                                   "profile": {"login": "matrix@example.test"}}],
+                    }).encode(),
+                    "application/json",
+                )
+            },
+            "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
+        },
+    ),
     "POST /imports/azure-tenant": (
         "post",
         "/imports/azure-tenant",

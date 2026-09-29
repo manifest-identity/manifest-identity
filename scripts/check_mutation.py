@@ -286,6 +286,27 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         "        if False:",
         ["tests/test_azure_import.py"],
     ),
+    (
+        # 1.14e: a federated user's password lives in the directory or
+        # the identity provider that federates; writing one here would
+        # flag every federated account for a second factor Okta does
+        # not hold and mark it unused when Okta never sees it sign in.
+        "a federated user is given an Okta password",
+        "manifest_identity/observe/okta_importer.py",
+        '        if user.provider_type == "OKTA":',
+        "        if True:",
+        ["tests/test_okta_import.py"],
+    ),
+    (
+        # A role assigned to a group reaches its members through the
+        # hop; dropping inactive assignments is right, dropping all of
+        # them would hide every administrator assigned by group.
+        "an inactive role assignment is recorded as held",
+        "manifest_identity/observe/okta_importer.py",
+        "        if not row.active:",
+        "        if False:",
+        ["tests/test_okta_import.py"],
+    ),
 ]
 
 

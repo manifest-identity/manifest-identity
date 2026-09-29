@@ -3,10 +3,10 @@
 python -m manifest_identity.demo migrates the schema, creates the
 administrator from the environment, imports the three shipped sample
 months for every source oldest first (the AWS account, the GitHub
-organization, the Kubernetes cluster, the Google Cloud project, and the
-Azure tenant), and opens one review campaign, so a fresh clone lands in
-an inventory of sixty-one identities with tiered findings and a review
-in progress. Idempotent on purpose:
+organization, the Kubernetes cluster, the Google Cloud project, the
+Azure tenant, and the Okta organization), and opens one review
+campaign, so a fresh clone lands in an inventory of sixty-seven
+identities with tiered findings and a review in progress. Idempotent on purpose:
 running it again converges, re-imports are refused as duplicates and
 an existing campaign is kept, so the command is safe to run twice.
 
@@ -38,6 +38,7 @@ from manifest_identity.observe.importer import (
     import_credential_report,
 )
 from manifest_identity.observe.kubernetes_importer import import_rbac_dump
+from manifest_identity.observe.okta_importer import import_org_export
 from manifest_identity.observe.providers.aws.authorization_details import (
     parse_authorization_details,
 )
@@ -50,6 +51,7 @@ from manifest_identity.observe.providers.google_cloud.project_export import (
     parse_project_export,
 )
 from manifest_identity.observe.providers.kubernetes.rbac_dump import parse_rbac_dump
+from manifest_identity.observe.providers.okta.org_export import parse_org_export
 from manifest_identity.sample_data import CLUSTER, GENERATIONS, file_set
 
 DEMO_CAMPAIGN = "Quarterly access review (demo)"
@@ -97,7 +99,7 @@ def main() -> int:
             day = captured.strftime("%Y-%m-%d")
             for kind in (
                 "credential-report", "authorization-details", "github-organization",
-                "kubernetes-rbac", "google-cloud", "azure-tenant",
+                "kubernetes-rbac", "google-cloud", "azure-tenant", "okta-org",
             ):
                 suffix = "csv" if kind == "credential-report" else "json"
                 name = f"{day}-{kind}.{suffix}"
@@ -135,6 +137,15 @@ def main() -> int:
                         import_tenant_export(
                             db,
                             export=parse_tenant_export(data),
+                            captured_at=captured,
+                            source_filename=name,
+                            actor_user_id=admin.id,
+                            actor_username=admin.username,
+                        )
+                    elif kind == "okta-org":
+                        import_org_export(
+                            db,
+                            export=parse_org_export(data),
                             captured_at=captured,
                             source_filename=name,
                             actor_user_id=admin.id,

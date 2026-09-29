@@ -24,6 +24,7 @@ from manifest_identity.observe import (
     github_importer,
     google_cloud_importer,
     kubernetes_importer,
+    okta_importer,
 )
 from manifest_identity.observe import mapping as tabular
 from manifest_identity.observe.importer import (
@@ -33,6 +34,7 @@ from manifest_identity.observe.importer import (
     SHAPE_GITHUB,
     SHAPE_GOOGLE,
     SHAPE_KUBERNETES,
+    SHAPE_OKTA,
     SHAPE_TABLE,
     CaptureTimeInvalid,
     DuplicateSnapshot,
@@ -51,6 +53,7 @@ from manifest_identity.observe.providers.azure import tenant_export as azure_exp
 from manifest_identity.observe.providers.github import organization_export as github_export
 from manifest_identity.observe.providers.google_cloud import project_export as google_export
 from manifest_identity.observe.providers.kubernetes import rbac_dump
+from manifest_identity.observe.providers.okta import org_export as okta_export
 
 router = APIRouter(prefix="/imports")
 
@@ -94,6 +97,7 @@ SHAPE_NAMES = {
     SHAPE_KUBERNETES: "a Kubernetes role-based access control dump",
     SHAPE_GOOGLE: "a Google Cloud project export",
     SHAPE_AZURE: "an Azure and Entra tenant export",
+    SHAPE_OKTA: "an Okta organization export",
     SHAPE_TABLE: "a table for a mapping",
 }
 
@@ -462,6 +466,48 @@ def import_azure(
     )
     try:
         result = azure_importer.import_tenant_export(
+            db,
+            export=export,
+            captured_at=captured_at,
+            source_filename=file.filename,
+            actor_user_id=auth.user.id,
+            actor_username=auth.user.username,
+        )
+    except CaptureTimeInvalid as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except DuplicateSnapshot as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return ImportResponse(
+        account=result.account,
+        captured_at=result.captured_at.isoformat(),
+        identities_new=result.identities_new,
+        identities_known=result.identities_known,
+        observations=result.observations,
+        skipped_rows=result.skipped_rows,
+    )
+
+
+@router.post("/okta-org", status_code=201)
+def import_okta(
+    file: UploadFile,
+    captured_at: Annotated[datetime, Form()],
+    db: Annotated[Session, Depends(get_session)],
+    auth: Annotated[AuthContext, require_roles("POST /imports/okta-org")],
+    _budget: ThrottledWrite,
+) -> ImportResponse:
+    """The sixth provider's door (1.14e): the organization export
+    assembled from the management API's objects."""
+    data = file.file.read(okta_export.MAX_FILE_BYTES + 1)
+    if len(data) > okta_export.MAX_FILE_BYTES:
+        raise HTTPException(status_code=413, detail="file exceeds the size bound")
+    _refuse_mismatch(data, SHAPE_OKTA)
+    try:
+        export = okta_export.parse_org_export(data)
+    except okta_export.ParseError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    require_scope(db, auth, "POST /imports/okta-org", okta_importer.org_node_id(db, export.id))
+    try:
+        result = okta_importer.import_org_export(
             db,
             export=export,
             captured_at=captured_at,
