@@ -18,13 +18,19 @@ from sqlalchemy.orm import Session
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, ThrottledWrite, require_roles, require_scope
 from manifest_identity.core.models import Provider, ScopeNode
+from manifest_identity.observe import generic_import
+from manifest_identity.observe import mapping as tabular
 from manifest_identity.observe.importer import (
+    SHAPE_AUTHORIZATION,
+    SHAPE_CREDENTIAL,
+    SHAPE_TABLE,
     CaptureTimeInvalid,
     DuplicateSnapshot,
+    detect_source,
     import_authorization_details,
     import_credential_report,
 )
-from manifest_identity.observe.models import Import
+from manifest_identity.observe.models import Import, ImportMapping
 from manifest_identity.observe.providers.aws import authorization_details as authz
 from manifest_identity.observe.providers.aws.credential_report import (
     MAX_FILE_BYTES,
@@ -67,6 +73,129 @@ def _account_node_id(db: Session, account_id: str) -> int | None:
     ).scalar_one_or_none()
 
 
+SHAPE_NAMES = {
+    SHAPE_AUTHORIZATION: "an AWS authorization details export",
+    SHAPE_CREDENTIAL: "an AWS credential report",
+    SHAPE_TABLE: "a table for a mapping",
+}
+
+
+def _refuse_mismatch(data: bytes, expected: str) -> None:
+    """The source selector's other half: the route knows what it was
+    told the file is, the file says what it is, and a disagreement is
+    refused with both named rather than parsed into an error about the
+    third column."""
+    found = detect_source(data)
+    if found is not None and found != expected:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"this file is shaped like {SHAPE_NAMES[found]}, not "
+                f"{SHAPE_NAMES[expected]}; import it as that source"
+            ),
+        )
+
+
+class ObservedRowView(BaseModel):
+    row: int
+    identity_external_id: str
+    role: str
+    mode: str
+
+
+class ObservedRefusalView(BaseModel):
+    row: int
+    reason: str
+
+
+class ObservedReadingView(BaseModel):
+    mapping_id: int
+    mapping_name: str
+    row_count: int
+    written: list[ObservedRowView]
+    refusals: list[ObservedRefusalView]
+    ignored_columns: list[str]
+    absent_fields: list[str]
+    batch_id: int | None
+    import_id: int | None
+
+
+def _observed_mapping(db: Session, mapping_id: int | None) -> ImportMapping:
+    if mapping_id is None:
+        shipped = generic_import.default_mapping(db)
+        db.commit()
+        return shipped
+    found = db.get(ImportMapping, mapping_id)
+    if found is None or found.source_kind != generic_import.SOURCE_KIND:
+        raise HTTPException(status_code=404, detail="no such observed mapping")
+    return found
+
+
+def _observed_view(row: ImportMapping, result: generic_import.Result) -> ObservedReadingView:
+    return ObservedReadingView(
+        mapping_id=row.id,
+        mapping_name=row.name,
+        row_count=result.row_count,
+        written=[ObservedRowView(**vars(w)) for w in result.written],
+        refusals=[ObservedRefusalView(row=r.row, reason=r.reason) for r in result.refusals],
+        ignored_columns=result.ignored_columns,
+        absent_fields=result.absent_fields,
+        batch_id=result.batch_id,
+        import_id=result.import_id,
+    )
+
+
+@router.post("/observed/dry-run")
+def dry_run_observed(
+    file: UploadFile,
+    db: Annotated[Session, Depends(get_session)],
+    _auth: Annotated[AuthContext, require_roles("POST /imports/observed/dry-run")],
+    mapping_id: Annotated[int | None, Form()] = None,
+) -> ObservedReadingView:
+    """Read a table through an observed mapping and write nothing."""
+    row = _observed_mapping(db, mapping_id)
+    data = file.file.read(tabular.MAX_FILE_BYTES + 1)
+    _refuse_mismatch(data, SHAPE_TABLE)
+    try:
+        result = generic_import.dry_run(row, data)
+    except tabular.MappingError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        db.rollback()
+    return _observed_view(row, result)
+
+
+@router.post("/observed", status_code=201)
+def import_observed(
+    file: UploadFile,
+    captured_at: Annotated[datetime, Form()],
+    db: Annotated[Session, Depends(get_session)],
+    auth: Annotated[AuthContext, require_roles("POST /imports/observed")],
+    _budget: ThrottledWrite,
+    mapping_id: Annotated[int | None, Form()] = None,
+) -> ObservedReadingView:
+    """Any provider's table becomes observed rows. The scope is the
+    account the file names, made on first sight, so a first import of a
+    new provider needs a global binding, which is what None asks for."""
+    row = _observed_mapping(db, mapping_id)
+    data = file.file.read(tabular.MAX_FILE_BYTES + 1)
+    _refuse_mismatch(data, SHAPE_TABLE)
+    require_scope(db, auth, "POST /imports/observed", None)
+    try:
+        result = generic_import.write(db, row, data, captured_at, auth.user, file.filename)
+    except tabular.MappingError as exc:
+        db.rollback()
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except CaptureTimeInvalid as exc:
+        db.rollback()
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except DuplicateSnapshot as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    db.commit()
+    return _observed_view(row, result)
+
+
 @router.post("/credential-report", status_code=201)
 def import_report(
     file: UploadFile,
@@ -78,6 +207,7 @@ def import_report(
     data = file.file.read(MAX_FILE_BYTES + 1)
     if len(data) > MAX_FILE_BYTES:
         raise HTTPException(status_code=413, detail="file exceeds the size bound")
+    _refuse_mismatch(data, SHAPE_CREDENTIAL)
     try:
         report = parse_credential_report(data)
     except ParseError as exc:
@@ -119,6 +249,7 @@ def import_authorization(
     data = file.file.read(authz.MAX_FILE_BYTES + 1)
     if len(data) > authz.MAX_FILE_BYTES:
         raise HTTPException(status_code=413, detail="file exceeds the size bound")
+    _refuse_mismatch(data, SHAPE_AUTHORIZATION)
     try:
         report = authz.parse_authorization_details(data)
     except authz.ParseError as exc:

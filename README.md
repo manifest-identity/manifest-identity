@@ -71,9 +71,9 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **288 tests in 34 files**, coverage 94 over a 90 percent floor |
+| Tests | **307 tests in 36 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **55 routes**, every one in the role matrix the tests walk |
+| Surface | **63 routes**, every one in the role matrix the tests walk |
 | Record | **74 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
@@ -795,6 +795,28 @@ audit_events
   paths and the recipient bound are built and tested before any mail
   server is involved. A delivery that fails is recorded as failed and
   never breaks the action that raised it.
+- An **integration token** opens a read-only surface under `/api/v1/`
+  for a system rather than a person: identities paged from a cursor,
+  the delta, and a change feed that walks the audit record from a
+  cursor and returns the next one, so a consumer follows decisions as
+  they happen rather than polling a full dump. A token is a second kind
+  of credential, stored as a hash the way sessions are, shown once at
+  minting and never again, revocable, and rate limited per token.
+  Session routes refuse tokens and token routes refuse sessions. This
+  surface is demonstration-grade: enough to show the shape, and not yet
+  hardened for anyone to rely on, which is an open question the plan
+  carries on purpose.
+- The **observed side reads any provider's table** through the same
+  mapping mechanism the authorized side uses, with its own field set
+  and a shipped template. An organization with a spreadsheet of
+  on-premises accounts, or a vendor's export with no schema, gets the
+  same neutral rows the AWS parsers produce and the delta on them the
+  same day; a provider earns a native parser later if it earns one at
+  all. A definition read this way carries no document, so the
+  capability reading says nothing about it, and that limit is stated
+  beside the source. The import routes also read a file's shape before
+  parsing it and refuse one named as one source and shaped as another,
+  naming both.
 - A **governance record** is the human layer: an owner, a purpose, a
   flag, or an attestation, on an identity or a group (D-019),
   attributed and audited, stored rather than derived because it IS the
@@ -828,10 +850,15 @@ POST /admin/users/{username}/bindings
 POST /admin/users/{username}/bindings/{binding_id}/revoke
 GET /admin/scopes
 POST /admin/scopes
+GET /admin/tokens
+POST /admin/tokens
+POST /admin/tokens/{token_id}/revoke
 GET /admin/settings
 PUT /admin/settings
 POST /imports/credential-report
 POST /imports/authorization-details
+POST /imports/observed/dry-run
+POST /imports/observed
 GET /imports
 GET /identities
 GET /identities/{identity_id}
@@ -870,6 +897,9 @@ GET /export.json
 GET /report.html
 GET /campaigns/{campaign_id}/evidence
 GET /campaigns/{campaign_id}/evidence.csv
+GET /api/v1/identities
+GET /api/v1/delta
+GET /api/v1/changes
 ```
 
 `GET /identities` is paged, because the sample account's nineteen
@@ -916,7 +946,10 @@ holds the reviews and the alerts.
 | `manifest_identity/authorize/role_definitions.py` | Authorizing a custom definition as written, bound to the hash that was agreed |
 | `manifest_identity/compare/delta.py` | The difference between the two records, nine classes, stored nowhere |
 | `manifest_identity/authorize/csv_import.py` | The file door: rows become the same request the form builds |
-| `manifest_identity/observe/mapping.py` | The bounded table reader and the mapping both doors share |
+| `manifest_identity/observe/mapping.py` | The bounded table reader and the mapping every door shares |
+| `manifest_identity/observe/generic_import.py` | The observed side's file door: any provider's table becomes the neutral rows |
+| `manifest_identity/api/deps.py` | Authenticating an integration token, a second credential with its own door and budget |
+| `manifest_identity/api/routes_read.py` | The read-only surface: identities, the delta, and the change feed from a cursor |
 | `manifest_identity/authorize/governance.py` | The human layer: typed owners, purposes, flags, attestations |
 | `manifest_identity/core/options.py` | Administrator settings, secure by default, audited on every change |
 | `manifest_identity/decide/campaigns.py` | Recommendations with reasons, and the delta since last certification |

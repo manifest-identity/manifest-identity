@@ -53,6 +53,29 @@ SOURCE_CREDENTIAL_REPORT = "aws_credential_report"
 SOURCE_AUTHORIZATION = "aws_authorization_details"
 
 
+SHAPE_AUTHORIZATION = "authorization-details"
+SHAPE_CREDENTIAL = "credential-report"
+SHAPE_TABLE = "table"
+
+
+def detect_source(data: bytes) -> str | None:
+    """What a file is shaped like, read from its first bytes: an AWS
+    authorization details export is JSON carrying a user list, an AWS
+    credential report is a CSV whose header starts with user and arn,
+    and anything else with a header row is a table for a mapping. A
+    file named as one source and shaped as another is refused with this
+    answer rather than parsed into nonsense (1.11)."""
+    head = data[:4096].lstrip()
+    if head.startswith(b"{"):
+        return SHAPE_AUTHORIZATION if b"UserDetailList" in data[:65536] else None
+    first = head.split(b"\n", 1)[0].decode("utf-8", errors="replace").strip().lower()
+    if first.startswith("user,arn,"):
+        return SHAPE_CREDENTIAL
+    if "," in first:
+        return SHAPE_TABLE
+    return None
+
+
 class DuplicateSnapshot(ValueError):
     """This scope, source, and capture time were already imported."""
 

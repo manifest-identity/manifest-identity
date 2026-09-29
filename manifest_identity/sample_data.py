@@ -510,6 +510,28 @@ def authorization_details(generation: int, scale: int = 0) -> str:
     return json.dumps(payload, indent=2) + "\n"
 
 
+def observed_template() -> str:
+    """The template for the observed side's file door (1.11), generated
+    rather than written for the same reason as the other one: the
+    header is the shipped mapping's own column names, so the documented
+    file imports clean through it. The rows are a directory nobody
+    runs, with the three shapes a row can take: a standing hold, a hold
+    through a group with the hop written, and an eligible one."""
+    header = (
+        "provider,account,identity_id,identity_name,identity_type,identity_kind,"
+        "role,role_name,mode,path"
+    )
+    rows = [
+        "active_directory,corp,S-1-5-21-100,sample.person,user,person,"
+        "Domain Admins,Domain Admins,standing,",
+        "active_directory,corp,S-1-5-21-101,svc-nightly,user,service,"
+        "Backup Operators,Backup Operators,standing,membership:backup-team",
+        "active_directory,corp,S-1-5-21-102,sample.oncall,user,person,"
+        "Domain Admins,Domain Admins,eligible,",
+    ]
+    return "\n".join([header, *rows]) + "\n"
+
+
 def authorizations_template() -> str:
     """The template for the file door, generated rather than written,
     so its columns come from the shipped mapping itself (D-074) and
@@ -572,6 +594,7 @@ def file_set(scale: int = 0) -> dict[str, str]:
             generation, scale
         )
     out["authorizations-template.csv"] = authorizations_template()
+    out["observed-template.csv"] = observed_template()
     return out
 
 

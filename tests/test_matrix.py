@@ -14,7 +14,7 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from manifest_identity.core.roles import PUBLIC_ROUTES, ROUTE_ROLES, Role
+from manifest_identity.core.roles import PUBLIC_ROUTES, ROUTE_ROLES, TOKEN_ROUTES, Role
 from manifest_identity.main import app
 from manifest_identity.observe.importer import contents_hash
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
@@ -49,6 +49,15 @@ MATRIX_POLICY_DOCUMENT = {
     "Version": "2012-10-17",
     "Statement": [{"Effect": "Allow", "Action": "s3:GetObject", "Resource": "*"}],
 }
+
+# A one-row table for the observed door, in the shipped template's
+# columns, naming a directory nobody runs.
+OBSERVED_TABLE = (
+    b"provider,account,identity_id,identity_name,identity_type,identity_kind,"
+    b"role,role_name,mode,path\n"
+    b"active_directory,matrix,S-1-5-21-9,matrix.person,user,person,"
+    b"Domain Admins,Domain Admins,standing,\n"
+)
 
 CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
     "GET /auth/me": ("get", "/auth/me", {}),
@@ -116,6 +125,13 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
         "/admin/users/nobody.here/bindings/1/revoke",
         {},
     ),
+    "GET /admin/tokens": ("get", "/admin/tokens", {}),
+    "POST /admin/tokens": ("post", "/admin/tokens", {"json": {"name": "matrix-token"}}),
+    "POST /admin/tokens/{token_id}/revoke": (
+        "post",
+        "/admin/tokens/999999/revoke",
+        {"json": {"reason": "matrix exercise"}},
+    ),
     "GET /admin/scopes": ("get", "/admin/scopes", {}),
     "GET /admin/settings": ("get", "/admin/settings", {}),
     "GET /delta": ("get", "/delta", {}),
@@ -157,6 +173,19 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
         "/admin/scopes",
         {"json": {"provider": "aws", "partition": "aws_commercial", "kind": "account",
                   "external_id": "000000000000", "display_name": "test"}},
+    ),
+    "POST /imports/observed/dry-run": (
+        "post",
+        "/imports/observed/dry-run",
+        {"files": {"file": ("t.csv", OBSERVED_TABLE, "text/csv")}},
+    ),
+    "POST /imports/observed": (
+        "post",
+        "/imports/observed",
+        {
+            "files": {"file": ("t.csv", OBSERVED_TABLE, "text/csv")},
+            "data": {"captured_at": "2026-08-02T00:00:00+00:00"},
+        },
     ),
     "GET /imports": ("get", "/imports", {}),
     "GET /relationships": ("get", "/relationships", {}),
@@ -322,12 +351,15 @@ def test_every_route_is_governed_or_named_public() -> None:
         "the flattening no longer matches the framework"
     )
     for key in keys:
-        assert key in ROUTE_ROLES or key in PUBLIC_ROUTES, (
-            f"route {key} is neither in ROUTE_ROLES nor PUBLIC_ROUTES"
+        assert key in ROUTE_ROLES or key in PUBLIC_ROUTES or key in TOKEN_ROUTES, (
+            f"route {key} is in none of ROUTE_ROLES, PUBLIC_ROUTES, TOKEN_ROUTES"
         )
     # Both directions: a matrix row whose route is gone is stale.
-    for key in set(ROUTE_ROLES) | set(PUBLIC_ROUTES):
-        assert key in keys, f"matrix or public row without a route: {key}"
+    for key in set(ROUTE_ROLES) | set(PUBLIC_ROUTES) | set(TOKEN_ROUTES):
+        assert key in keys, f"matrix, public, or token row without a route: {key}"
+    # A route cannot be two things at once.
+    assert not (set(TOKEN_ROUTES) & set(ROUTE_ROLES))
+    assert not (set(TOKEN_ROUTES) & set(PUBLIC_ROUTES))
 
 
 def test_routes_match_the_documented_enumeration() -> None:

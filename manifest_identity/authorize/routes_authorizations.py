@@ -9,7 +9,7 @@ status; those are not validated away, they are absent.
 """
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Response, UploadFile
 from pydantic import BaseModel, Field
@@ -26,6 +26,7 @@ from manifest_identity.core.deps import (
     require_roles,
     require_scope,
 )
+from manifest_identity.observe import generic_import
 from manifest_identity.observe import mapping as tabular
 from manifest_identity.observe.models import GrantMode, Identity, ImportMapping
 
@@ -235,6 +236,9 @@ class FieldSpecIn(BaseModel):
 class CreateMapping(BaseModel):
     name: str = Field(min_length=1, max_length=128)
     fields: dict[str, FieldSpecIn] = Field(min_length=1, max_length=64)
+    # Which door the mapping feeds: the authorized record, or the
+    # observed one (1.11). Each door has its own field set.
+    source_kind: Literal["authorizations", "observed_grants"] = "authorizations"
     # Set to supersede an existing mapping rather than add one; the
     # chain is how a customer's changed file is recorded (D-074).
     supersedes_id: int | None = None
@@ -315,11 +319,11 @@ def _mapping_or_default(db: Session, mapping_id: int | None) -> ImportMapping:
 @router.get("/mappings", dependencies=[require_roles("GET /mappings")])
 def list_mappings(db: Annotated[Session, Depends(get_session)]) -> list[MappingView]:
     csv_import.default_mapping(db)
+    generic_import.default_mapping(db)
     db.commit()
     rows = db.execute(
         select(ImportMapping)
-        .where(ImportMapping.source_kind == csv_import.SOURCE_KIND)
-        .order_by(ImportMapping.name, ImportMapping.version.desc())
+        .order_by(ImportMapping.source_kind, ImportMapping.name, ImportMapping.version.desc())
     ).scalars().all()
     return [mapping_view(row) for row in rows]
 
@@ -333,10 +337,15 @@ def create_mapping(
     """A mapping is written, never edited: a changed customer file is a
     new version that supersedes the old one, so every past import can
     still say how it was read."""
+    fields_for = {
+        csv_import.SOURCE_KIND: (csv_import.FIELDS, csv_import.REQUIRED_FIELDS),
+        generic_import.SOURCE_KIND: (generic_import.FIELDS, generic_import.REQUIRED_FIELDS),
+    }
+    known, required = fields_for[body.source_kind]
     previous: ImportMapping | None = None
     if body.supersedes_id is not None:
         previous = db.get(ImportMapping, body.supersedes_id)
-        if previous is None or previous.source_kind != csv_import.SOURCE_KIND:
+        if previous is None or previous.source_kind != body.source_kind:
             raise HTTPException(status_code=404, detail="no such mapping")
     raw = {
         name: {
@@ -346,14 +355,12 @@ def create_mapping(
     }
     try:
         specs = tabular.parse_specs(raw)
-        tabular.check_cover(
-            specs, set(csv_import.FIELDS), set(csv_import.REQUIRED_FIELDS)
-        )
+        tabular.check_cover(specs, set(known), set(required))
     except tabular.MappingError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     row = ImportMapping(
         name=body.name,
-        source_kind=csv_import.SOURCE_KIND,
+        source_kind=body.source_kind,
         fields=raw,
         version=(previous.version + 1) if previous else 1,
         supersedes_id=previous.id if previous else None,
