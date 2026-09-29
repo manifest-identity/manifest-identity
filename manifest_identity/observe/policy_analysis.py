@@ -120,12 +120,39 @@ def _grants(patterns: list[str], action: str) -> bool:
     return any(_pattern(p).match(action) for p in patterns)
 
 
+CAPABILITY_KIND = "capabilities"
+
+
+def capability_document(
+    provider: str, level: str, scope: str, *,
+    administers: bool, changes_access: bool, writes: bool, reads: bool,
+) -> dict[str, object]:
+    """A definition's contents for a provider whose roles are fixed
+    levels rather than documents of actions. It says what the level
+    can do in the reading's own terms, so the finding engine reads it
+    the way it reads a policy and never learns the provider's words."""
+    return {
+        "kind": CAPABILITY_KIND, "provider": provider, "level": level, "scope": scope,
+        "administers": administers, "changes_access": changes_access,
+        "writes": writes, "reads": reads,
+    }
+
+
 def read_policy(document: object) -> PolicyReading:
     """Read one policy document. Malformed input reads as granting
     nothing, never as an exception: these documents are untrusted
     file content, and the parsers upstream already bound them."""
     reading = PolicyReading()
     if not isinstance(document, dict):
+        return reading
+    if document.get("kind") == CAPABILITY_KIND:
+        # A capability document says outright what a policy document
+        # has to be read for. Administering a scope is administrator
+        # equivalence at that scope; changing access is the mutating
+        # capability. Writing and reading carry no finding of their
+        # own, the same as a policy that writes one service.
+        reading.admin_equivalent = document.get("administers") is True
+        reading.iam_mutating = document.get("changes_access") is True
         return reading
     statements = document.get("Statement")
     if isinstance(statements, dict):

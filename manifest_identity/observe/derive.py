@@ -84,18 +84,21 @@ def classify(state: DerivedState) -> Classification:
         return Classification("person", "the root account is a person's sign-in")
     if state.identity_type == "role":
         return Classification("service", "a role is assumed, never signed into")
-    keys = state.has_active_key
+    # Any active credential that is not a password reads as a key: an
+    # access key, a token, a deploy key. A person signs in; a service
+    # presents a secret; an identity doing both is mixed.
+    keys = any(c.active and c.kind != CredentialKind.password for c in state.credentials)
     password = state.password_enabled
     if password and keys:
         return Classification(
-            "mixed", "a console password and active access keys on one identity")
+            "mixed", "a password and active access keys or tokens on one identity")
     if password:
         return Classification(
             "person",
-            "a console password" + (" with MFA" if state.mfa_active else " without MFA"))
+            "a password" + (" with MFA" if state.mfa_active else " without MFA"))
     if keys:
-        return Classification("service", "access keys and no console password")
-    return Classification("unknown", "neither a console password nor an active key")
+        return Classification("service", "access keys or tokens and no password")
+    return Classification("unknown", "neither a password nor an active key or token")
 
 
 def _days(later: datetime, earlier: datetime) -> int:

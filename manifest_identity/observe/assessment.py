@@ -41,6 +41,7 @@ from manifest_identity.observe.models import (
     ObservedRelationship,
     RoleDefinition,
 )
+from manifest_identity.observe.paths import GRANT_SOURCES
 from manifest_identity.observe.privilege import (
     GroupFacts,
     PolicyIndex,
@@ -126,14 +127,14 @@ def credential_pairs(
     return out
 
 
-def _newest_import_ids(
-    db: Session, node_id: int, source_kind: str
-) -> tuple[int | None, int | None]:
-    """The newest and the previous import of one source kind for a
-    scope, by capture time; membership drift compares the two."""
+def _newest_import_ids(db: Session, node_id: int) -> tuple[int | None, int | None]:
+    """The newest and the previous grant-carrying import for a scope,
+    by capture time; membership drift compares the two. The sources
+    that carry grants are the one list the path expansion reads, so
+    the two never disagree about which import is current."""
     rows = db.execute(
         select(Import.id)
-        .where(Import.scope_node_id == node_id, Import.source_kind == source_kind)
+        .where(Import.scope_node_id == node_id, Import.source_kind.in_(GRANT_SOURCES))
         .order_by(Import.captured_at.desc(), Import.id.desc())
         .limit(2)
     ).scalars().all()
@@ -146,7 +147,7 @@ def scope_context(db: Session, node_id: int) -> ScopeContext:
     as_of = db.execute(
         select(func.max(Import.captured_at)).where(Import.scope_node_id == node_id)
     ).scalar_one()
-    newest, prior = _newest_import_ids(db, node_id, "aws_authorization_details")
+    newest, prior = _newest_import_ids(db, node_id)
     index = PolicyIndex()
     attached: dict[int, list[dict[str, str]]] = {}
     group_names: dict[int, list[str]] = {}
@@ -299,8 +300,13 @@ def assess_identities(db: Session) -> list[AssessedIdentity]:
 
 
 def assess_groups(db: Session) -> list[AssessedGroup]:
+    # Every node an import has landed on: an AWS account, a GitHub
+    # organization, whatever the next provider calls its root. The
+    # node's kind is the provider's word and is not consulted.
     nodes = db.execute(
-        select(ScopeNode).where(ScopeNode.kind == "account").order_by(ScopeNode.external_id)
+        select(ScopeNode)
+        .where(ScopeNode.id.in_(select(Import.scope_node_id).distinct()))
+        .order_by(ScopeNode.external_id)
     ).scalars().all()
     owners = active_owners_by_target(db, "group")
     out: list[AssessedGroup] = []

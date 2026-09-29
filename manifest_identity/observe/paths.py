@@ -113,7 +113,7 @@ class AccessPath:
 # it is never the newest import for a question about access; a table
 # through a mapping carries them the same as the provider's own export
 # (1.11), so it is.
-GRANT_SOURCES = ("aws_authorization_details", "generic_observed")
+GRANT_SOURCES = ("aws_authorization_details", "generic_observed", "github_organization")
 
 
 def newest_import(db: Session, node_id: int) -> int | None:

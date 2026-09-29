@@ -82,6 +82,24 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
             "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
         },
     ),
+    "POST /imports/github-organization": (
+        "post",
+        "/imports/github-organization",
+        {
+            "files": {
+                "file": (
+                    "org.json",
+                    json.dumps({
+                        "organization": {"login": "matrix-org", "id": 1},
+                        "members": [{"login": "matrix-owner", "id": 2, "role": "owner",
+                                     "two_factor_enabled": True}],
+                    }).encode(),
+                    "application/json",
+                )
+            },
+            "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
+        },
+    ),
     "POST /imports/authorization-details": (
         "post",
         "/imports/authorization-details",
