@@ -245,6 +245,27 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         "        node = cluster_node",
         ["tests/test_kubernetes_import.py"],
     ),
+    (
+        # 1.14c: a key the provider manages rotates on its own and is
+        # nobody's credential; a key a person made is. Writing both as
+        # credentials would flag every account for keys it cannot lose.
+        "a provider-managed key is recorded as a credential",
+        "manifest_identity/observe/google_cloud_importer.py",
+        "            if not key.user_managed:",
+        "            if False:",
+        ["tests/test_google_cloud_import.py"],
+    ),
+    (
+        # The permission that sets a policy is the one that changes who
+        # holds what; a reading that ignored it would call a role that
+        # can grant itself owner harmless.
+        "a permission that sets policy does not change access",
+        "manifest_identity/observe/google_cloud_importer.py",
+        "        p in ACCESS_PERMISSIONS or p.endswith(ACCESS_PERMISSION_SUFFIXES)"
+        " for p in permissions",
+        "        p in ACCESS_PERMISSIONS for p in permissions",
+        ["tests/test_google_cloud_import.py"],
+    ),
 ]
 
 

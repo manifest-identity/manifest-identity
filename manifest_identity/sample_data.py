@@ -643,6 +643,87 @@ def kubernetes_rbac(generation: int) -> str:
     return json.dumps({"kind": "List", "apiVersion": "v1", "items": items}, indent=2) + "\n"
 
 
+# The Google Cloud project: the fourth provider's estate (1.14c), the
+# document the parser reads, assembled from gcloud's own answers.
+
+PROJECT = "sample-project"
+PROJECT_NUMBER = "123456789012"
+_SA_DOMAIN = f"{PROJECT}.iam.gserviceaccount.com"
+
+
+def _key(key_id: str, after: str, before: str | None = None,
+         key_type: str = "USER_MANAGED") -> dict[str, object]:
+    return {
+        "name": f"projects/{PROJECT}/serviceAccounts/x/keys/{key_id}",
+        "keyType": key_type, "keyAlgorithm": "KEY_ALG_RSA_2048",
+        "validAfterTime": after,
+        "validBeforeTime": before or "9999-12-31T23:59:59Z",
+    }
+
+
+def google_cloud_project(generation: int) -> str:
+    """The project at one generation. A deleted principal's binding
+    survives it from the second month; the custom deployer role gains
+    the permission that sets policy in the third."""
+    ci = f"ci@{_SA_DOMAIN}"
+    legacy = f"legacy@{_SA_DOMAIN}"
+    deploy = f"deploy@{_SA_DOMAIN}"
+    compute = f"{PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+    editors = ["serviceAccount:" + ci, "group:developers@example.test",
+               "serviceAccount:" + compute]
+    if generation >= 1:
+        editors.append("deleted:user:former@example.test?uid=100000000000000000001")
+    deployer_permissions = [
+        "compute.instances.create", "compute.instances.delete", "compute.instances.get",
+        "compute.instances.list", "iam.serviceAccounts.actAs",
+    ]
+    if generation >= 2:
+        deployer_permissions.append("resourcemanager.projects.setIamPolicy")
+    used = _stamp(datetime(2026, 5, 27, tzinfo=UTC) + timedelta(days=30 * generation))
+    document = {
+        "project": {"projectId": PROJECT, "projectNumber": PROJECT_NUMBER,
+                    "lifecycleState": "ACTIVE"},
+        "policy": {
+            "bindings": [
+                {"role": "roles/owner", "members": ["user:sam@example.test"]},
+                {"role": "roles/editor", "members": editors},
+                {"role": "roles/viewer", "members": ["group:auditors@example.test"]},
+                {"role": "roles/iam.serviceAccountKeyAdmin",
+                 "members": ["serviceAccount:" + legacy]},
+                {"role": "roles/storage.objectViewer", "members": ["allUsers"]},
+                {"role": f"projects/{PROJECT}/roles/deployer",
+                 "members": ["serviceAccount:" + deploy],
+                 "condition": {"title": "weekdays", "expression":
+                               "request.time.getDayOfWeek('UTC') < 6"}},
+            ],
+            "etag": "BwX0sample=",
+            "version": 3,
+        },
+        "service_accounts": [
+            {"email": ci, "uniqueId": "100000000000000000010",
+             "displayName": "continuous integration", "disabled": False},
+            {"email": legacy, "uniqueId": "100000000000000000020",
+             "displayName": "legacy sync", "disabled": False},
+            {"email": deploy, "uniqueId": "100000000000000000030",
+             "displayName": "deployer", "disabled": False},
+            {"email": compute, "uniqueId": "100000000000000000040",
+             "displayName": "Compute Engine default service account", "disabled": False},
+        ],
+        "keys": {
+            ci: [_key("a1", "2026-03-01T00:00:00Z")],
+            legacy: [_key("b1", "2023-02-01T00:00:00Z"), _key("b2", "2024-06-01T00:00:00Z")],
+            deploy: [_key("c0", "2026-01-01T00:00:00Z", key_type="SYSTEM_MANAGED")],
+            compute: [],
+        },
+        "role_definitions": [
+            {"name": f"projects/{PROJECT}/roles/deployer", "title": "Deployer",
+             "includedPermissions": deployer_permissions, "stage": "GA"},
+        ],
+        "activity": {ci: used, deploy: used, compute: used},
+    }
+    return json.dumps(document, indent=2) + "\n"
+
+
 # One sample table per provider the table door reads and no parser
 # reads yet (1.14a): what a recipe under recipes/ produces from that
 # provider's own export, so a person can import each provider the day
@@ -953,6 +1034,7 @@ def file_set(scale: int = 0) -> dict[str, str]:
         )
         out[f"{day}-github-organization.json"] = github_organization(generation)
         out[f"{day}-kubernetes-rbac.json"] = kubernetes_rbac(generation)
+        out[f"{day}-google-cloud.json"] = google_cloud_project(generation)
     out["authorizations-template.csv"] = authorizations_template()
     out["observed-template.csv"] = observed_template()
     for provider in PROVIDER_TABLES:

@@ -2168,3 +2168,61 @@ than decided in passing.
 The cost is that the cluster carries no credentials: the dump holds
 none, and service account tokens are minted on demand by the current
 API. Every finding on a cluster is a privilege finding.
+
+## D-080: A project export is gcloud's own answers under one roof, and a role is read three ways
+
+Google Cloud is the fourth native provider. It answers in pieces, each
+a gcloud command's own JSON, and no single command gives who holds
+what together with what they hold it with. So the file is one document
+that holds those pieces verbatim under a key each: the project, its
+policy, its service accounts, their keys, and two optional pieces, the
+permission lists of any roles worth reading and the last
+authentication per account from the activity analyzer. The pieces are
+the provider's shapes untouched, so a person assembles the document
+with the commands the parser names and nothing else; the assembly is
+the operator's private act, as D-076 says.
+
+A role is read three ways, in this order of preference. When the
+export carries a role's permission list, the list is read: a
+permission that sets a policy or mints a credential or lets a
+principal act as an account changes access, any create, update, or
+delete writes, any get or list reads, and the list rides as actions so
+a changed custom role names what it gained. Otherwise a small table of
+the roles whose meaning the provider fixes is consulted: owner
+administers; editor writes and does not change access; the
+administration roles and the service account roles change access. For
+any other predefined role the name is read, since the provider names
+its roles by what they do: a viewer reads, an admin or an editor or a
+user writes. That last reading is stated as what it is, a reading of a
+name, and the permission list is the way to replace it for any role
+that matters.
+
+Every member form a policy can write is read. A user is seen only
+through its bindings, with no credential and no second factor state,
+because the project's policy says nothing about how anyone signs in.
+A group and a domain are identities from an identity provider whose
+members the project cannot list. The two public forms are guests from
+the consumer world named for what they are. A deleted principal a
+policy still names enters with origin deleted, so a binding nobody
+cleaned up shows in the delta as held by something that no longer
+exists. A federated principal enters from an identity provider.
+
+Only a user-managed key is a credential. A Google-managed key rotates
+on its own and is nobody's to lose, and recording it would flag every
+account for a key it cannot misplace. Activity comes from the activity
+analyzer when the export carries it, and an account with keys and no
+activity reads as unused, which is true of the export and is the
+reason the field exists.
+
+Rejected: the asset inventory export as the first shape, because it
+writes to a bucket rather than a file and its record shape was not on
+the page read for this decision; it remains the path to organizations
+and folders, and arrives when a real organization is first read. Also
+rejected: a public binding as a finding of its own, for the reason
+D-079 gave, and noted as the same open question; and reading a
+binding's condition, which the file carries and the importer keeps as
+the grant's source reference unread.
+
+The cost is the reading of a name for a predefined role the export
+does not describe, which is the weakest reading in this repository and
+is stated as such beside the stronger one that replaces it.

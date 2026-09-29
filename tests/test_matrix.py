@@ -100,6 +100,25 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
             "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
         },
     ),
+    "POST /imports/google-cloud": (
+        "post",
+        "/imports/google-cloud",
+        {
+            "files": {
+                "file": (
+                    "project.json",
+                    json.dumps({
+                        "project": {"projectId": "matrix-project", "projectNumber": "1"},
+                        "policy": {"bindings": [
+                            {"role": "roles/viewer", "members": ["user:matrix@example.test"]},
+                        ]},
+                    }).encode(),
+                    "application/json",
+                )
+            },
+            "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
+        },
+    ),
     "POST /imports/kubernetes-rbac": (
         "post",
         "/imports/kubernetes-rbac",

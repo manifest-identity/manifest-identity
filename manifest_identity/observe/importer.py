@@ -57,6 +57,7 @@ SHAPE_AUTHORIZATION = "authorization-details"
 SHAPE_CREDENTIAL = "credential-report"
 SHAPE_GITHUB = "github-organization"
 SHAPE_KUBERNETES = "kubernetes-rbac"
+SHAPE_GOOGLE = "google-cloud"
 SHAPE_TABLE = "table"
 
 
@@ -75,6 +76,8 @@ def detect_source(data: bytes) -> str | None:
             return SHAPE_AUTHORIZATION
         if b"rbac.authorization.k8s.io" in window or b'"kind": "List"' in window:
             return SHAPE_KUBERNETES
+        if b'"projectId"' in window and b'"policy"' in window:
+            return SHAPE_GOOGLE
         if b'"organization"' in window:
             return SHAPE_GITHUB
         return None
