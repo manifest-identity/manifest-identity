@@ -1,0 +1,6 @@
+provider,account,identity_id,identity_name,identity_type,identity_kind,role,role_name,mode,path
+gcp,sample-project,user:sam@example.test,sam@example.test,user,person,roles/owner,roles/owner,standing,
+gcp,sample-project,serviceAccount:ci@sample-project.iam.gserviceaccount.com,ci@sample-project.iam.gserviceaccount.com,serviceAccount,service,roles/editor,roles/editor,standing,
+gcp,sample-project,group:data-readers@example.test,data-readers@example.test,group,group,roles/bigquery.dataViewer,roles/bigquery.dataViewer,standing,
+gcp,sample-project,serviceAccount:legacy@sample-project.iam.gserviceaccount.com,legacy@sample-project.iam.gserviceaccount.com,serviceAccount,service,roles/iam.serviceAccountKeyAdmin,roles/iam.serviceAccountKeyAdmin,standing,
+gcp,sample-project,allUsers,allUsers,allUsers,external,roles/storage.objectViewer,roles/storage.objectViewer,standing,

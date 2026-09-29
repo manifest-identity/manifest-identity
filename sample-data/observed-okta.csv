@@ -1,0 +1,5 @@
+provider,account,identity_id,identity_name,identity_type,identity_kind,role,role_name,mode,path
+okta,sample-org,00u0000000000000sam,sam@example.test,user,person,SUPER_ADMIN,Super Organization Administrator,standing,
+okta,sample-org,00u0000000000000rita,rita@example.test,user,person,ORG_ADMIN,Organization Administrator,standing,membership:group
+okta,sample-org,00u0000000000000help,helpdesk@example.test,user,person,HELP_DESK_ADMIN,Help Desk Administrator,standing,
+okta,sample-org,00u0000000000000audit,auditor@example.test,user,person,READ_ONLY_ADMIN,Read Only Administrator,standing,

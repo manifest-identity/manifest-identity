@@ -1,0 +1,5 @@
+provider,account,identity_id,identity_name,identity_type,identity_kind,role,role_name,mode,path
+database,prod-db,16384,app_writer,role,unknown,app_rw,app_rw,standing,
+database,prod-db,16385,reporting,role,unknown,app_ro,app_ro,standing,
+database,prod-db,16386,dba_sam,role,unknown,superuser,superuser,standing,
+database,prod-db,16387,migrations,role,unknown,superuser,superuser,standing,

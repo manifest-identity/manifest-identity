@@ -2061,3 +2061,51 @@ tree a container job installs should not carry a browser it never
 opens; and a recorded-screenshot comparison, because a pixel
 difference says a pixel differs and not whether a person can still
 review an identity.
+
+## D-078: Every provider enters through the table door first, and a parser is earned
+
+The provider list names ten providers and the neutral model serves all
+of them, but until this decision only two had a way in that a person
+could try, and the gap between what the list promised and what a
+person could do was the kind of gap that teaches a reader to discount
+the list.
+
+So every provider on the list now has a recipe: the command that
+produces the provider's own export, a transformation to the table the
+door already reads (D-074), and a shipped sample table so the provider
+can be tried before any command is run. The transformations are jq
+programs where the export is JSON, a PowerShell script where the
+export is a directory query, and a SQL script where the export is a
+catalog query. The jq recipes are run by the test suite against inputs
+in each provider's documented shape, and their output must import
+clean through the shipped mapping, so a recipe is a tested artifact
+rather than a paragraph; the two script recipes are documented and
+shipped, and their sample tables are the tested half, because a domain
+controller and a database server are not things a test can carry.
+
+What the door gives a provider, and what it does not, is stated in the
+README beside the recipes and in each recipe's header: the inventory,
+the authorization record, the delta, and campaigns the same day;
+credentials, second-factor state, activity, relationships, and
+definition contents when the provider earns a parser. Each recipe's
+header names the specific thing it leaves behind, so a person reading
+a Kubernetes group with no members or an Azure assignment filed under
+its subscription knows it is the recipe's limit and not the estate's
+truth.
+
+A parser is earned, in this order: Kubernetes and Google Cloud, whose
+exports are single files the provider already produces; then Azure and
+Entra and Okta, which have no single export and take the assembled
+document pattern from D-076. Each arrives as its own subphase in the
+shape 1.12 set, and replaces its recipe's limits one by one.
+
+Rejected: a parser for every provider before any could be tried,
+which would have left the list unusable for months; recipes as prose
+without a runnable half, because a jq program in a paragraph rots the
+day the provider's output changes and nobody notices; and importing
+the sample tables into the demo, because seven accounts of table-level
+rows would bury the two estates whose findings the demo exists to show.
+
+The door's own limit stays as it was: it files every provider's root
+under a node of kind account, whatever the provider calls it, and a
+native parser names the node correctly when it arrives.

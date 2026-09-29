@@ -1,0 +1,5 @@
+provider,account,identity_id,identity_name,identity_type,identity_kind,role,role_name,mode,path
+active_directory,corp,S-1-5-21-1000-1,sam.owner,user,person,Domain Admins,Domain Admins,standing,
+active_directory,corp,S-1-5-21-1000-2,svc-backup,user,service,Backup Operators,Backup Operators,standing,
+active_directory,corp,S-1-5-21-1000-3,helpdesk-tier1,group,group,Account Operators,Account Operators,standing,
+active_directory,corp,S-1-5-21-1000-4,legacy.mike,user,person,Domain Admins,Domain Admins,standing,membership:infra-admins
