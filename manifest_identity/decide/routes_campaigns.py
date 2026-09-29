@@ -18,14 +18,19 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.authorize import authorizations
+from manifest_identity.compare import delta
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, ThrottledWrite, require_roles, require_scope
+from manifest_identity.core.models import aware
+from manifest_identity.decide import alerts
 from manifest_identity.decide.campaigns import (
     Recommendation,
     evidence_delta,
     recommend,
 )
+from manifest_identity.decide.models import CampaignTrigger
 from manifest_identity.models import Campaign, CampaignItem, Identity, utcnow
 from manifest_identity.observe.assessment import (
     AssessedGroup,
@@ -43,6 +48,12 @@ class CreateCampaignRequest(BaseModel):
     scope: Literal["everything", "privileged", "flagged", "users", "roles"]
     due_at: datetime
     recurrence: Literal["none", "monthly", "quarterly", "yearly"] = "none"
+    # What drives the population (1.8). Manual is the calendar review
+    # of a scope; delta is every identity with a finding a person must
+    # answer; expiry is every identity holding an authorization that
+    # ends within the window.
+    trigger: Literal["manual", "delta", "expiry"] = "manual"
+    within_days: int = Field(default=30, ge=1, le=365)
 
 
 class DispositionRequest(BaseModel):
@@ -81,6 +92,7 @@ class CampaignView(BaseModel):
     id: int
     name: str
     scope: str
+    trigger: str
     due_at: str
     recurrence: str
     created_by: str
@@ -191,6 +203,7 @@ def _campaign_view(campaign: Campaign, items: list[CampaignItem]) -> CampaignVie
         id=campaign.id,
         name=campaign.name,
         scope=campaign.scope,
+        trigger=campaign.trigger,
         due_at=campaign.due_at.isoformat(timespec="seconds"),
         recurrence=campaign.recurrence,
         created_by=campaign.created_by,
@@ -215,19 +228,41 @@ def build_campaign(
     due_at: datetime,
     recurrence: str,
     created_by: str,
+    trigger: str = CampaignTrigger.manual,
+    within_days: int = 30,
 ) -> tuple[Campaign, list[CampaignItem]]:
     """The campaign and its frozen population, one builder for every
     caller: the route and the demo command both create campaigns
-    through this, so a scope means the same population everywhere."""
+    through this, so a scope means the same population everywhere.
+
+    The trigger decides what the population is (1.8). Manual is the
+    calendar review of a scope, which auditors ask for and which stays.
+    Delta is every identity with a finding a person must answer, sent to
+    whoever can say whether the access should exist. Expiry is every
+    identity holding an authorization that ends within the window, sent
+    to the person who approved it. All three freeze into the same kind
+    of item, so one decision per item holds whatever asked for it.
+    """
     campaign = Campaign(
         name=name,
         scope=scope,
+        trigger=trigger,
         due_at=due_at,
         recurrence=recurrence,
         created_by=created_by,
     )
     db.add(campaign)
     db.flush()
+    if trigger == CampaignTrigger.delta:
+        items = _delta_items(db, campaign, scope)
+    elif trigger == CampaignTrigger.expiry:
+        items = _expiry_items(db, campaign, scope, within_days)
+    else:
+        items = _manual_items(db, campaign, scope)
+    return campaign, items
+
+
+def _manual_items(db: Session, campaign: Campaign, scope: str) -> list[CampaignItem]:
     items: list[CampaignItem] = []
     for a in assess_identities(db):
         if not _in_scope_identity(a, scope):
@@ -257,7 +292,126 @@ def build_campaign(
             recommendation_reasons=rec.reasons,
             evidence=_group_evidence(g),
         ))
-    return campaign, items
+    return items
+
+
+# The delta classes that argue for taking access away rather than for
+# looking again: access nobody authorized, access that outlived its
+# authorization, and privilege reachable without anyone having agreed.
+DELTA_REVOKE_KINDS = frozenset({
+    delta.HELD_NOT_AUTHORIZED,
+    delta.EXPIRED_STILL_HELD,
+    delta.ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP,
+    delta.ELIGIBLE_NOT_AUTHORIZED,
+})
+
+
+def _delta_items(db: Session, campaign: Campaign, scope: str) -> list[CampaignItem]:
+    """One item per identity that has something to answer, with the
+    findings as the evidence and the recommendation drawn from them."""
+    by_identity: dict[int, list[delta.DeltaFinding]] = {}
+    for finding in delta.for_estate(db):
+        by_identity.setdefault(finding.identity_id, []).append(finding)
+    assessed = {a.identity.id: a for a in assess_identities(db)}
+    items: list[CampaignItem] = []
+    for identity_id, findings in by_identity.items():
+        a = assessed.get(identity_id)
+        if a is None or not _in_scope_identity(a, scope):
+            continue
+        kinds = sorted({f.kind for f in findings})
+        revoke = [f for f in findings if f.kind in DELTA_REVOKE_KINDS]
+        verdict = "revoke_recommended" if revoke else "certify"
+        reasons = [f"{f.title}: {f.detail}" for f in findings]
+        if not revoke:
+            reasons.append("nothing here argues for revocation; confirm the record")
+        evidence = _identity_evidence(a)
+        # The delta classes join the identity's finding codes, so the
+        # next campaign's evidence delta reads a resolved class the same
+        # way it reads a resolved finding.
+        evidence["finding_codes"] = sorted({f.code for f in a.findings} | set(kinds))
+        evidence["delta"] = [
+            {"kind": f.kind, "title": f.title, "role": f.role, "detail": f.detail}
+            for f in findings
+        ]
+        items.append(CampaignItem(
+            campaign_id=campaign.id,
+            target_type="identity",
+            target_id=identity_id,
+            display_name=a.identity.first_display_name,
+            recommendation=verdict,
+            recommendation_reasons=reasons,
+            evidence=evidence,
+            origin_kind=CampaignTrigger.delta,
+            origin_ref=",".join(kinds)[:255],
+        ))
+    return items
+
+
+def _expiry_items(
+    db: Session, campaign: Campaign, scope: str, within_days: int
+) -> list[CampaignItem]:
+    """One item per identity holding an authorization that ends within
+    the window, so the person who approved it decides before the clock
+    does. Each such authorization also raises an alert, because an
+    expiry nobody heard about is the one that becomes expired-still-held."""
+    now = utcnow()
+    horizon = now + timedelta(days=within_days)
+    assessed = {a.identity.id: a for a in assess_identities(db)}
+    items: list[CampaignItem] = []
+    for identity_id, a in assessed.items():
+        if not _in_scope_identity(a, scope):
+            continue
+        ending = [
+            row for row in authorizations.active(db, identity_id, now)
+            if row.valid_until is not None and aware(row.valid_until) <= horizon
+        ]
+        if not ending:
+            continue
+        reasons = [
+            f"{row.role_definition_external_id} ends {row.valid_until.date()}, "
+            f"authorized by {row.authorizer_username}, owner {row.owner_ref}"
+            for row in ending
+            if row.valid_until is not None
+        ]
+        evidence = _identity_evidence(a)
+        evidence["expiring"] = [
+            {
+                "authorization_id": row.id,
+                "role": row.role_definition_external_id,
+                "valid_until": row.valid_until.isoformat(timespec="seconds"),
+                "owner": row.owner_ref,
+                "authorizer": row.authorizer_username,
+            }
+            for row in ending
+            if row.valid_until is not None
+        ]
+        items.append(CampaignItem(
+            campaign_id=campaign.id,
+            target_type="identity",
+            target_id=identity_id,
+            display_name=a.identity.first_display_name,
+            recommendation="certify",
+            recommendation_reasons=["renew or let it end: " + r for r in reasons],
+            evidence=evidence,
+            origin_kind=CampaignTrigger.expiry,
+            origin_ref=",".join(str(row.id) for row in ending)[:255],
+        ))
+        for row in ending:
+            alerts.raise_alert(
+                db,
+                event_kind=alerts.EXPIRY_APPROACHING,
+                subject_kind="authorization",
+                subject_ref=str(row.id),
+                detail=(
+                    f"{row.role_definition_external_id} for "
+                    f"{a.identity.first_display_name} ends "
+                    f"{row.valid_until.date() if row.valid_until else 'unknown'}"
+                ),
+                recipients=alerts.recipients_for(
+                    db, row.owner_ref, row.secondary_owner_ref, row.authorizer_username
+                ),
+            )
+    return items
 
 
 @router.post("/campaigns", status_code=201)
@@ -274,6 +428,8 @@ def create_campaign(
         due_at=body.due_at,
         recurrence=body.recurrence,
         created_by=auth.user.username,
+        trigger=body.trigger,
+        within_days=body.within_days,
     )
     if not items:
         raise HTTPException(
@@ -287,7 +443,7 @@ def create_campaign(
         actor_username=auth.user.username,
         action="campaign_created",
         target=f"campaign:{campaign.id}",
-        detail=f"{body.name}: scope {body.scope}, {len(items)} item(s)",
+        detail=f"{body.name}: {body.trigger} over {body.scope}, {len(items)} item(s)",
     )
     db.commit()
     return _campaign_view(campaign, items)
@@ -451,6 +607,22 @@ def dispose_item(
         detail=f"{item.display_name}: {body.disposition}"
         + (f" ({body.note})" if body.note else ""),
     )
+    if body.disposition == "revoke_recommended":
+        owner = (item.evidence or {}).get("owner") if item.evidence else None
+        alerts.raise_alert(
+            db,
+            event_kind=alerts.REVOCATION_RECOMMENDED,
+            subject_kind=item.target_type,
+            subject_ref=str(item.target_id),
+            detail=(
+                f"{auth.user.username} recommended revoking {item.display_name} "
+                f"in campaign {campaign.name}"
+                + (f": {body.note}" if body.note else "")
+            ),
+            recipients=alerts.recipients_for(
+                db, str(owner) if isinstance(owner, str) else None
+            ),
+        )
     db.commit()
     return ItemView(
         id=item.id,

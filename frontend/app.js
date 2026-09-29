@@ -611,7 +611,7 @@ async function loadCampaigns() {
   $("campaigns-empty").hidden = rows.length !== 0;
   for (const c of rows) {
     tbody.appendChild(row(
-      [c.name, c.scope, c.due_at, c.disposed + " of " + c.total,
+      [c.name, c.trigger + " over " + c.scope, c.due_at, c.disposed + " of " + c.total,
        c.recurrence, c.closed_at ? "closed" : "open"],
       () => loadCampaignDetail(c.id)));
   }
@@ -752,6 +752,8 @@ $("campaign-form").addEventListener("submit", async (e) => {
     body: JSON.stringify({
       name: form.get("name"),
       scope: form.get("scope"),
+      trigger: form.get("trigger"),
+      within_days: Number(form.get("within_days")) || 30,
       due_at: form.get("due_at"),
       recurrence: form.get("recurrence"),
     }),

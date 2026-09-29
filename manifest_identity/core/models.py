@@ -20,6 +20,14 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+def aware(moment: datetime) -> datetime:
+    """The same instant with its zone attached. SQLite hands timestamps
+    back naive and PostgreSQL hands them back aware, and comparing the
+    two raises; every column here is stored as UTC, so a missing zone is
+    UTC and not unknown."""
+    return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
+
+
 class Provider(StrEnum):
     """The vocabulary a scope node or an identity speaks."""
 

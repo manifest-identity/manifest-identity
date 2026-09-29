@@ -27,6 +27,7 @@ from manifest_identity.core.bootstrap import bootstrap_admin
 from manifest_identity.core.config import get_settings
 from manifest_identity.core.db import database_reachable, get_engine
 from manifest_identity.core.logs import configure_logging, log_event
+from manifest_identity.decide import routes_alerts as alerts
 from manifest_identity.decide import routes_campaigns as campaigns
 from manifest_identity.decide import routes_reports as reports
 from manifest_identity.observe import routes_imports as imports
@@ -132,6 +133,7 @@ def create_app() -> FastAPI:
     app.include_router(role_definitions.router)
     app.include_router(compare.router)
     app.include_router(campaigns.router)
+    app.include_router(alerts.router)
     app.include_router(reports.router)
 
     # The shell and its assets are public; every value they display

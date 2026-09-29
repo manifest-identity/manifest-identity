@@ -26,7 +26,7 @@ relaxation is audited.
 """
 
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -37,7 +37,8 @@ from manifest_identity.authorize.models import (
     EntryPath,
 )
 from manifest_identity.core import audit, options
-from manifest_identity.core.models import User, utcnow
+from manifest_identity.core.models import User, aware, utcnow
+from manifest_identity.decide import alerts
 
 # An owner who is a person is the orphan in waiting (D-038): the
 # person leaves and the access stays. A person may own an
@@ -96,16 +97,11 @@ def grant_key(path: list[dict[str, str]], role: str) -> str:
     return path_key(path) + "|" + role
 
 
-def _aware(moment: datetime) -> datetime:
-    # The unit-test database stores naive datetimes; comparisons here
-    # must not depend on which database answered.
-    return moment if moment.tzinfo is not None else moment.replace(tzinfo=UTC)
-
 
 def is_expired(row: Authorization, now: datetime | None = None) -> bool:
     if row.valid_until is None:
         return False
-    return _aware(row.valid_until) <= (now or utcnow())
+    return aware(row.valid_until) <= (now or utcnow())
 
 
 def status_of(row: Authorization, now: datetime | None = None) -> str:
@@ -154,7 +150,7 @@ def active(
         row
         for row in latest_rows(db, identity_id)
         if status_of(row, moment) == AuthorizationStatus.authorized
-        and _aware(row.valid_from) <= moment
+        and aware(row.valid_from) <= moment
     ]
 
 
@@ -208,7 +204,7 @@ def check_only(
     preview cannot promise a row the write would refuse: there is one
     set of rules and this is it."""
     moment = now or utcnow()
-    valid_from = _aware(request.valid_from) if request.valid_from else moment
+    valid_from = aware(request.valid_from) if request.valid_from else moment
     maximum = options.get_int(db, "authorization.maximum_lifetime_days")
     if request.valid_until is None:
         # Nothing said: the organization's bound is the answer, so the
@@ -219,7 +215,7 @@ def check_only(
             else None
         )
     else:
-        valid_until = _aware(request.valid_until)
+        valid_until = aware(request.valid_until)
     _check(db, request, valid_until)
     if valid_until is not None:
         if valid_until <= valid_from:
@@ -279,6 +275,20 @@ def authorize(
             + (f", until {valid_until.date()}" if valid_until else ", no expiry")
         ),
     )
+    alerts.raise_alert(
+        db,
+        event_kind=alerts.AUTHORIZATION_WRITTEN,
+        subject_kind="authorization",
+        subject_ref=str(row.id),
+        detail=(
+            f"{actor.username} authorized {request.role_definition_external_id} "
+            f"for identity {request.identity_id}"
+            + (f", until {valid_until.date()}" if valid_until else ", with no expiry")
+        ),
+        recipients=alerts.recipients_for(
+            db, request.owner_ref, request.secondary_owner_ref
+        ),
+    )
     return row
 
 
@@ -326,5 +336,18 @@ def revoke(
         action="authorization_revoked",
         target=f"identity:{target.identity_id}",
         detail=f"authorization {target.id}: {reason}",
+    )
+    alerts.raise_alert(
+        db,
+        event_kind=alerts.AUTHORIZATION_REVOKED,
+        subject_kind="authorization",
+        subject_ref=str(target.id),
+        detail=(
+            f"{actor.username} revoked {target.role_definition_external_id} "
+            f"for identity {target.identity_id}: {reason[:200]}"
+        ),
+        recipients=alerts.recipients_for(
+            db, target.owner_ref, target.secondary_owner_ref
+        ),
     )
     return row

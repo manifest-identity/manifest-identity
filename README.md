@@ -71,9 +71,9 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **276 tests in 33 files**, coverage 94 over a 90 percent floor |
+| Tests | **288 tests in 34 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **54 routes**, every one in the role matrix the tests walk |
+| Surface | **55 routes**, every one in the role matrix the tests walk |
 | Record | **74 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
@@ -485,7 +485,14 @@ who joined and who left, is computed and shown, because the delta is
 what a review actually reviews; re-reading the full list every
 quarter produces approval without attention.
 
-**Campaigns.** A campaign freezes its scope into items at creation,
+**Campaigns.** A campaign is driven by one of three things: the
+calendar, which reviews a scope and stays because auditors ask for it;
+the delta, which puts every identity with a finding a person must
+answer in front of whoever can say whether the access should exist; or
+expiry, which puts every authorization ending within a window in front
+of the person who approved it, and raises an alert for each so an
+expiry nobody heard about cannot become one still held. Whatever
+drives it, a campaign freezes its population into items at creation,
 each item carrying the evidence as it stood and the engine's
 recommendation with its reasons, so the review covers a stated
 population rather than a moving one; the population statement in the
@@ -778,6 +785,16 @@ audit_events
   was last heard from, because a finding from a month-old import is
   true about a month-old world, and a stale side makes a difference
   look like agreement (threat 15).
+- An **alert** is a record that people were told, and each delivery to
+  each recipient is its own row with its result, so "nobody told me"
+  is answerable either way. Alerts fire on an authorization written or
+  revoked, an authorization entering its expiry window, and a
+  revocation recommended by a review, which is the work item the tool
+  produces because it never acts. Delivery sits behind one narrow
+  interface; this release records and does not send, so the failure
+  paths and the recipient bound are built and tested before any mail
+  server is involved. A delivery that fails is recorded as failed and
+  never breaks the action that raised it.
 - A **governance record** is the human layer: an owner, a purpose, a
   flag, or an attestation, on an identity or a group (D-019),
   attributed and audited, stored rather than derived because it IS the
@@ -833,6 +850,7 @@ POST /relationships/{authorization_id}/revoke
 GET /role-definitions
 POST /role-definitions/authorize
 POST /role-definitions/{authorization_id}/revoke
+GET /alerts
 GET /delta
 GET /identities/{identity_id}/delta
 GET /identities/{identity_id}/observed-grants
@@ -902,6 +920,7 @@ holds the reviews and the alerts.
 | `manifest_identity/authorize/governance.py` | The human layer: typed owners, purposes, flags, attestations |
 | `manifest_identity/core/options.py` | Administrator settings, secure by default, audited on every change |
 | `manifest_identity/decide/campaigns.py` | Recommendations with reasons, and the delta since last certification |
+| `manifest_identity/decide/alerts.py` | The alert record, the delivery interface, and the one deliverer that records rather than sends |
 | `manifest_identity/decide/reports.py` | The ranked report and the escaped exports |
 | `manifest_identity/sample_data.py` | The deterministic sample account generator |
 | `frontend/` | One page, no build step; every value rendered as text |

@@ -59,6 +59,25 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         ["tests/test_role_definitions.py"],
     ),
     (
+        # 1.8: a campaign driven by the delta must be populated by it.
+        # Reading nothing leaves the campaign empty, which the route
+        # refuses, and the test for the trigger must notice.
+        "a delta-driven campaign ignores the delta",
+        "manifest_identity/decide/routes_campaigns.py",
+        "    for finding in delta.for_estate(db):",
+        "    for finding in []:",
+        ["tests/test_campaigns.py"],
+    ),
+    (
+        # 1.9: a delivery that fails must be recorded as failed. Recording
+        # it as delivered is the lie the whole table exists to prevent.
+        "a failed delivery is recorded as delivered",
+        "manifest_identity/decide/alerts.py",
+        "            result, note = RESULT_FAILED, f",
+        "            result, note = RESULT_RECORDED, f",
+        ["tests/test_alerts.py"],
+    ),
+    (
         "authorization check removed",
         "manifest_identity/core/deps.py",
         "        if not held & {r.value for r in allowed}:",

@@ -281,3 +281,171 @@ def test_the_delta_reads_evidence_differences() -> None:
                for line in lines)
     assert any("lost" in line and "ReadOnly" in line for line in lines)
     assert evidence_delta(None, current) == []
+
+
+# Batch two (1.8): what drives a campaign, and the work item a
+# revocation produces. The population machinery is unchanged; the tests
+# hold that each trigger freezes the population it claims and nothing
+# else.
+
+
+def create_driven(
+    client: TestClient, token: str, trigger: str, *, within_days: int = 30,
+    expect: int = 201,
+) -> dict[str, object]:
+    r = client.post(
+        "/campaigns",
+        headers=auth_header(token),
+        json={
+            "name": f"{trigger} review",
+            "scope": "everything",
+            "trigger": trigger,
+            "within_days": within_days,
+            "due_at": "2026-09-30T00:00:00+00:00",
+            "recurrence": "none",
+        },
+    )
+    assert r.status_code == expect, r.text
+    return r.json()
+
+
+def test_a_delta_campaign_holds_only_identities_with_something_to_answer(
+    client: TestClient, db: Session
+) -> None:
+    """Two identities, one holding administrator nobody authorized. The
+    delta campaign has one item, it names the class, and it recommends
+    revocation for the reason the delta gave."""
+    token = operator_token(client, db)
+    make_population(client, db, token)
+    campaign = create_driven(client, token, "delta")
+    assert campaign["trigger"] == "delta"
+    detail = client.get(
+        f"/campaigns/{campaign['id']}", headers=auth_header(token)
+    ).json()
+    names = {item["display_name"] for item in detail["items"]}
+    assert names == {"mighty"}
+    item = detail["items"][0]
+    assert item["recommendation"] == "revoke_recommended"
+    assert any("held but not authorized" in r for r in item["recommendation_reasons"])
+    assert "held_not_authorized" in item["evidence"]["finding_codes"]
+
+
+def test_a_delta_campaign_with_nothing_to_answer_is_refused(
+    client: TestClient, db: Session
+) -> None:
+    token = operator_token(client, db)
+    make_population(client, db, token)
+    # Authorize the one held grant, so the delta has nothing to say.
+    mighty = identity_id(db, "mighty")
+    r = client.post(
+        f"/identities/{mighty}/authorizations",
+        headers=auth_header(token),
+        json={
+            "role_definition_external_id": "arn:aws:iam::aws:policy/AdministratorAccess",
+            "path": [{"via": "direct", "ref": "", "mode": "active"}],
+            "owner_kind": "team", "owner_ref": "platform-team",
+            "justification": "agreed",
+        },
+    )
+    assert r.status_code == 201, r.text
+    create_driven(client, token, "delta", expect=422)
+
+
+def test_an_expiry_campaign_holds_what_ends_within_the_window_and_tells_people(
+    client: TestClient, db: Session
+) -> None:
+    from datetime import UTC, datetime, timedelta
+
+    from manifest_identity.decide import alerts
+    from manifest_identity.models import Alert
+
+    token = operator_token(client, db)
+    make_population(client, db, token)
+    soon = (datetime.now(UTC) + timedelta(days=10)).isoformat()
+    late = (datetime.now(UTC) + timedelta(days=200)).isoformat()
+    mighty = identity_id(db, "mighty")
+    keeper = identity_id(db, "keeper")
+    for who, until in ((mighty, soon), (keeper, late)):
+        r = client.post(
+            f"/identities/{who}/authorizations",
+            headers=auth_header(token),
+            json={
+                "role_definition_external_id": "arn:aws:iam::aws:policy/AdministratorAccess",
+                "path": [{"via": "direct", "ref": "", "mode": "active"}],
+                "owner_kind": "team", "owner_ref": "platform-team",
+                "justification": "time-boxed", "valid_until": until,
+            },
+        )
+        assert r.status_code == 201, r.text
+    campaign = create_driven(client, token, "expiry", within_days=30)
+    detail = client.get(
+        f"/campaigns/{campaign['id']}", headers=auth_header(token)
+    ).json()
+    assert {item["display_name"] for item in detail["items"]} == {"mighty"}
+    item = detail["items"][0]
+    assert item["evidence"]["expiring"][0]["owner"] == "platform-team"
+    assert any(r.startswith("renew or let it end") for r in item["recommendation_reasons"])
+    raised = list(db.execute(
+        select(Alert).where(Alert.event_kind == alerts.EXPIRY_APPROACHING)
+    ).scalars())
+    assert len(raised) == 1
+
+
+def test_a_revocation_recommended_produces_a_work_item(
+    client: TestClient, db: Session
+) -> None:
+    """The tool never acts, so the work item is the alert that tells
+    the owner and the administrators somebody has to."""
+    from manifest_identity.decide import alerts
+    from manifest_identity.models import Alert, AlertDelivery
+
+    token = operator_token(client, db)
+    # Somebody has to be told: an administrator exists to hear it.
+    make_user(db, Role.administrator)
+    make_population(client, db, token)
+    campaign = create_driven(client, token, "delta")
+    detail = client.get(
+        f"/campaigns/{campaign['id']}", headers=auth_header(token)
+    ).json()
+    item = detail["items"][0]
+    r = client.post(
+        f"/campaigns/{campaign['id']}/items/{item['id']}/disposition",
+        headers=auth_header(token),
+        json={"disposition": "revoke_recommended", "note": "nobody authorized this"},
+    )
+    assert r.status_code == 200, r.text
+    raised = list(db.execute(
+        select(Alert).where(Alert.event_kind == alerts.REVOCATION_RECOMMENDED)
+    ).scalars())
+    assert len(raised) == 1
+    assert "nobody authorized this" in (raised[0].detail or "")
+    recipients = {
+        d.recipient for d in db.execute(
+            select(AlertDelivery).where(AlertDelivery.alert_id == raised[0].id)
+        ).scalars()
+    }
+    assert recipients, "the work item reached nobody"
+
+
+def test_a_certification_produces_no_work_item(
+    client: TestClient, db: Session
+) -> None:
+    from manifest_identity.decide import alerts
+    from manifest_identity.models import Alert
+
+    token = operator_token(client, db)
+    make_population(client, db, token)
+    campaign = create_campaign(client, token)
+    detail = client.get(
+        f"/campaigns/{campaign['id']}", headers=auth_header(token)
+    ).json()
+    item = detail["items"][0]
+    r = client.post(
+        f"/campaigns/{campaign['id']}/items/{item['id']}/disposition",
+        headers=auth_header(token),
+        json={"disposition": "certify"},
+    )
+    assert r.status_code == 200, r.text
+    assert not list(db.execute(
+        select(Alert).where(Alert.event_kind == alerts.REVOCATION_RECOMMENDED)
+    ).scalars())

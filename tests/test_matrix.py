@@ -202,6 +202,7 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
         "/role-definitions/999999/revoke",
         {"json": {"reason": "matrix exercise"}},
     ),
+    "GET /alerts": ("get", "/alerts", {}),
     "GET /identities": ("get", "/identities", {}),
     "GET /identities/{identity_id}": ("get", "/identities/999999", {}),
     "GET /groups": ("get", "/groups", {}),

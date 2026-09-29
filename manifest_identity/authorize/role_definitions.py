@@ -23,7 +23,7 @@ version of it replaces that answer rather than sitting beside it.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -33,7 +33,7 @@ from manifest_identity.authorize.models import (
     AuthorizedRoleDefinition,
 )
 from manifest_identity.core import audit
-from manifest_identity.core.models import User, utcnow
+from manifest_identity.core.models import User, aware, utcnow
 from manifest_identity.observe.models import RoleDefinition
 
 OWNER_KINDS = ("person", "team", "service")
@@ -56,13 +56,10 @@ class Request:
     valid_until: datetime | None
 
 
-def _aware(moment: datetime) -> datetime:
-    return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
-
 
 def is_expired(row: AuthorizedRoleDefinition, now: datetime | None = None) -> bool:
     moment = now or utcnow()
-    return row.valid_until is not None and _aware(row.valid_until) <= moment
+    return row.valid_until is not None and aware(row.valid_until) <= moment
 
 
 def status_of(row: AuthorizedRoleDefinition, now: datetime | None = None) -> str:
@@ -139,8 +136,8 @@ def check(db: Session, request: Request, now: datetime) -> tuple[
             "a provider's built-in definition is the provider's to change; "
             "only a custom one is authorized here"
         )
-    valid_from = _aware(request.valid_from) if request.valid_from else now
-    valid_until = _aware(request.valid_until) if request.valid_until else None
+    valid_from = aware(request.valid_from) if request.valid_from else now
+    valid_until = aware(request.valid_until) if request.valid_until else None
     if valid_until is not None and valid_until <= valid_from:
         raise RoleDefinitionError("the validity window ends before it starts")
     return definition, valid_from, valid_until

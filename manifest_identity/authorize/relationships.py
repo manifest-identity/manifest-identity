@@ -22,7 +22,7 @@ silently replaced a first that governed something else.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -32,7 +32,7 @@ from manifest_identity.authorize.models import (
     AuthorizedRelationship,
 )
 from manifest_identity.core import audit
-from manifest_identity.core.models import User, utcnow
+from manifest_identity.core.models import User, aware, utcnow
 
 OWNER_KINDS = ("person", "team", "service")
 
@@ -63,13 +63,10 @@ def door_key(kind: str, to_identity_id: int | None, from_ref: str) -> str:
     return f"{kind}|{to_identity_id or 0}|{from_ref}"
 
 
-def _aware(moment: datetime) -> datetime:
-    return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
-
 
 def is_expired(row: AuthorizedRelationship, now: datetime | None = None) -> bool:
     moment = now or utcnow()
-    return row.valid_until is not None and _aware(row.valid_until) <= moment
+    return row.valid_until is not None and aware(row.valid_until) <= moment
 
 
 def status_of(row: AuthorizedRelationship, now: datetime | None = None) -> str:
@@ -125,8 +122,8 @@ def check(request: Request, now: datetime) -> tuple[datetime, datetime | None]:
         raise RelationshipError(
             "a relationship needs what it reaches: an identity or a scope"
         )
-    valid_from = _aware(request.valid_from) if request.valid_from else now
-    valid_until = _aware(request.valid_until) if request.valid_until else None
+    valid_from = aware(request.valid_from) if request.valid_from else now
+    valid_until = aware(request.valid_until) if request.valid_until else None
     if valid_until is not None and valid_until <= valid_from:
         raise RelationshipError("the validity window ends before it starts")
     return valid_from, valid_until
