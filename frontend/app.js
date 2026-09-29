@@ -279,6 +279,9 @@ async function loadDetail(id) {
     sources.appendChild(li);
   }
 
+  renderAccess("detail-holds", "holds-empty", d.holds_now);
+  renderAccess("detail-obtain", "obtain-empty", d.can_obtain);
+
   renderDetailGovernance(d);
   await renderAuthorizations(id);
 
@@ -362,6 +365,34 @@ async function renderAuthorizations(id) {
       r.valid_until ? r.valid_until.slice(0, 10) : "",
     ]));
   }
+}
+
+// Every value here reaches the page as text, including the route, which
+// is built from the provider's own strings and is therefore untrusted.
+function renderAccess(listId, emptyId, entries) {
+  const list = $(listId);
+  list.replaceChildren();
+  $(emptyId).hidden = entries.length > 0;
+  for (const entry of entries) {
+    const li = document.createElement("li");
+    const name = document.createElement("strong");
+    name.textContent = entry.role;
+    li.appendChild(name);
+    li.appendChild(document.createTextNode(" " + describeRoute(entry)));
+    list.appendChild(li);
+  }
+}
+
+// The route in words, because "membership, platform" is not a sentence
+// and a reviewer should not have to learn the record's shape to read it.
+function describeRoute(entry) {
+  const steps = entry.path.map((hop) => {
+    if (hop.via === "membership") return "through the group " + hop.ref;
+    if (hop.via === "trust") return "by assuming " + hop.ref;
+    return "held directly";
+  });
+  const route = steps.length ? steps.join(", then ") : "held directly";
+  return entry.mode === "eligible" ? route + ", when it chooses" : route;
 }
 
 function renderDetailGovernance(d) {

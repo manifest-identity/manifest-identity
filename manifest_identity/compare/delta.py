@@ -28,22 +28,30 @@ month-old world, and saying so is the difference between a delta and
 a claim.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from manifest_identity.authorize import authorizations, from_observed
+from manifest_identity.authorize import authorizations, from_observed, relationships
 from manifest_identity.authorize.models import (
     Authorization,
     AuthorizationStatus,
     GovernanceRecord,
 )
 from manifest_identity.core.models import ScopeNode
+from manifest_identity.observe import paths
 from manifest_identity.observe.models import Identity, IdentityKind, Import
 
 HELD_NOT_AUTHORIZED = "held_not_authorized"
+# Access that arrives through a door nobody authorized, and privilege an
+# identity can take at will that nobody wrote down. Both are things the
+# old comparison could not see, because it read what an identity holds
+# and access does not only arrive by being held (1.6).
+ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP = "access_via_unauthorized_relationship"
+ELIGIBLE_NOT_AUTHORIZED = "eligible_not_authorized"
 AUTHORIZED_NOT_HELD = "authorized_not_held"
 EXPIRED_STILL_HELD = "expired_still_held"
 OWNER_DISAGREEMENT = "owner_disagreement"
@@ -53,7 +61,9 @@ DEFINITION_CHANGED = "definition_changed"
 # a campaign should queue them.
 CLASSES = (
     HELD_NOT_AUTHORIZED,
+    ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP,
     EXPIRED_STILL_HELD,
+    ELIGIBLE_NOT_AUTHORIZED,
     DEFINITION_CHANGED,
     AUTHORIZED_NOT_HELD,
     OWNER_DISAGREEMENT,
@@ -61,6 +71,8 @@ CLASSES = (
 
 TITLES = {
     HELD_NOT_AUTHORIZED: "held but not authorized",
+    ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP: "reached through an unauthorized relationship",
+    ELIGIBLE_NOT_AUTHORIZED: "can be obtained and is not authorized",
     AUTHORIZED_NOT_HELD: "authorized but not held",
     EXPIRED_STILL_HELD: "expired and still held",
     OWNER_DISAGREEMENT: "owner disagreement",
@@ -206,7 +218,65 @@ def for_identity(
                 HELD_NOT_AUTHORIZED, grant.role_definition_external_id, grant.path,
                 "the identity holds this and no authorization covers it",
             ))
+    out.extend(_reachable_findings(db, identity, finding, live_keys, now))
     out.sort(key=lambda f: (CLASSES.index(f.kind), f.role))
+    return out
+
+
+def _reachable_findings(
+    db: Session,
+    identity: Identity,
+    finding: Callable[..., DeltaFinding],
+    live_keys: set[str],
+    now: datetime | None,
+) -> list[DeltaFinding]:
+    """The two classes that read the route rather than the hold.
+
+    Comparing what an identity holds against what was authorized misses
+    everything that arrives another way. A role an identity may assume
+    is privilege it can take whenever it likes, and the door it takes it
+    through is a thing somebody should have agreed to. Both are computed
+    from the same expansion the page and the export use.
+    """
+    newest = paths.newest_import(db, identity.scope_node_id)
+    if newest is None:
+        return []
+    reachable = paths.for_identity(db, import_id=newest, identity=identity)
+    standing_doors = {
+        relationships.door_key(row.kind, row.to_identity_id, row.from_ref)
+        for row in relationships.latest_rows(db)
+        if relationships.status_of(row, now) == AuthorizationStatus.authorized
+    }
+
+    out: list[DeltaFinding] = []
+    for kind, into, from_ref in paths.doors_for(
+        db, import_id=newest, identity=identity
+    ):
+        if relationships.door_key(kind, into, from_ref) in standing_doors:
+            continue
+        reached = db.get(Identity, into) if into else None
+        out.append(finding(
+            ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP,
+            reached.first_display_name if reached else "",
+            [{"via": "trust", "ref": reached.first_display_name if reached else "",
+              "mode": "assumable"}],
+            f"this identity may cross a {kind} into "
+            f"{reached.first_display_name if reached else 'an unnamed target'} "
+            f"from {from_ref}, and no authorization covers that "
+            f"{kind}",
+        ))
+
+    for path in reachable:
+        hops = [hop.as_dict() for hop in path.hops]
+        if path.holds_now:
+            continue
+        if _key(hops, path.role_ref) in live_keys:
+            continue
+        out.append(finding(
+            ELIGIBLE_NOT_AUTHORIZED, path.role_ref, hops,
+            "the identity can obtain this whenever it chooses and no "
+            "authorization covers it",
+        ))
     return out
 
 

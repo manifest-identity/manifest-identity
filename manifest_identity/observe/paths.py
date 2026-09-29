@@ -40,6 +40,7 @@ from manifest_identity.observe.models import (
     GrantMode,
     Identity,
     IdentityObservation,
+    Import,
     Membership,
     ObservedRelationship,
     RoleDefinition,
@@ -78,6 +79,7 @@ class AccessPath:
     role_definition_id: int
     role_name: str
     role_ref: str
+    role_hash: str
     scope_node_id: int
     mode: str
     hops: list[Hop] = field(default_factory=list)
@@ -90,24 +92,37 @@ class AccessPath:
 
     @property
     def through(self) -> str:
-        """The hop that makes this path worth reading, for a list that
-        has room for one word: the last step that was not direct."""
-        for hop in reversed(self.hops):
-            if hop.via != VIA_DIRECT:
-                return hop.via
-        return VIA_DIRECT
+        """How the access arrives, for a list with room for one word."""
+        return self.hops[-1].via if self.hops else VIA_DIRECT
 
     def as_dict(self) -> dict[str, object]:
         return {
             "role_definition_id": self.role_definition_id,
             "role": self.role_name,
             "role_ref": self.role_ref,
+            "role_hash": self.role_hash,
             "scope_node_id": self.scope_node_id,
             "mode": self.mode,
             "through": self.through,
             "path": [hop.as_dict() for hop in self.hops],
             "source_kind": self.source_kind,
         }
+
+
+def newest_import(db: Session, node_id: int) -> int | None:
+    """The import every expansion reads: the newest authorization
+    details for a scope, by capture time. One definition, because two
+    readers disagreeing about which import is current would disagree
+    about what access exists."""
+    return db.execute(
+        select(Import.id)
+        .where(
+            Import.scope_node_id == node_id,
+            Import.source_kind == "aws_authorization_details",
+        )
+        .order_by(Import.captured_at.desc(), Import.id.desc())
+        .limit(1)
+    ).scalar()
 
 
 def _grants_for(db: Session, import_id: int, identity_ids: list[int]) -> list[Grant]:
@@ -205,7 +220,7 @@ def _assumable_by(
 
 def _reachable_roles(
     db: Session, import_id: int, identity: Identity
-) -> list[tuple[Identity, list[Hop]]]:
+) -> list[tuple[Identity, list[Hop], list[tuple[str, int | None, str]]]]:
     """Roles this identity can assume, and the chain of assumptions that
     reaches each one.
 
@@ -215,12 +230,16 @@ def _reachable_roles(
     is each role with the hops taken to arrive at it, which is what makes
     the answer explainable rather than only true.
     """
-    found: list[tuple[Identity, list[Hop]]] = []
+    found: list[tuple[Identity, list[Hop], list[tuple[str, int | None, str]]]] = []
     visited = {identity.id}
-    frontier: list[tuple[Identity, list[Hop]]] = [(identity, [])]
+    frontier: list[tuple[Identity, list[Hop], list[tuple[str, int | None, str]]]] = [
+        (identity, [], [])
+    ]
     for _ in range(TRUST_HOPS):
-        onward: list[tuple[Identity, list[Hop]]] = []
-        for current, hops in frontier:
+        onward: list[
+            tuple[Identity, list[Hop], list[tuple[str, int | None, str]]]
+        ] = []
+        for current, hops, doors in frontier:
             for relationship in _assumable_by(db, import_id, current):
                 if relationship.to_identity_id is None:
                     continue
@@ -229,12 +248,38 @@ def _reachable_roles(
                     continue
                 visited.add(role.id)
                 chain = [*hops, Hop(VIA_TRUST, role.first_display_name, "assumable")]
-                found.append((role, chain))
-                onward.append((role, chain))
+                crossed = [
+                    *doors,
+                    (
+                        relationship.kind,
+                        relationship.to_identity_id,
+                        relationship.from_ref,
+                    ),
+                ]
+                found.append((role, chain, crossed))
+                onward.append((role, chain, crossed))
         if not onward:
             break
         frontier = onward
     return found
+
+
+def doors_for(
+    db: Session, *, import_id: int, identity: Identity
+) -> list[tuple[str, int | None, str]]:
+    """Every door this identity may cross, as (kind, identity trusted
+    into, principal trusted from).
+
+    Read from the relationships rather than from the paths, because a
+    role that holds nothing today is still a way in, and it can hold
+    everything tomorrow. Only the doors this identity crosses itself:
+    a door the role crosses onward belongs to that role, which is an
+    identity in its own right and gets asked the same question.
+    """
+    return [
+        (row.kind, row.to_identity_id, row.from_ref)
+        for row in _assumable_by(db, import_id, identity)
+    ]
 
 
 def for_identity(
@@ -257,7 +302,7 @@ def for_identity(
     through_groups = _grants_for(db, import_id, list(groups))
 
     reachable = _reachable_roles(db, import_id, identity)
-    through_roles = _grants_for(db, import_id, [role.id for role, _ in reachable])
+    through_roles = _grants_for(db, import_id, [role.id for role, _, _ in reachable])
 
     wanted = {
         grant.role_definition_id
@@ -274,6 +319,7 @@ def for_identity(
                 role_definition_id=definition.id,
                 role_name=definition.display_name_last,
                 role_ref=definition.external_id,
+                role_hash=definition.contents_hash,
                 scope_node_id=grant.scope_node_id,
                 mode=mode,
                 hops=hops,
@@ -284,6 +330,10 @@ def for_identity(
     for grant in direct:
         add(grant, [Hop(VIA_DIRECT, "", "active")], grant.mode)
 
+    # A path records the route taken and stops there. The final step into
+    # a definition is direct by construction, so spelling it out adds a
+    # hop that carries nothing and changes the key an authorization is
+    # written under.
     for row in group_rows:
         group = groups.get(row.group_id)
         if group is None:
@@ -293,21 +343,14 @@ def for_identity(
         # holds it.
         mode = GrantMode.standing if row.mode == "active" else GrantMode.eligible
         for grant in [g for g in through_groups if g.identity_id == group.id]:
-            add(
-                grant,
-                [
-                    Hop(VIA_MEMBERSHIP, group.first_display_name, row.mode),
-                    Hop(VIA_DIRECT, "", "active"),
-                ],
-                mode,
-            )
+            add(grant, [Hop(VIA_MEMBERSHIP, group.first_display_name, row.mode)], mode)
 
-    for role, chain in reachable:
+    for role, chain, _ in reachable:
         # Assuming a role is always a deliberate act, so everything
         # reached through one is access the identity can obtain rather
         # than access it holds, whatever the role holds it by.
         for grant in [g for g in through_roles if g.identity_id == role.id]:
-            add(grant, [*chain, Hop(VIA_DIRECT, "", "active")], GrantMode.eligible)
+            add(grant, list(chain), GrantMode.eligible)
 
     return paths
 

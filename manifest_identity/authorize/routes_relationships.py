@@ -30,11 +30,8 @@ from manifest_identity.core.deps import (
     require_roles,
     require_scope,
 )
-from manifest_identity.observe.models import (
-    Identity,
-    Import,
-    ObservedRelationship,
-)
+from manifest_identity.observe import paths
+from manifest_identity.observe.models import Identity, ObservedRelationship
 
 router = APIRouter(tags=["relationships"])
 
@@ -101,18 +98,6 @@ def _view(
     )
 
 
-def _newest_import(db: Session, node_id: int) -> int | None:
-    return db.execute(
-        select(Import.id)
-        .where(
-            Import.scope_node_id == node_id,
-            Import.source_kind == "aws_authorization_details",
-        )
-        .order_by(Import.captured_at.desc(), Import.id.desc())
-        .limit(1)
-    ).scalar()
-
-
 @router.get("/relationships", dependencies=[require_roles("GET /relationships")])
 def list_relationships(
     db: Annotated[Session, Depends(get_session)],
@@ -124,7 +109,7 @@ def list_relationships(
     }
     observed: list[ObservedRelationship] = []
     for node_id in nodes:
-        newest = _newest_import(db, node_id)
+        newest = paths.newest_import(db, node_id)
         if newest is None:
             continue
         observed.extend(

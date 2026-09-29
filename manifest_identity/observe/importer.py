@@ -433,43 +433,55 @@ def import_authorization_details(
         new_count += 1
         return identity
 
+    observed_guests: set[int] = set()
+
     def external_identity(principal: principals.Principal) -> None:
         """A principal from outside this account becomes an identity, so
         that a guest is visible in the inventory and the path from it can
         be read. A service principal is the provider's own machinery
         rather than an identity anybody governs, and a wildcard names
-        nobody, so neither becomes a row."""
+        nobody, so neither becomes a row.
+
+        The identity is created once and observed once per import. Both
+        halves matter: an identity observed only by the import that
+        created it drops out of every later view, and an identity
+        observed twice by one import breaks the row that makes "once per
+        import" true.
+        """
         if principal.from_kind in (principals.SERVICE, principals.WILDCARD):
             return
         if principal.from_kind == principals.AWS and not principals.is_external(
             principal.ref, report.account_id
         ):
             return
-        if principal.ref in identities:
-            return
-        if principal.from_kind == principals.FEDERATED:
-            home, origin = Home.identity_provider, "federation"
-        else:
-            home, origin = Home.other_tenant, "trust"
-        guest = Identity(
-            provider_id=provider.id,
-            scope_node_id=node.id,
-            external_id=principal.ref[:255],
-            provider_type=principal.from_kind,
-            kind=IdentityKind.external,
-            home=home,
-            home_ref=principals.account_of(principal.ref),
-            origin=origin,
-            first_display_name=principals.display_name(principal.ref),
-            provisional=False,
-        )
-        db.add(guest)
-        db.flush()
-        identities[principal.ref] = guest
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=guest.id,
-            display_name=guest.first_display_name, provider_ref=principal.ref[:2048],
-        ))
+        guest = identities.get(principal.ref)
+        if guest is None:
+            if principal.from_kind == principals.FEDERATED:
+                home, origin = Home.identity_provider, "federation"
+            else:
+                home, origin = Home.other_tenant, "trust"
+            guest = Identity(
+                provider_id=provider.id,
+                scope_node_id=node.id,
+                external_id=principal.ref[:255],
+                provider_type=principal.from_kind,
+                kind=IdentityKind.external,
+                home=home,
+                home_ref=principals.account_of(principal.ref),
+                origin=origin,
+                first_display_name=principals.display_name(principal.ref),
+                provisional=False,
+            )
+            db.add(guest)
+            db.flush()
+            identities[principal.ref] = guest
+        if guest.id not in observed_guests:
+            observed_guests.add(guest.id)
+            db.add(IdentityObservation(
+                import_id=import_row.id, identity_id=guest.id,
+                display_name=guest.first_display_name,
+                provider_ref=principal.ref[:2048],
+            ))
 
     # Managed policies first, so attachments can point at them.
     for policy in report.policies:

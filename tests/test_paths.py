@@ -288,10 +288,7 @@ def test_a_group_puts_a_membership_hop_in_the_path(
     assert len(found) == 1
     assert found[0].holds_now
     assert found[0].through == paths.VIA_MEMBERSHIP
-    assert [hop.via for hop in found[0].hops] == [
-        paths.VIA_MEMBERSHIP,
-        paths.VIA_DIRECT,
-    ]
+    assert [hop.via for hop in found[0].hops] == [paths.VIA_MEMBERSHIP]
     assert found[0].hops[0].ref == "platform"
 
 
@@ -367,11 +364,10 @@ def test_a_chain_of_trust_is_followed_and_bounded(
         },
     )
     found = reached_by(db, "AIDACLIMBER0000000001")
-    assert {path.hops[-2].ref for path in found} == {"step-one", "step-two"}
+    assert {path.hops[-1].ref for path in found} == {"step-one", "step-two"}
     assert all(not path.holds_now for path in found)
-    # Two hops is the bound, so no path is longer than trust, trust, and
-    # the direct hop at the end.
-    assert max(len(path.hops) for path in found) == 3
+    # Two hops is the bound, so no path is longer than trust and trust.
+    assert max(len(path.hops) for path in found) == 2
 
 
 def test_a_wildcard_trust_is_not_a_path_for_anybody(
@@ -408,3 +404,42 @@ def test_nothing_is_written_by_asking(client: TestClient, db: Session) -> None:
     reached_by(db, "AIDAREADER00000000001")
     reached_by(db, "AIDAREADER00000000001")
     assert len(list(db.execute(select(Grant)).scalars())) == before
+
+
+def test_a_guest_is_observed_by_every_import_that_still_names_it(
+    client: TestClient, db: Session
+) -> None:
+    """Found by running the demonstration rather than by a test: a guest
+    created on one import and never observed again drops out of the
+    newest-import view, so the estate reports nobody can assume anything
+    the moment a second snapshot arrives."""
+    payload = {
+        "RoleDetailList": [
+            role_entry(
+                "cross-account",
+                "AROACROSS00000000001",
+                trust(allow({"AWS": f"arn:aws:iam::{OTHER}:root"})),
+            )
+        ],
+    }
+    token = import_estate(client, db, dict(payload))
+    second = dict(payload)
+    second.setdefault("AccountId", ACCOUNT)
+    response = client.post(
+        "/imports/authorization-details",
+        headers=auth_header(token),
+        files={"file": ("d2.json", json.dumps(second).encode(), "application/json")},
+        data={"captured_at": "2026-09-01T00:00:00+00:00"},
+    )
+    assert response.status_code == 201, response.text
+
+    guest = identity_named(db, f"arn:aws:iam::{OTHER}:root")
+    newest = paths.newest_import(db, guest.scope_node_id)
+    assert paths.references_of(db, newest, guest), (
+        "the guest is not observed by the newest import"
+    )
+    holds_now, can_obtain = paths.split(
+        paths.for_identity(db, import_id=newest, identity=guest)
+    )
+    assert holds_now == []
+    assert [path.through for path in can_obtain] == [paths.VIA_TRUST]
