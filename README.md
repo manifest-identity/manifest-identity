@@ -71,9 +71,9 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **241 tests in 31 files**, coverage 94 over a 90 percent floor |
+| Tests | **255 tests in 32 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **48 routes**, every one in the role matrix the tests walk |
+| Surface | **51 routes**, every one in the role matrix the tests walk |
 | Record | **74 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
@@ -81,7 +81,7 @@ The commands behind every figure are in
 [The numbers, proven](#the-numbers-proven); a figure that drifts from
 its count fails the build.
 
-![The inventory: nineteen identities, their findings counted by tier, filters and exports above the table](docs/screenshots/inventory.png)
+![The inventory: twenty identities, their findings counted by tier, filters and exports above the table](docs/screenshots/inventory.png)
 
 **Quick start**, with Docker as the only requirement:
 
@@ -818,6 +818,9 @@ DELETE /governance/{record_id}
 GET /identities/{identity_id}/authorizations
 POST /identities/{identity_id}/authorizations
 POST /authorizations/{authorization_id}/revoke
+GET /relationships
+POST /relationships/authorize
+POST /relationships/{authorization_id}/revoke
 GET /delta
 GET /identities/{identity_id}/delta
 GET /identities/{identity_id}/observed-grants

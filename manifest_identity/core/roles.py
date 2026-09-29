@@ -47,6 +47,14 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /imports/credential-report": frozenset({Role.operator, Role.administrator}),
     "POST /imports/authorization-details": frozenset({Role.operator, Role.administrator}),
     "GET /imports": ALL_ROLES,
+    # A door into the estate is read by everyone who reviews and
+    # written by the same actors who write an authorization, because
+    # authorizing a trust is the same act one level up.
+    "GET /relationships": ALL_ROLES,
+    "POST /relationships/authorize": frozenset({Role.operator, Role.administrator}),
+    "POST /relationships/{authorization_id}/revoke": frozenset(
+        {Role.operator, Role.administrator}
+    ),
     "GET /identities": ALL_ROLES,
     "GET /identities/{identity_id}": ALL_ROLES,
     "GET /groups": ALL_ROLES,

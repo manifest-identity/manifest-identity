@@ -141,6 +141,29 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
                   "external_id": "000000000000", "display_name": "test"}},
     ),
     "GET /imports": ("get", "/imports", {}),
+    "GET /relationships": ("get", "/relationships", {}),
+    # The door this points at need not exist for the matrix to be
+    # exercised: a 404 is still an authorization allow, which the
+    # escape below accepts for rows that name a record.
+    "POST /relationships/authorize": (
+        "post",
+        "/relationships/authorize",
+        {
+            "json": {
+                "kind": "trust",
+                "to_identity_id": 1,
+                "from_ref": "arn:aws:iam::999999999999:root",
+                "from_kind": "aws",
+                "owner_kind": "team",
+                "owner_ref": "platform-team",
+            }
+        },
+    ),
+    "POST /relationships/{authorization_id}/revoke": (
+        "post",
+        "/relationships/999999/revoke",
+        {"json": {"reason": "matrix exercise"}},
+    ),
     "GET /identities": ("get", "/identities", {}),
     "GET /identities/{identity_id}": ("get", "/identities/999999", {}),
     "GET /groups": ("get", "/groups", {}),
