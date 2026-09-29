@@ -227,8 +227,13 @@ def test_the_shell_names_its_icon_and_its_empty_states() -> None:
     for view in ("inventory", "groups", "campaigns"):
         assert f'id="{view}-empty" class="empty" hidden' in html, view
     script = (FRONTEND / "app.js").read_text()
-    for view in ("inventory", "groups", "campaigns"):
+    for view in ("groups", "campaigns", "imports"):
         assert f'$("{view}-empty").hidden = rows.length !== 0;' in script, view
+    # The inventory tells nothing imported apart from nothing matching
+    # the filters, because the next action differs (1.13).
+    assert 'id="inventory-filtered-empty" class="empty" hidden' in html
+    assert '$("inventory-empty").hidden = !nothingImported;' in script
+    assert '$("inventory-filtered-empty").hidden = nothingImported;' in script
 
 
 def test_the_scopes_view_ships_hidden_and_is_gated_by_role() -> None:
@@ -385,6 +390,95 @@ def test_the_shell_is_a_sidebar_and_every_view_has_a_page_head() -> None:
     js = (FRONTEND / "app.js").read_text()
     assert 'button.classList.toggle("current", active);' in js
     assert 'button.setAttribute("aria-current", "page");' in js
+
+
+def test_the_detail_opens_beside_the_list_and_gives_the_column_back() -> None:
+    """The split view (1.13): the content column is a grid, the detail
+    takes its second column while the list keeps the first, a narrow
+    window lets the detail take the whole column, and closing the
+    detail is a class removed rather than a view switched."""
+    css = (FRONTEND / "app.css").read_text()
+    assert "main.split { grid-template-columns: minmax(0, 1fr) var(--detail); }" in css
+    assert "main.split > #detail { grid-column: 2;" in css
+    narrow = css[css.index("@media (max-width: 80rem)"):]
+    assert "main.split > section:not(#detail) { display: none; }" in narrow
+    js = (FRONTEND / "app.js").read_text()
+    assert 'main.classList.add("split");' in js
+    assert 'main.classList.remove("split");' in js
+    assert '$("back").addEventListener("click", closeDetail);' in js
+    # A filter, a sort, or a page reloads the list that is showing and
+    # keeps the panel; only a change of list closes it.
+    assert 'const keepDetail = view === listView && main.classList.contains("split");' in js
+    html = (FRONTEND / "index.html").read_text()
+    assert 'id="back" class="secondary" aria-label="Close the detail">Close</button>' in html
+
+
+def test_every_list_has_a_skeleton_while_its_fetch_is_out() -> None:
+    """The bones are elements the script adds and the rows replace; the
+    stylesheet draws and animates them, and the reduced-motion rule at
+    the end of the file stops the animation with everything else."""
+    css = (FRONTEND / "app.css").read_text()
+    assert ".bone { display: block;" in css
+    assert "@keyframes shimmer" in css
+    js = (FRONTEND / "app.js").read_text()
+    for call in (
+        'skeletonRows($("identity-rows"), 5, 6);',
+        'skeletonRows($("group-rows"), 7, 4);',
+        'skeletonRows($("campaign-rows"), 6, 3);',
+        'skeletonRows($("delta-rows"), 8, 6);',
+        'skeletonRows($("import-rows"), 6, 4);',
+        'skeletonRows($("scope-rows"), 6, 4);',
+        'skeletonTiles($("dashboard"), 5);',
+        'skeletonTiles($("delta-tiles"), 5);',
+    ):
+        assert call in js, call
+
+
+def test_every_empty_state_names_the_next_action() -> None:
+    """An empty list says what to do, in a static sentence set in the
+    markup and shown only when the render decides."""
+    html = (FRONTEND / "index.html").read_text()
+    for view, next_action in (
+        ("inventory-empty", "Import a credential report"),
+        ("inventory-filtered-empty", "Clear the filters"),
+        ("groups-empty", "Groups arrive with"),
+        ("campaigns-empty", "create a campaign"),
+        ("campaign-done", "Close the campaign"),
+        ("campaign-items-empty", "its scope matched nothing"),
+        ("delta-empty", "nothing has been imported"),
+        ("imports-empty", "Choose a file above"),
+        ("scopes-empty", "The first import creates"),
+        ("auth-empty", "the difference between the two is the point"),
+    ):
+        assert f'id="{view}" class="empty" hidden' in html, view
+        start = html.index(f'id="{view}"')
+        assert next_action in html[start:start + 600], (view, next_action)
+
+
+def test_the_delta_reads_by_one_class_from_its_tiles() -> None:
+    """A tile is the count and the way to read only that class; the
+    narrowing is a re-render of the body already fetched."""
+    js = (FRONTEND / "app.js").read_text()
+    assert "deltaKind = deltaKind === kind ? null : kind; renderDelta();" in js
+    assert "if (deltaKind !== null && f.kind !== deltaKind) continue;" in js
+    assert '$("delta-show-all").addEventListener("click"' in js
+
+
+def test_the_browser_test_exists_and_is_pinned_apart() -> None:
+    """The page is proven by use in the pipeline's browser job, from a
+    tree pinned by hash in its own file, so the image and the ordinary
+    suite never carry a browser."""
+    root = FRONTEND.parent
+    assert root.joinpath("tests", "test_browser.py").exists()
+    pinned = root.joinpath("requirements-browser.txt").read_text()
+    assert "playwright==" in pinned and "--hash=sha256:" in pinned
+    workflow = root.joinpath(".github", "workflows", "ci.yml").read_text()
+    assert "  browser:\n" in workflow
+    assert "pip install --no-cache-dir --require-hashes -r requirements-browser.txt" in workflow
+    assert "pytest tests/test_browser.py" in workflow
+    # The image installs the runtime tree and nothing else.
+    dockerfile = root.joinpath("Dockerfile").read_text()
+    assert "requirements-browser" not in dockerfile
 
 
 def test_a_row_that_opens_something_is_reachable_from_the_keyboard() -> None:

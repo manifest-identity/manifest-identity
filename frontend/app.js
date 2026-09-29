@@ -137,19 +137,91 @@ function signOut() {
   detailId = null;
   selectedGroup = null;
   for (const id of VIEWS) hide(id);
+  main.classList.remove("split");
   hide("nav");
   hide("asof");
   show("signin");
 }
 
+// A skeleton stands where a list will be while its fetch is out: rows
+// of grey bones the shape of the table, replaced by the rows when they
+// arrive, or by the empty state when there are none. Elements only;
+// the stylesheet draws them.
+function bone() {
+  const span = document.createElement("span");
+  span.className = "bone";
+  return span;
+}
+
+function skeletonRows(tbody, columns, count) {
+  tbody.replaceChildren();
+  for (let i = 0; i < count; i++) {
+    const tr = document.createElement("tr");
+    tr.className = "skeleton";
+    for (let c = 0; c < columns; c++) {
+      const td = document.createElement("td");
+      td.appendChild(bone());
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+}
+
+function skeletonTiles(container, count) {
+  container.replaceChildren();
+  for (let i = 0; i < count; i++) {
+    const div = document.createElement("div");
+    div.className = "tile skeleton";
+    const v = document.createElement("span");
+    v.className = "tile-value";
+    v.appendChild(bone());
+    const l = document.createElement("span");
+    l.className = "tile-label";
+    l.appendChild(bone());
+    div.append(v, l);
+    container.appendChild(div);
+  }
+}
+
 // A detail view belongs to the list it opened from, so the sidebar
 // keeps that list marked as the current one.
-const PARENT_VIEW = { detail: "inventory", "campaign-detail": "campaigns" };
+const PARENT_VIEW = { "campaign-detail": "campaigns" };
+
+// The identity detail opens beside the list it came from rather than
+// on top of it: the list stays, the content column splits, and closing
+// the detail gives the column back. Which list is showing is
+// remembered so the sidebar marks it while the detail is open.
+let listView = "inventory";
+const main = document.querySelector("main");
+
+function openDetail() {
+  show("detail");
+  main.classList.add("split");
+}
+
+function closeDetail() {
+  hide("detail");
+  main.classList.remove("split");
+  detailId = null;
+}
 
 function switchView(view) {
-  for (const id of VIEWS) hide(id);
+  // Reloading the list that is already showing (a filter, a sort, a
+  // page) keeps the detail open beside it; only a change of list
+  // closes it. The walk found the first version closing the panel on
+  // every keystroke in the filter box.
+  const keepDetail = view === listView && main.classList.contains("split");
+  for (const id of VIEWS) {
+    if (keepDetail && id === "detail") continue;
+    hide(id);
+  }
+  if (!keepDetail) {
+    main.classList.remove("split");
+    detailId = null;
+  }
   show(view);
-  const current = PARENT_VIEW[view] || view;
+  listView = PARENT_VIEW[view] || view;
+  const current = listView;
   for (const button of document.querySelectorAll("#nav button[data-view]")) {
     const active = button.dataset.view === current;
     button.classList.toggle("current", active);
@@ -209,6 +281,10 @@ async function loadInventory() {
   if (kind) params.set("kind", kind);
   if (sortKey) { params.set("sort", sortKey); params.set("direction", sortDir); }
   paintSortMarkers();
+  hide("inventory-empty");
+  hide("inventory-filtered-empty");
+  skeletonTiles($("dashboard"), 5);
+  skeletonRows($("identity-rows"), 5, 6);
   const page = await (await api("/identities?" + params)).json();
   const dash = $("dashboard");
   dash.replaceChildren(
@@ -219,6 +295,13 @@ async function loadInventory() {
     tile("quiet", page.tiles.quiet, "quiet"),
   );
   renderIdentities(page.rows);
+  // Two different empty states: nothing imported at all, and nothing
+  // matching what was asked for. Each names its own next step.
+  if (page.rows.length === 0) {
+    const nothingImported = page.tiles.identities === 0;
+    $("inventory-empty").hidden = !nothingImported;
+    $("inventory-filtered-empty").hidden = nothingImported;
+  }
   const from = page.matched === 0 ? 0 : page.offset + 1;
   const to = page.offset + page.rows.length;
   $("page-status").textContent = from + " to " + to + " of " + page.matched;
@@ -236,7 +319,6 @@ function identityTier(r) {
 function renderIdentities(rows) {
   const tbody = $("identity-rows");
   tbody.replaceChildren();
-  $("inventory-empty").hidden = rows.length !== 0;
   // The row is built around the name: type, kind, and account as a
   // subline, the tier and the per-tier counts as chips, the top
   // finding in its own words. Every value is still a text node.
@@ -299,7 +381,7 @@ function ownerDescription(d) {
 async function loadDetail(id) {
   const d = await (await api("/identities/" + id)).json();
   detailId = id;
-  switchView("detail");
+  openDetail();
   $("detail-name").textContent = d.display_name + "  (" + d.identity_type + ")";
   const facts = $("detail-facts");
   facts.replaceChildren();
@@ -522,6 +604,8 @@ async function loadGroups() {
   $("group-gov-form").hidden = true;
   $("group-gov-active").replaceChildren();
   $("group-gov-result").hidden = true;
+  hide("groups-empty");
+  skeletonRows($("group-rows"), 7, 4);
   const rows = await (await api("/groups")).json();
   window._groups = rows;
   const tbody = $("group-rows");
@@ -571,20 +655,48 @@ function selectGroup(g) {
 // The delta, grouped by what is wrong: the tile is the count and the
 // table is the detail, so a reader starts from the class that matters
 // rather than from an alphabet of identities.
+// A tile is the count of one class and the way to read only that class:
+// clicking it narrows the table, clicking again or "show every class"
+// widens it. The body is kept so narrowing is a re-render, not a fetch.
+let deltaBody = null;
+let deltaKind = null;
+
 async function loadDelta() {
   switchView("delta");
-  const body = await (await api("/delta")).json();
+  deltaKind = null;
+  hide("delta-empty");
+  hide("delta-filtered");
+  skeletonTiles($("delta-tiles"), 5);
+  skeletonRows($("delta-rows"), 8, 6);
+  deltaBody = await (await api("/delta")).json();
+  renderDelta();
+}
+
+function renderDelta() {
+  const body = deltaBody;
   const tiles = $("delta-tiles");
   tiles.replaceChildren();
   let total = 0;
   for (const [kind, count] of Object.entries(body.counts)) {
     total += count;
-    tiles.appendChild(tile(body.titles[kind], count, kind));
+    const t = tile(body.titles[kind], count, kind);
+    if (count > 0) {
+      t.classList.add("clickable");
+      t.tabIndex = 0;
+      t.setAttribute("role", "button");
+      const toggle = () => { deltaKind = deltaKind === kind ? null : kind; renderDelta(); };
+      t.addEventListener("click", toggle);
+      t.addEventListener("keydown", (e) => { if (e.key === "Enter") toggle(); });
+    }
+    t.classList.toggle("current", kind === deltaKind);
+    tiles.appendChild(t);
   }
   $("delta-empty").hidden = total > 0;
+  $("delta-filtered").hidden = deltaKind === null;
   const rows = $("delta-rows");
   rows.replaceChildren();
   for (const f of body.findings) {
+    if (deltaKind !== null && f.kind !== deltaKind) continue;
     const hops = f.path.map(
       (h) => h.via + (h.ref ? " " + h.ref : "")).join(" then ");
     rows.appendChild(row([
@@ -597,19 +709,26 @@ async function loadDelta() {
   // and no route, so those cells stay empty and the row does not open
   // a detail it does not have.
   for (const f of body.definition_findings || []) {
+    if (deltaKind !== null && f.kind !== deltaKind) continue;
     rows.appendChild(row([
       f.title, f.account, "", f.role, "", f.detail,
       f.observed_as_of || "never", f.authorized_as_of || "never",
     ]));
   }
 }
+$("delta-show-all").addEventListener("click", () => { deltaKind = null; renderDelta(); });
 
 async function loadScopes() {
   switchView("scopes");
+  hide("scopes-empty");
+  skeletonRows($("scope-rows"), 6, 4);
   const rows = await (await api("/admin/scopes")).json();
   const names = new Map(rows.map((n) => [n.id, n.display_name]));
   const tbody = $("scope-rows");
   tbody.replaceChildren();
+  // The global node always exists, so "no scopes" means no provider
+  // has been imported.
+  $("scopes-empty").hidden = rows.length > 1;
   for (const n of rows) {
     tbody.appendChild(row([
       n.provider, n.partition, n.kind, n.external_id, n.display_name,
@@ -620,9 +739,12 @@ async function loadScopes() {
 
 async function loadImports() {
   switchView("imports");
+  hide("imports-empty");
+  skeletonRows($("import-rows"), 6, 4);
   const rows = await (await api("/imports")).json();
   const tbody = $("import-rows");
   tbody.replaceChildren();
+  $("imports-empty").hidden = rows.length !== 0;
   for (const s of rows) {
     tbody.appendChild(row(
       [s.account, s.source, s.captured_at, s.imported_at, s.row_count, s.skipped_count]));
@@ -670,6 +792,8 @@ async function loadCampaigns() {
   switchView("campaigns");
   $("campaign-form").hidden = currentRole === "reviewer";
   $("campaign-result").hidden = true;
+  hide("campaigns-empty");
+  skeletonRows($("campaign-rows"), 6, 3);
   const rows = await (await api("/campaigns")).json();
   const tbody = $("campaign-rows");
   tbody.replaceChildren();
@@ -805,6 +929,11 @@ async function loadCampaignDetail(id) {
   const items = $("campaign-items");
   items.replaceChildren();
   for (const item of c.items) items.appendChild(itemCard(c, item));
+  // Nothing left to decide is a state worth saying, because the next
+  // action is closing the campaign, which lives on a different button.
+  $("campaign-items-empty").hidden = c.items.length !== 0;
+  $("campaign-done").hidden = !(
+    c.items.length > 0 && c.disposed === c.total && c.closed_at === null);
 }
 
 $("campaign-form").addEventListener("submit", async (e) => {
@@ -856,7 +985,12 @@ $("nav").addEventListener("click", (e) => {
   else if (view === "delta") loadDelta();
 });
 $("signout").addEventListener("click", signOut);
-$("back").addEventListener("click", loadInventory);
+$("back").addEventListener("click", closeDetail);
+$("clear-filters").addEventListener("click", () => {
+  $("filter-text").value = "";
+  for (const id of ["filter-type", "filter-kind", "filter-tier"]) $(id).value = "";
+  filtersChanged(false);
+});
 // A filter change is a new question, so it starts at the first page;
 // the text input waits a beat so a keystroke run is one request.
 let filterTimer = null;

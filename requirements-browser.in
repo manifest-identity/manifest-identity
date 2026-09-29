@@ -1,0 +1,6 @@
+# The browser test (1.13): a real browser driving the page. Kept in its
+# own tree so the suite, the image, and the floor job never carry it.
+-c requirements.txt
+-c requirements-dev.txt
+playwright
+pytest

@@ -146,6 +146,30 @@ jobs:
       - name: the suite on the floor interpreter
         run: pytest -q
 
+  browser:
+    # The page proven by use (1.13): a real browser signs in, opens an
+    # identity beside the list, authorizes a grant, decides a campaign
+    # item, and reads the delta, against the application on a fresh
+    # database seeded by the demo. The browser tree is pinned by hash
+    # in its own file and never enters the image or the ordinary suite;
+    # the browser binary is the one the pinned driver names.
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.11-slim
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: install the pinned trees, hashes enforced
+        run: |
+          pip install --no-cache-dir --require-hashes -r requirements.txt
+          pip install --no-cache-dir --require-hashes -r requirements-dev.txt
+          pip install --no-cache-dir --require-hashes -r requirements-browser.txt
+      - name: the browser the pinned driver names, with its system libraries
+        run: python -m playwright install --with-deps chromium
+      - name: the page, driven
+        run: pytest tests/test_browser.py -q -p no:cacheprovider
+
   doctrine:
     # The repository scored against build-doctrine's six-level scale by
     # the doctrine's own scorer, checked out at a pinned commit so the
