@@ -532,6 +532,117 @@ def observed_template() -> str:
     return "\n".join([header, *rows]) + "\n"
 
 
+# The Kubernetes cluster: the third provider's estate (1.14b), a kubectl
+# List of the objects the parser reads, generated with the same rule
+# that every archetype the engine can find there exists once.
+
+CLUSTER = "sample-cluster"
+
+
+def _k8s(kind: str, name: str, namespace: str | None, uid: str, created: str,
+         **body: object) -> dict[str, object]:
+    metadata: dict[str, object] = {"name": name, "uid": uid, "creationTimestamp": created}
+    if namespace:
+        metadata["namespace"] = namespace
+    item: dict[str, object] = {
+        "apiVersion": "v1" if kind == "ServiceAccount" else "rbac.authorization.k8s.io/v1",
+        "kind": kind, "metadata": metadata,
+    }
+    item.update(body)
+    return item
+
+
+def _rule(
+    verbs: list[str], resources: list[str], groups: list[str] | None = None,
+) -> dict[str, object]:
+    return {"apiGroups": groups if groups is not None else [""], "resources": resources,
+            "verbs": verbs}
+
+
+def _subject(kind: str, name: str, namespace: str | None = None) -> dict[str, object]:
+    subject: dict[str, object] = {"kind": kind, "name": name}
+    if kind == "ServiceAccount":
+        subject["namespace"] = namespace
+    else:
+        subject["apiGroup"] = "rbac.authorization.k8s.io"
+    return subject
+
+
+def kubernetes_rbac(generation: int) -> str:
+    """The cluster's dump at one generation. The secrets reader gains
+    every verb in the second month, so a changed custom role names
+    what it gained; a contractor is bound to admin in the third, so the
+    delta has a new door to report."""
+    d = "2025-01-15T00:00:00Z"
+    secrets_verbs = ["get", "list"] if generation == 0 else ["*"]
+    items: list[dict[str, object]] = [
+        # The four roles the API ships, as the API writes them.
+        _k8s("ClusterRole", "cluster-admin", None, "cr-0001", d,
+             rules=[_rule(["*"], ["*"], ["*"]), {"nonResourceURLs": ["*"], "verbs": ["*"]}]),
+        _k8s("ClusterRole", "admin", None, "cr-0002", d, rules=[
+            _rule(["*"], ["pods", "services", "configmaps", "secrets"]),
+            _rule(["get", "list", "watch", "create", "update", "patch", "delete"],
+                  ["roles", "rolebindings"], ["rbac.authorization.k8s.io"]),
+        ]),
+        _k8s("ClusterRole", "edit", None, "cr-0003", d, rules=[
+            _rule(["*"], ["pods", "services", "configmaps", "secrets"]),
+        ]),
+        _k8s("ClusterRole", "view", None, "cr-0004", d, rules=[
+            _rule(["get", "list", "watch"], ["pods", "services", "configmaps"]),
+        ]),
+        # Customer roles: a secrets reader that grows, and a role that
+        # can hand out roles, which is privilege escalation by name.
+        _k8s("ClusterRole", "secrets-reader", None, "cr-0101", d,
+             rules=[_rule(secrets_verbs, ["secrets"])]),
+        _k8s("ClusterRole", "rbac-editor", None, "cr-0102", d, rules=[
+            _rule(["create", "update", "bind", "escalate"],
+                  ["clusterrolebindings", "clusterroles"], ["rbac.authorization.k8s.io"]),
+        ]),
+        _k8s("Role", "config-reader", "payments", "r-0201", d,
+             rules=[_rule(["get", "list"], ["configmaps"])]),
+        # Service accounts.
+        _k8s("ServiceAccount", "deployer", "kube-system", "sa-0301", d),
+        _k8s("ServiceAccount", "api", "payments", "sa-0302", d),
+        _k8s("ServiceAccount", "default", "payments", "sa-0303", d),
+        _k8s("ServiceAccount", "prometheus", "monitoring", "sa-0304", d),
+        _k8s("ServiceAccount", "rbac-bot", "ci", "sa-0305", d),
+        # Bindings.
+        _k8s("ClusterRoleBinding", "cluster-admin", None, "crb-0401", d,
+             roleRef={"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole",
+                      "name": "cluster-admin"},
+             subjects=[_subject("Group", "system:masters"), _subject("User", "ops-lead"),
+                       _subject("ServiceAccount", "deployer", "kube-system")]),
+        _k8s("ClusterRoleBinding", "rbac-bot", None, "crb-0402", d,
+             roleRef={"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole",
+                      "name": "rbac-editor"},
+             subjects=[_subject("ServiceAccount", "rbac-bot", "ci")]),
+        _k8s("ClusterRoleBinding", "secrets-audit", None, "crb-0403", d,
+             roleRef={"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole",
+                      "name": "secrets-reader"},
+             subjects=[_subject("User", "audit-tool")]),
+        _k8s("ClusterRoleBinding", "monitoring-view", None, "crb-0404", d,
+             roleRef={"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole",
+                      "name": "view"},
+             subjects=[_subject("Group", "system:serviceaccounts:monitoring")]),
+        _k8s("RoleBinding", "config", "payments", "rb-0501", d,
+             roleRef={"apiGroup": "rbac.authorization.k8s.io", "kind": "Role",
+                      "name": "config-reader"},
+             subjects=[_subject("ServiceAccount", "api", "payments")]),
+        _k8s("RoleBinding", "editors", "payments", "rb-0502", d,
+             roleRef={"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole",
+                      "name": "edit"},
+             subjects=[_subject("User", "dev-nadia"), _subject("Group", "payments-team")]),
+    ]
+    if generation >= 2:
+        items.append(_k8s(
+            "RoleBinding", "contractor", "payments", "rb-0503", "2026-07-20T00:00:00Z",
+            roleRef={"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole",
+                     "name": "admin"},
+            subjects=[_subject("User", "new-contractor")],
+        ))
+    return json.dumps({"kind": "List", "apiVersion": "v1", "items": items}, indent=2) + "\n"
+
+
 # One sample table per provider the table door reads and no parser
 # reads yet (1.14a): what a recipe under recipes/ produces from that
 # provider's own export, so a person can import each provider the day
@@ -841,6 +952,7 @@ def file_set(scale: int = 0) -> dict[str, str]:
             generation, scale
         )
         out[f"{day}-github-organization.json"] = github_organization(generation)
+        out[f"{day}-kubernetes-rbac.json"] = kubernetes_rbac(generation)
     out["authorizations-template.csv"] = authorizations_template()
     out["observed-template.csv"] = observed_template()
     for provider in PROVIDER_TABLES:

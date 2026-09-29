@@ -1,0 +1,417 @@
+{
+  "kind": "List",
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRole",
+      "metadata": {
+        "name": "cluster-admin",
+        "uid": "cr-0001",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            "*"
+          ],
+          "resources": [
+            "*"
+          ],
+          "verbs": [
+            "*"
+          ]
+        },
+        {
+          "nonResourceURLs": [
+            "*"
+          ],
+          "verbs": [
+            "*"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRole",
+      "metadata": {
+        "name": "admin",
+        "uid": "cr-0002",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "pods",
+            "services",
+            "configmaps",
+            "secrets"
+          ],
+          "verbs": [
+            "*"
+          ]
+        },
+        {
+          "apiGroups": [
+            "rbac.authorization.k8s.io"
+          ],
+          "resources": [
+            "roles",
+            "rolebindings"
+          ],
+          "verbs": [
+            "get",
+            "list",
+            "watch",
+            "create",
+            "update",
+            "patch",
+            "delete"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRole",
+      "metadata": {
+        "name": "edit",
+        "uid": "cr-0003",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "pods",
+            "services",
+            "configmaps",
+            "secrets"
+          ],
+          "verbs": [
+            "*"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRole",
+      "metadata": {
+        "name": "view",
+        "uid": "cr-0004",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "pods",
+            "services",
+            "configmaps"
+          ],
+          "verbs": [
+            "get",
+            "list",
+            "watch"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRole",
+      "metadata": {
+        "name": "secrets-reader",
+        "uid": "cr-0101",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "secrets"
+          ],
+          "verbs": [
+            "*"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRole",
+      "metadata": {
+        "name": "rbac-editor",
+        "uid": "cr-0102",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            "rbac.authorization.k8s.io"
+          ],
+          "resources": [
+            "clusterrolebindings",
+            "clusterroles"
+          ],
+          "verbs": [
+            "create",
+            "update",
+            "bind",
+            "escalate"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "Role",
+      "metadata": {
+        "name": "config-reader",
+        "uid": "r-0201",
+        "creationTimestamp": "2025-01-15T00:00:00Z",
+        "namespace": "payments"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "configmaps"
+          ],
+          "verbs": [
+            "get",
+            "list"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "deployer",
+        "uid": "sa-0301",
+        "creationTimestamp": "2025-01-15T00:00:00Z",
+        "namespace": "kube-system"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "api",
+        "uid": "sa-0302",
+        "creationTimestamp": "2025-01-15T00:00:00Z",
+        "namespace": "payments"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "default",
+        "uid": "sa-0303",
+        "creationTimestamp": "2025-01-15T00:00:00Z",
+        "namespace": "payments"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "prometheus",
+        "uid": "sa-0304",
+        "creationTimestamp": "2025-01-15T00:00:00Z",
+        "namespace": "monitoring"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "rbac-bot",
+        "uid": "sa-0305",
+        "creationTimestamp": "2025-01-15T00:00:00Z",
+        "namespace": "ci"
+      }
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRoleBinding",
+      "metadata": {
+        "name": "cluster-admin",
+        "uid": "crb-0401",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "cluster-admin"
+      },
+      "subjects": [
+        {
+          "kind": "Group",
+          "name": "system:masters",
+          "apiGroup": "rbac.authorization.k8s.io"
+        },
+        {
+          "kind": "User",
+          "name": "ops-lead",
+          "apiGroup": "rbac.authorization.k8s.io"
+        },
+        {
+          "kind": "ServiceAccount",
+          "name": "deployer",
+          "namespace": "kube-system"
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRoleBinding",
+      "metadata": {
+        "name": "rbac-bot",
+        "uid": "crb-0402",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "rbac-editor"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "rbac-bot",
+          "namespace": "ci"
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRoleBinding",
+      "metadata": {
+        "name": "secrets-audit",
+        "uid": "crb-0403",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "secrets-reader"
+      },
+      "subjects": [
+        {
+          "kind": "User",
+          "name": "audit-tool",
+          "apiGroup": "rbac.authorization.k8s.io"
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRoleBinding",
+      "metadata": {
+        "name": "monitoring-view",
+        "uid": "crb-0404",
+        "creationTimestamp": "2025-01-15T00:00:00Z"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "view"
+      },
+      "subjects": [
+        {
+          "kind": "Group",
+          "name": "system:serviceaccounts:monitoring",
+          "apiGroup": "rbac.authorization.k8s.io"
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "RoleBinding",
+      "metadata": {
+        "name": "config",
+        "uid": "rb-0501",
+        "creationTimestamp": "2025-01-15T00:00:00Z",
+        "namespace": "payments"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "Role",
+        "name": "config-reader"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "api",
+          "namespace": "payments"
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "RoleBinding",
+      "metadata": {
+        "name": "editors",
+        "uid": "rb-0502",
+        "creationTimestamp": "2025-01-15T00:00:00Z",
+        "namespace": "payments"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "edit"
+      },
+      "subjects": [
+        {
+          "kind": "User",
+          "name": "dev-nadia",
+          "apiGroup": "rbac.authorization.k8s.io"
+        },
+        {
+          "kind": "Group",
+          "name": "payments-team",
+          "apiGroup": "rbac.authorization.k8s.io"
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "RoleBinding",
+      "metadata": {
+        "name": "contractor",
+        "uid": "rb-0503",
+        "creationTimestamp": "2026-07-20T00:00:00Z",
+        "namespace": "payments"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "admin"
+      },
+      "subjects": [
+        {
+          "kind": "User",
+          "name": "new-contractor",
+          "apiGroup": "rbac.authorization.k8s.io"
+        }
+      ]
+    }
+  ]
+}

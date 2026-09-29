@@ -390,10 +390,12 @@
             <option value="credential-report">credential report</option>
             <option value="authorization-details">authorization details</option>
             <option value="github-organization">GitHub organization export</option>
+            <option value="kubernetes-rbac">Kubernetes access control dump</option>
             <option value="observed">any provider's table, through a mapping</option>
           </select>
         </label>
         <label>Mapping id, for a table <input name="mapping_id" type="number" min="1" placeholder="shipped template if blank"></label>
+        <label id="import-cluster-label" hidden>Cluster name, for a dump <input name="cluster" maxlength="253" pattern="[a-z0-9][a-z0-9.-]*"></label>
         <label>Captured at <input name="captured_at" placeholder="2026-08-01T00:00:00+00:00" required></label>
         <button type="submit">Import</button>
         <output id="import-result" hidden></output>

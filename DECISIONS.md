@@ -2109,3 +2109,62 @@ rows would bury the two estates whose findings the demo exists to show.
 The door's own limit stays as it was: it files every provider's root
 under a node of kind account, whatever the provider calls it, and a
 native parser names the node correctly when it arrives.
+
+## D-079: A cluster's rules are read as capabilities, and the cluster is named by the person
+
+Kubernetes is the third native provider and the first whose roles are
+neither policy documents nor fixed levels: a role is a list of rules,
+each a set of verbs on a set of resources, additive with no deny and
+with a wildcard on either side. The reading needed a third way in, and
+it is the capability document from D-076 with the rules riding along
+as actions.
+
+A rule allowing every verb on every resource administers. The verbs
+bind, escalate, and impersonate change access by their own definition,
+as does any write on the four role and binding resources; a role that
+can hand out roles is the shadow administrator of a cluster, and it
+reads as the same finding an AWS principal that can attach policies
+does. Any mutating verb writes; get, list, and watch read. Each verb
+on each resource is one action in the document, so a customer role
+that grows names what it gained the way a rewritten policy does (1.7),
+and the change reader learned to read actions from a capability
+document for that.
+
+The file does not name the cluster. Nothing in the API's objects does,
+so the name arrives as a form field beside the file, the one thing
+about this source the content cannot say. It is client input the way
+the capture time is, checked against the scope the person may write
+to, and it is the only exception to D-008's rule that the file's
+content is authoritative, stated here so it stays the only one.
+
+Three readings are stated rather than hidden. A service account is
+keyed by namespace and name because that is how every binding refers
+to it; the uid the cluster never reuses rides in the observation, and a
+recreated account with the same name is the same identity here, which
+is the binding's view. A user is a name the authenticator asserts and
+the cluster never lists, so it enters as an identity from an identity
+provider, seen only through its bindings. A group is the same, and its
+members are unknown to the cluster, so it enters as an external
+identity holding whatever its bindings grant, with no membership rows;
+the two groups the API itself defines, every service account and every
+service account in a namespace, are the exception and get their
+members written, because the API's rule says who is in them.
+
+A binding to a role the file does not hold is allowed by the API and
+is recorded as a grant of a definition with no contents, counted in
+the import's audit line, so the reading says nothing about it rather
+than guessing.
+
+Rejected: a synthetic policy document per role in the AWS statement
+shape, for the reason D-076 gave; a required cluster name inside the
+file, which would have meant editing the dump before importing it;
+and reading a binding to the authenticated-users group as a public
+grant finding, because the finding the AWS trust reading produces is
+about a door and this is a grant, and a grant to everyone shows in the
+delta as held by a guest named for what it is. That last one may
+deserve a finding of its own, and is noted as an open question rather
+than decided in passing.
+
+The cost is that the cluster carries no credentials: the dump holds
+none, and service account tokens are minted on demand by the current
+API. Every finding on a cluster is a privilege finding.

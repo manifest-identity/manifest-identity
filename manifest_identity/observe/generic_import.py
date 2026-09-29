@@ -105,7 +105,7 @@ PARTITIONS = {
     Provider.azure: Partition.azure_commercial,
     Provider.gcp: Partition.gcp,
     Provider.github: Partition.github_com,
-    Provider.kubernetes: Partition.on_premises,
+    Provider.kubernetes: Partition.none,
     Provider.active_directory: Partition.on_premises,
     Provider.database: Partition.on_premises,
     Provider.okta: Partition.none,

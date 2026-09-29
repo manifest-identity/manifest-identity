@@ -56,6 +56,7 @@ SOURCE_AUTHORIZATION = "aws_authorization_details"
 SHAPE_AUTHORIZATION = "authorization-details"
 SHAPE_CREDENTIAL = "credential-report"
 SHAPE_GITHUB = "github-organization"
+SHAPE_KUBERNETES = "kubernetes-rbac"
 SHAPE_TABLE = "table"
 
 
@@ -69,9 +70,12 @@ def detect_source(data: bytes) -> str | None:
     answer rather than parsed into nonsense (1.11)."""
     head = data[:4096].lstrip()
     if head.startswith(b"{"):
-        if b"UserDetailList" in data[:65536]:
+        window = data[:65536]
+        if b"UserDetailList" in window:
             return SHAPE_AUTHORIZATION
-        if b'"organization"' in data[:65536]:
+        if b"rbac.authorization.k8s.io" in window or b'"kind": "List"' in window:
+            return SHAPE_KUBERNETES
+        if b'"organization"' in window:
             return SHAPE_GITHUB
         return None
     first = head.split(b"\n", 1)[0].decode("utf-8", errors="replace").strip().lower()

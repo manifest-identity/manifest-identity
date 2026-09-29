@@ -2,10 +2,10 @@
 
 python -m manifest_identity.demo migrates the schema, creates the
 administrator from the environment, imports the three shipped sample
-months for every source oldest first (the AWS account and the GitHub
-organization), and opens one review campaign, so a fresh clone lands
-in an inventory of thirty-two identities with tiered findings and a
-review in progress. Idempotent on purpose:
+months for every source oldest first (the AWS account, the GitHub
+organization, and the Kubernetes cluster), and opens one review
+campaign, so a fresh clone lands in an inventory of forty-three
+identities with tiered findings and a review in progress. Idempotent on purpose:
 running it again converges, re-imports are refused as duplicates and
 an existing campaign is kept, so the command is safe to run twice.
 
@@ -34,6 +34,7 @@ from manifest_identity.observe.importer import (
     import_authorization_details,
     import_credential_report,
 )
+from manifest_identity.observe.kubernetes_importer import import_rbac_dump
 from manifest_identity.observe.providers.aws.authorization_details import (
     parse_authorization_details,
 )
@@ -41,7 +42,8 @@ from manifest_identity.observe.providers.aws.credential_report import parse_cred
 from manifest_identity.observe.providers.github.organization_export import (
     parse_organization_export,
 )
-from manifest_identity.sample_data import GENERATIONS, file_set
+from manifest_identity.observe.providers.kubernetes.rbac_dump import parse_rbac_dump
+from manifest_identity.sample_data import CLUSTER, GENERATIONS, file_set
 
 DEMO_CAMPAIGN = "Quarterly access review (demo)"
 
@@ -86,7 +88,10 @@ def main() -> int:
         files = file_set()
         for captured in GENERATIONS:
             day = captured.strftime("%Y-%m-%d")
-            for kind in ("credential-report", "authorization-details", "github-organization"):
+            for kind in (
+                "credential-report", "authorization-details", "github-organization",
+                "kubernetes-rbac",
+            ):
                 suffix = "csv" if kind == "credential-report" else "json"
                 name = f"{day}-{kind}.{suffix}"
                 data = files[name].encode()
@@ -95,6 +100,16 @@ def main() -> int:
                         import_credential_report(
                             db,
                             report=parse_credential_report(data),
+                            captured_at=captured,
+                            source_filename=name,
+                            actor_user_id=admin.id,
+                            actor_username=admin.username,
+                        )
+                    elif kind == "kubernetes-rbac":
+                        import_rbac_dump(
+                            db,
+                            dump=parse_rbac_dump(data),
+                            cluster=CLUSTER,
                             captured_at=captured,
                             source_filename=name,
                             actor_user_id=admin.id,

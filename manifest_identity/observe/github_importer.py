@@ -104,6 +104,15 @@ ADMINISTERING_SCOPES = ("administration", "organization_administration", "member
 DIRECT = [{"via": "direct", "ref": "", "mode": "active"}]
 
 
+def level_document(level: str, scope: str, table: dict[str, bool]) -> dict[str, object]:
+    """One fixed level's capability document, its four flags named."""
+    return capability_document(
+        "github", level, scope,
+        administers=table["administers"], changes_access=table["changes_access"],
+        writes=table["writes"], reads=table["reads"],
+    )
+
+
 def github_organization_scope(
     db: Session, login: str
 ) -> tuple[ProviderInstance, ScopeNode]:
@@ -217,9 +226,7 @@ def import_github_organization(
         full = f"{export.login}/{name}"
         return definition(
             f"github:repository:{full}:{level}", f"{level} on {full}", "provider",
-            capability_document(
-                "github", level, "repository", **REPOSITORY_LEVELS[level]
-            ),
+            level_document(level, "repository", REPOSITORY_LEVELS[level]),
         )
 
     # Members: the identity, its observation with the second-factor
@@ -240,9 +247,7 @@ def import_github_organization(
         role = definition(
             f"github:organization:{export.login}:{member.role}",
             f"{member.role.replace('_', ' ')} of {export.login}", "provider",
-            capability_document(
-                "github", member.role, "organization", **ORGANIZATION_LEVELS[member.role]
-            ),
+            level_document(member.role, "organization", ORGANIZATION_LEVELS[member.role]),
         )
         grant(identity, role, org_node, "organization_role", member.role)
         observations += 1

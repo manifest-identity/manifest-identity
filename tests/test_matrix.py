@@ -100,6 +100,25 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
             "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
         },
     ),
+    "POST /imports/kubernetes-rbac": (
+        "post",
+        "/imports/kubernetes-rbac",
+        {
+            "files": {
+                "file": (
+                    "rbac.json",
+                    json.dumps({"kind": "List", "items": [{
+                        "kind": "ClusterRoleBinding",
+                        "metadata": {"name": "matrix"},
+                        "roleRef": {"kind": "ClusterRole", "name": "view"},
+                        "subjects": [{"kind": "User", "name": "matrix.user"}],
+                    }]}).encode(),
+                    "application/json",
+                )
+            },
+            "data": {"captured_at": "2026-08-01T00:00:00+00:00", "cluster": "matrix-cluster"},
+        },
+    ),
     "POST /imports/authorization-details": (
         "post",
         "/imports/authorization-details",
@@ -478,8 +497,12 @@ def test_matrix_rows_are_enforced_for_every_role(
             )
             call_kwargs = dict(kwargs)
             if key.startswith("POST /imports/"):
+                # The plan's other form fields (a cluster's name) stay;
+                # only the capture time moves.
+                planned = kwargs.get("data")
                 call_kwargs["data"] = {
-                    "captured_at": f"2026-08-0{1 + list(Role).index(role)}T00:00:00+00:00"
+                    **(planned if isinstance(planned, dict) else {}),
+                    "captured_at": f"2026-08-0{1 + list(Role).index(role)}T00:00:00+00:00",
                 }
             response = client.request(
                 method.upper(), path, headers=auth_header(token), **call_kwargs  # type: ignore[arg-type]
