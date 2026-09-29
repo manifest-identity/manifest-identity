@@ -47,12 +47,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from manifest_identity.core import audit
 from manifest_identity.core.models import Partition, Provider, ScopeNode
 from manifest_identity.core.scope import find_or_create_node
+from manifest_identity.observe.estate import Estate, provider_root
 from manifest_identity.observe.importer import (
     ImportResult,
     _check_capture,
@@ -66,9 +66,7 @@ from manifest_identity.observe.models import (
     Home,
     Identity,
     IdentityKind,
-    IdentityObservation,
     Membership,
-    ProviderInstance,
     RoleDefinition,
 )
 from manifest_identity.observe.policy_analysis import capability_document
@@ -127,35 +125,6 @@ def managed_by(name: str) -> str:
     return "provider" if name.startswith("system:") or name in SHIPPED_ROLES else "customer"
 
 
-def cluster_scope(db: Session, cluster: str) -> tuple[ProviderInstance, ScopeNode]:
-    node = find_or_create_node(
-        db, Provider.kubernetes, Partition.none, "cluster", cluster, cluster, None
-    )
-    provider = db.execute(
-        select(ProviderInstance).where(
-            ProviderInstance.provider == Provider.kubernetes.value,
-            ProviderInstance.root_scope_node_id == node.id,
-        )
-    ).scalar_one_or_none()
-    if provider is None:
-        provider = ProviderInstance(
-            provider=Provider.kubernetes.value, display_name=cluster, root_scope_node_id=node.id,
-        )
-        db.add(provider)
-        db.flush()
-    return provider, node
-
-
-def cluster_node_id(db: Session, cluster: str) -> int | None:
-    return db.execute(
-        select(ScopeNode.id).where(
-            ScopeNode.provider == Provider.kubernetes.value,
-            ScopeNode.kind == "cluster",
-            ScopeNode.external_id == cluster,
-        )
-    ).scalar()
-
-
 def subject_key(subject: ParsedSubject) -> str:
     if subject.kind == "ServiceAccount":
         return f"serviceaccount:{subject.namespace}/{subject.name}"
@@ -173,22 +142,17 @@ def import_rbac_dump(
     actor_username: str,
 ) -> ImportResult:
     captured_at = _check_capture(captured_at)
-    provider, cluster_node = cluster_scope(db, cluster)
+    provider, cluster_node = provider_root(
+        db, Provider.kubernetes, Partition.none, "cluster", cluster, cluster,
+    )
     import_row = _new_import(
         db, provider, cluster_node, SOURCE_RBAC, captured_at, source_filename,
         actor_username, len(dump.roles) + len(dump.bindings) + len(dump.service_accounts),
         dump.skipped,
     )
 
-    identities = {
-        identity.external_id: identity
-        for identity in db.execute(
-            select(Identity).where(Identity.scope_node_id == cluster_node.id)
-        ).scalars()
-    }
-    new_count = 0
-    observations = 0
-    observed: set[int] = set()
+    estate = Estate(db, import_row, provider, cluster_node)
+    identities = estate.identities
     definitions: dict[tuple[str, str], RoleDefinition] = {}
     namespaces: dict[str, ScopeNode] = {}
 
@@ -200,35 +164,11 @@ def import_rbac_dump(
             )
         return namespaces[name]
 
-    def get_or_create(
-        external_id: str, name: str, provider_type: str, kind: IdentityKind,
-        home: Home = Home.this_directory, origin: str | None = None,
-    ) -> Identity:
-        nonlocal new_count
-        identity = identities.get(external_id)
-        if identity is None:
-            identity = Identity(
-                provider_id=provider.id, scope_node_id=cluster_node.id,
-                external_id=external_id, provider_type=provider_type, kind=kind,
-                home=home, origin=origin, first_display_name=name, provisional=False,
-            )
-            db.add(identity)
-            db.flush()
-            identities[external_id] = identity
-            new_count += 1
-        return identity
+    get_or_create = estate.get_or_create
 
     def observe(identity: Identity, display_name: str, provider_ref: str,
                 created: datetime | None = None, raw: dict[str, object] | None = None) -> None:
-        nonlocal observations
-        if identity.id in observed:
-            return
-        observed.add(identity.id)
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=identity.id, display_name=display_name,
-            provider_ref=provider_ref, identity_created_at=created, raw=raw,
-        ))
-        observations += 1
+        estate.observe(identity, display_name, provider_ref, identity_created_at=created, raw=raw)
 
     # Service accounts first, so the cluster's own groups can list them.
     accounts_by_namespace: dict[str, list[Identity]] = {}
@@ -321,7 +261,7 @@ def import_rbac_dump(
     # system:serviceaccounts, and of the group for its namespace.
     written: set[tuple[int, int]] = set()
     for group_key, group in identities.items():
-        if group.kind != IdentityKind.group or group.id not in observed:
+        if group.kind != IdentityKind.group or not estate.observed(group):
             continue
         name = group_key.removeprefix("group:")
         if name == ALL_SERVICE_ACCOUNTS:
@@ -346,7 +286,7 @@ def import_rbac_dump(
         target=f"cluster {cluster}",
         detail=(
             f"source {SOURCE_RBAC}, captured {captured_at.isoformat()}, "
-            f"{observations} observations, {new_count} new identities, "
+            f"{estate.observations} observations, {estate.new_count} new identities, "
             f"{len(dump.roles)} roles, {len(dump.bindings)} bindings, "
             f"{dangling} bindings to roles the file does not hold, "
             f"{dump.skipped} objects skipped"
@@ -356,8 +296,8 @@ def import_rbac_dump(
     return ImportResult(
         account=cluster,
         captured_at=captured_at,
-        identities_new=new_count,
+        identities_new=estate.new_count,
         identities_known=0,
-        observations=observations,
+        observations=estate.observations,
         skipped_rows=dump.skipped,
     )

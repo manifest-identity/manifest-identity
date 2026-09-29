@@ -49,12 +49,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from manifest_identity.core import audit
 from manifest_identity.core.models import Partition, Provider, ScopeNode
 from manifest_identity.core.scope import find_or_create_node
+from manifest_identity.observe.estate import Estate, provider_root
 from manifest_identity.observe.importer import (
     ImportResult,
     _check_capture,
@@ -70,9 +70,7 @@ from manifest_identity.observe.models import (
     Home,
     Identity,
     IdentityKind,
-    IdentityObservation,
     Membership,
-    ProviderInstance,
     RoleDefinition,
 )
 from manifest_identity.observe.policy_analysis import capability_document
@@ -147,37 +145,6 @@ def azure_role_capabilities(
     )
 
 
-def tenant_scope(db: Session, export: ParsedTenant) -> tuple[ProviderInstance, ScopeNode]:
-    partition = Partition.azure_government if export.government else Partition.azure_commercial
-    node = find_or_create_node(
-        db, Provider.azure, partition, "tenant", export.id, export.display_name, None
-    )
-    provider = db.execute(
-        select(ProviderInstance).where(
-            ProviderInstance.provider == Provider.azure.value,
-            ProviderInstance.root_scope_node_id == node.id,
-        )
-    ).scalar_one_or_none()
-    if provider is None:
-        provider = ProviderInstance(
-            provider=Provider.azure.value, display_name=export.display_name,
-            root_scope_node_id=node.id,
-        )
-        db.add(provider)
-        db.flush()
-    return provider, node
-
-
-def tenant_node_id(db: Session, tenant_id: str) -> int | None:
-    return db.execute(
-        select(ScopeNode.id).where(
-            ScopeNode.provider == Provider.azure.value,
-            ScopeNode.kind == "tenant",
-            ScopeNode.external_id == tenant_id,
-        )
-    ).scalar()
-
-
 def import_tenant_export(
     db: Session,
     *,
@@ -188,8 +155,10 @@ def import_tenant_export(
     actor_username: str,
 ) -> ImportResult:
     captured_at = _check_capture(captured_at)
-    provider, tenant_node = tenant_scope(db, export)
-    partition = Partition(tenant_node.partition)
+    partition = Partition.azure_government if export.government else Partition.azure_commercial
+    provider, tenant_node = provider_root(
+        db, Provider.azure, partition, "tenant", export.id, export.display_name,
+    )
     entity_count = (
         len(export.users) + len(export.groups) + len(export.service_principals)
         + sum(len(s.assignments) for s in export.subscriptions)
@@ -199,45 +168,9 @@ def import_tenant_export(
         actor_username, entity_count, export.skipped,
     )
 
-    identities = {
-        identity.external_id: identity
-        for identity in db.execute(
-            select(Identity).where(Identity.scope_node_id == tenant_node.id)
-        ).scalars()
-    }
-    new_count = 0
-    observations = 0
-    observed: set[int] = set()
+    estate = Estate(db, import_row, provider, tenant_node)
+    get_or_create, observe = estate.get_or_create, estate.observe
     definitions: dict[tuple[str, str], RoleDefinition] = {}
-
-    def get_or_create(
-        external_id: str, name: str, provider_type: str, kind: IdentityKind,
-        home: Home = Home.this_directory, origin: str | None = None,
-    ) -> Identity:
-        nonlocal new_count
-        identity = identities.get(external_id)
-        if identity is None:
-            identity = Identity(
-                provider_id=provider.id, scope_node_id=tenant_node.id,
-                external_id=external_id, provider_type=provider_type, kind=kind,
-                home=home, origin=origin, first_display_name=name[:255], provisional=False,
-            )
-            db.add(identity)
-            db.flush()
-            identities[external_id] = identity
-            new_count += 1
-        return identity
-
-    def observe(identity: Identity, display_name: str, provider_ref: str, **fields: object) -> None:
-        nonlocal observations
-        if identity.id in observed:
-            return
-        observed.add(identity.id)
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=identity.id, display_name=display_name[:255],
-            provider_ref=provider_ref[:2048], **fields,
-        ))
-        observations += 1
 
     by_id: dict[str, Identity] = {}
 
@@ -427,7 +360,7 @@ def import_tenant_export(
         target=f"tenant {export.id}",
         detail=(
             f"source {SOURCE_TENANT}, captured {captured_at.isoformat()}, "
-            f"{observations} observations, {new_count} new identities, "
+            f"{estate.observations} observations, {estate.new_count} new identities, "
             f"{len(export.directory_roles)} directory roles, {eligible} eligibilities, "
             f"{len(export.subscriptions)} subscriptions, {assignments} assignments"
         ),
@@ -436,8 +369,8 @@ def import_tenant_export(
     return ImportResult(
         account=export.id,
         captured_at=captured_at,
-        identities_new=new_count,
+        identities_new=estate.new_count,
         identities_known=0,
-        observations=observations,
+        observations=estate.observations,
         skipped_rows=export.skipped,
     )

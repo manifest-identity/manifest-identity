@@ -50,6 +50,7 @@ from sqlalchemy.orm import Session
 from manifest_identity.core import audit
 from manifest_identity.core.models import Partition, Provider, ScopeNode
 from manifest_identity.core.scope import find_or_create_node
+from manifest_identity.observe.estate import Estate, provider_root
 from manifest_identity.observe.importer import (
     ImportResult,
     _check_capture,
@@ -65,11 +66,9 @@ from manifest_identity.observe.models import (
     Home,
     Identity,
     IdentityKind,
-    IdentityObservation,
     Import,
     Membership,
     ObservedRelationship,
-    ProviderInstance,
     RoleDefinition,
 )
 from manifest_identity.observe.policy_analysis import capability_document
@@ -113,40 +112,6 @@ def level_document(level: str, scope: str, table: dict[str, bool]) -> dict[str, 
     )
 
 
-def github_organization_scope(
-    db: Session, login: str
-) -> tuple[ProviderInstance, ScopeNode]:
-    """The organization node and the GitHub provider row that names it
-    as its root. There is one partition, github.com; an enterprise
-    server would be a second partition and a second root."""
-    node = find_or_create_node(
-        db, Provider.github, Partition.github_com, "organization", login, login, None
-    )
-    provider = db.execute(
-        select(ProviderInstance).where(
-            ProviderInstance.provider == Provider.github.value,
-            ProviderInstance.root_scope_node_id == node.id,
-        )
-    ).scalar_one_or_none()
-    if provider is None:
-        provider = ProviderInstance(
-            provider=Provider.github.value, display_name=login, root_scope_node_id=node.id,
-        )
-        db.add(provider)
-        db.flush()
-    return provider, node
-
-
-def organization_node_id(db: Session, login: str) -> int | None:
-    return db.execute(
-        select(ScopeNode.id).where(
-            ScopeNode.provider == Provider.github.value,
-            ScopeNode.kind == "organization",
-            ScopeNode.external_id == login,
-        )
-    ).scalar()
-
-
 def import_github_organization(
     db: Session,
     *,
@@ -157,7 +122,11 @@ def import_github_organization(
     actor_username: str,
 ) -> ImportResult:
     captured_at = _check_capture(captured_at)
-    provider, org_node = github_organization_scope(db, export.login)
+    # There is one partition, github.com; an enterprise server would be
+    # a second partition and a second root.
+    provider, org_node = provider_root(
+        db, Provider.github, Partition.github_com, "organization", export.login, export.login,
+    )
     entity_count = (
         len(export.members) + len(export.outside_collaborators) + len(export.teams)
         + len(export.installations)
@@ -168,34 +137,9 @@ def import_github_organization(
         actor_username, entity_count, export.skipped,
     )
 
-    identities = {
-        identity.external_id: identity
-        for identity in db.execute(
-            select(Identity).where(Identity.scope_node_id == org_node.id)
-        ).scalars()
-    }
-    new_count = 0
-    observations = 0
+    estate = Estate(db, import_row, provider, org_node)
+    get_or_create = estate.get_or_create
     definitions: dict[tuple[str, str], RoleDefinition] = {}
-
-    def get_or_create(
-        external_id: str, name: str, provider_type: str, kind: IdentityKind,
-        home: Home = Home.this_directory, origin: str | None = None,
-    ) -> Identity:
-        nonlocal new_count
-        identity = identities.get(external_id)
-        if identity is not None:
-            return identity
-        identity = Identity(
-            provider_id=provider.id, scope_node_id=org_node.id,
-            external_id=external_id, provider_type=provider_type, kind=kind,
-            home=home, origin=origin, first_display_name=name, provisional=False,
-        )
-        db.add(identity)
-        db.flush()
-        identities[external_id] = identity
-        new_count += 1
-        return identity
 
     def definition(
         external_id: str, name: str, managed_by: str, document: dict[str, object],
@@ -235,11 +179,10 @@ def import_github_organization(
     for member in export.members:
         identity = get_or_create(f"user:{member.id}", member.login, "user", IdentityKind.unknown)
         by_login[member.login] = identity
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=identity.id, display_name=member.login,
-            provider_ref=member.login, identity_created_at=member.created_at,
+        estate.observe(
+            identity, member.login, member.login, identity_created_at=member.created_at,
             mfa_active=member.two_factor_enabled, last_activity=member.last_active_at,
-        ))
+        )
         db.add(Credential(
             import_id=import_row.id, identity_id=identity.id,
             kind=CredentialKind.password, external_id="sign-in", active=True,
@@ -250,7 +193,6 @@ def import_github_organization(
             level_document(member.role, "organization", ORGANIZATION_LEVELS[member.role]),
         )
         grant(identity, role, org_node, "organization_role", member.role)
-        observations += 1
 
     # Outside collaborators are guests: seen, never members.
     for collaborator in export.outside_collaborators:
@@ -259,11 +201,7 @@ def import_github_organization(
             home=Home.other_tenant, origin="outside_collaborator",
         )
         by_login[collaborator.login] = identity
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=identity.id,
-            display_name=collaborator.login, provider_ref=collaborator.login,
-        ))
-        observations += 1
+        estate.observe(identity, collaborator.login, collaborator.login)
 
     # Tokens ride on their owners.
     for token in export.tokens:
@@ -281,10 +219,7 @@ def import_github_organization(
     for team in export.teams:
         group = get_or_create(f"team:{team.id}", team.name, "team", IdentityKind.group)
         teams_by_slug[team.slug] = group
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=group.id, display_name=team.name,
-            provider_ref=team.slug,
-        ))
+        estate.observe(group, team.name, team.slug)
         for name, level in team.repositories:
             grant(
                 group, repository_level(name, level), repository_nodes[name],
@@ -329,12 +264,11 @@ def import_github_organization(
                 f"deploy_key:{deploy_key.id}", deploy_key.title, "deploy_key",
                 IdentityKind.service,
             )
-            db.add(IdentityObservation(
-                import_id=import_row.id, identity_id=identity.id,
-                display_name=deploy_key.title,
-                provider_ref=f"{export.login}/{repository.name}#deploy-key-{deploy_key.id}",
+            estate.observe(
+                identity, deploy_key.title,
+                f"{export.login}/{repository.name}#deploy-key-{deploy_key.id}",
                 identity_created_at=deploy_key.created_at, last_activity=deploy_key.last_used,
-            ))
+            )
             db.add(Credential(
                 import_id=import_row.id, identity_id=identity.id, kind=CredentialKind.ssh_key,
                 external_id=f"deploy_key:{deploy_key.id}", active=True,
@@ -345,7 +279,6 @@ def import_github_organization(
                 identity, repository_level(repository.name, level), node,
                 "deploy_key", repository.name,
             )
-            observations += 1
 
     # Installations: an application whose permissions are its own
     # definition, versioned by hash.
@@ -354,16 +287,14 @@ def import_github_organization(
             f"installation:{installation.id}", installation.app_slug, "installation",
             IdentityKind.application,
         )
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=identity.id,
-            display_name=installation.app_slug,
-            provider_ref=f"{export.login}#installation-{installation.id}",
+        estate.observe(
+            identity, installation.app_slug, f"{export.login}#installation-{installation.id}",
             identity_created_at=installation.created_at,
             raw={
                 "permissions": installation.permissions,
                 "repository_selection": installation.repository_selection,
             },
-        ))
+        )
         administers = any(
             installation.permissions.get(scope) in ("write", "admin")
             for scope in ADMINISTERING_SCOPES
@@ -380,7 +311,6 @@ def import_github_organization(
             f"{installation.app_slug} permissions", "customer", document,
         )
         grant(identity, role, org_node, "installation", installation.app_slug)
-        observations += 1
 
     audit.record(
         db,
@@ -390,7 +320,7 @@ def import_github_organization(
         target=f"organization {export.login}",
         detail=(
             f"source {SOURCE_ORGANIZATION}, captured {captured_at.isoformat()}, "
-            f"{observations} observations, {new_count} new identities, "
+            f"{estate.observations} observations, {estate.new_count} new identities, "
             f"{len(export.teams)} teams, {len(export.repositories)} repositories, "
             f"{len(export.installations)} installations"
         ),
@@ -399,9 +329,9 @@ def import_github_organization(
     return ImportResult(
         account=export.login,
         captured_at=captured_at,
-        identities_new=new_count,
+        identities_new=estate.new_count,
         identities_known=0,
-        observations=observations,
+        observations=estate.observations,
         skipped_rows=export.skipped,
     )
 
