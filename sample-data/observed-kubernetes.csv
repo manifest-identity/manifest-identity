@@ -1,0 +1,7 @@
+provider,account,identity_id,identity_name,identity_type,identity_kind,role,role_name,mode,path
+kubernetes,sample-cluster,user:ops-lead,ops-lead,user,unknown,clusterrole:cluster-admin,cluster-admin,standing,
+kubernetes,sample-cluster,group:system:masters,system:masters,group,group,clusterrole:cluster-admin,cluster-admin,standing,
+kubernetes,sample-cluster,serviceaccount:kube-system/deployer,deployer,serviceaccount,service,clusterrole:cluster-admin,cluster-admin,standing,
+kubernetes,sample-cluster,serviceaccount:payments/api,api,serviceaccount,service,role:payments/config-reader,config-reader,standing,
+kubernetes,sample-cluster,user:dev-nadia,dev-nadia,user,unknown,clusterrole:edit,edit,standing,
+kubernetes,sample-cluster,group:platform-team,platform-team,group,group,clusterrole:admin,admin,standing,

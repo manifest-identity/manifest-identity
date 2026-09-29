@@ -532,6 +532,100 @@ def observed_template() -> str:
     return "\n".join([header, *rows]) + "\n"
 
 
+# One sample table per provider the table door reads and no parser
+# reads yet (1.14a): what a recipe under recipes/ produces from that
+# provider's own export, so a person can import each provider the day
+# they meet the product. Every identifier is invented.
+
+TEMPLATE_HEADER = (
+    "provider,account,identity_id,identity_name,identity_type,identity_kind,"
+    "role,role_name,mode,path"
+)
+
+PROVIDER_TABLES: dict[str, list[str]] = {
+    "kubernetes": [
+        "kubernetes,sample-cluster,user:ops-lead,ops-lead,user,unknown,"
+        "clusterrole:cluster-admin,cluster-admin,standing,",
+        "kubernetes,sample-cluster,group:system:masters,system:masters,group,group,"
+        "clusterrole:cluster-admin,cluster-admin,standing,",
+        "kubernetes,sample-cluster,serviceaccount:kube-system/deployer,deployer,"
+        "serviceaccount,service,clusterrole:cluster-admin,cluster-admin,standing,",
+        "kubernetes,sample-cluster,serviceaccount:payments/api,api,serviceaccount,service,"
+        "role:payments/config-reader,config-reader,standing,",
+        "kubernetes,sample-cluster,user:dev-nadia,dev-nadia,user,unknown,"
+        "clusterrole:edit,edit,standing,",
+        "kubernetes,sample-cluster,group:platform-team,platform-team,group,group,"
+        "clusterrole:admin,admin,standing,",
+    ],
+    "gcp": [
+        "gcp,sample-project,user:sam@example.test,sam@example.test,user,person,"
+        "roles/owner,roles/owner,standing,",
+        "gcp,sample-project,serviceAccount:ci@sample-project.iam.gserviceaccount.com,"
+        "ci@sample-project.iam.gserviceaccount.com,serviceAccount,service,"
+        "roles/editor,roles/editor,standing,",
+        "gcp,sample-project,group:data-readers@example.test,data-readers@example.test,"
+        "group,group,roles/bigquery.dataViewer,roles/bigquery.dataViewer,standing,",
+        "gcp,sample-project,serviceAccount:legacy@sample-project.iam.gserviceaccount.com,"
+        "legacy@sample-project.iam.gserviceaccount.com,serviceAccount,service,"
+        "roles/iam.serviceAccountKeyAdmin,roles/iam.serviceAccountKeyAdmin,standing,",
+        "gcp,sample-project,allUsers,allUsers,allUsers,external,"
+        "roles/storage.objectViewer,roles/storage.objectViewer,standing,",
+    ],
+    "azure": [
+        "azure,11111111-2222-3333-4444-555555555555,a1b2c3d4-0000-0000-0000-000000000001,"
+        "sam@example.test,user,person,"
+        "/subscriptions/11111111-2222-3333-4444-555555555555/providers/"
+        "Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635,"
+        "Owner,standing,",
+        "azure,11111111-2222-3333-4444-555555555555,a1b2c3d4-0000-0000-0000-000000000002,"
+        "deploy-pipeline,serviceprincipal,service,"
+        "/subscriptions/11111111-2222-3333-4444-555555555555/providers/"
+        "Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c,"
+        "Contributor,standing,",
+        "azure,11111111-2222-3333-4444-555555555555,a1b2c3d4-0000-0000-0000-000000000003,"
+        "cloud-readers,group,group,"
+        "/subscriptions/11111111-2222-3333-4444-555555555555/providers/"
+        "Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7,"
+        "Reader,standing,",
+        "azure,11111111-2222-3333-4444-555555555555,a1b2c3d4-0000-0000-0000-000000000004,"
+        "contractor@partner.test,user,person,"
+        "/subscriptions/11111111-2222-3333-4444-555555555555/providers/"
+        "Microsoft.Authorization/roleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9,"
+        "User Access Administrator,standing,",
+    ],
+    "okta": [
+        "okta,sample-org,00u0000000000000sam,sam@example.test,user,person,"
+        "SUPER_ADMIN,Super Organization Administrator,standing,",
+        "okta,sample-org,00u0000000000000rita,rita@example.test,user,person,"
+        "ORG_ADMIN,Organization Administrator,standing,membership:group",
+        "okta,sample-org,00u0000000000000help,helpdesk@example.test,user,person,"
+        "HELP_DESK_ADMIN,Help Desk Administrator,standing,",
+        "okta,sample-org,00u0000000000000audit,auditor@example.test,user,person,"
+        "READ_ONLY_ADMIN,Read Only Administrator,standing,",
+    ],
+    "active_directory": [
+        "active_directory,corp,S-1-5-21-1000-1,sam.owner,user,person,"
+        "Domain Admins,Domain Admins,standing,",
+        "active_directory,corp,S-1-5-21-1000-2,svc-backup,user,service,"
+        "Backup Operators,Backup Operators,standing,",
+        "active_directory,corp,S-1-5-21-1000-3,helpdesk-tier1,group,group,"
+        "Account Operators,Account Operators,standing,",
+        "active_directory,corp,S-1-5-21-1000-4,legacy.mike,user,person,"
+        "Domain Admins,Domain Admins,standing,membership:infra-admins",
+    ],
+    "database": [
+        "database,prod-db,16384,app_writer,role,unknown,app_rw,app_rw,standing,",
+        "database,prod-db,16385,reporting,role,unknown,app_ro,app_ro,standing,",
+        "database,prod-db,16386,dba_sam,role,unknown,superuser,superuser,standing,",
+        "database,prod-db,16387,migrations,role,unknown,superuser,superuser,standing,",
+    ],
+}
+
+
+def provider_table(provider: str) -> str:
+    return "\n".join([TEMPLATE_HEADER, *PROVIDER_TABLES[provider]]) + "\n"
+
+
 def authorizations_template() -> str:
     """The template for the file door, generated rather than written,
     so its columns come from the shipped mapping itself (D-074) and
@@ -749,6 +843,8 @@ def file_set(scale: int = 0) -> dict[str, str]:
         out[f"{day}-github-organization.json"] = github_organization(generation)
     out["authorizations-template.csv"] = authorizations_template()
     out["observed-template.csv"] = observed_template()
+    for provider in PROVIDER_TABLES:
+        out[f"observed-{provider.replace('_', '-')}.csv"] = provider_table(provider)
     return out
 
 

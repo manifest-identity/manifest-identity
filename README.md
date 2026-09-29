@@ -73,10 +73,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **342 tests in 38 files**, coverage 94 over a 90 percent floor |
+| Tests | **348 tests in 39 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **64 routes**, every one in the role matrix the tests walk |
-| Record | **77 recorded decisions**, each with its rejected alternatives |
+| Record | **78 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -113,6 +113,7 @@ The design lives in three files beside this one: [ARCHITECTURE.md](ARCHITECTURE.
 - [Run it](#run-it)
 - [Running it on Kubernetes](#running-it-on-kubernetes)
 - [Using it](#using-it)
+- [Every provider's file](#every-providers-file)
 - [How a request is protected](#how-a-request-is-protected)
 - [What runs where](#what-runs-where)
 - [How it is put together](#how-it-is-put-together)
@@ -545,6 +546,50 @@ in a closure variable rather than browser storage, where any script
 that ever ran in the page could read it; the accepted cost is that a
 refresh signs you out. The content policy forbids inline script and
 style, and the page needs neither.
+
+-------------------------------------------------------------------------------
+
+## Every provider's file
+
+Two providers are read natively, AWS through its two export formats
+and GitHub through the assembled organization export (D-076). Every
+other provider on the list enters through the table door (D-074,
+D-078): a file of who holds what, read through a mapping, with the
+shipped template's columns as the default. A provider through the door
+gets the inventory, the authorization record, the delta, and campaigns
+the same day; what it does not get until it earns a parser of its own
+is credentials and their ages, second-factor state, activity, trust
+relationships, and the contents of a role definition, which is what the
+privilege findings read.
+
+The recipes under [recipes/](recipes) turn each provider's own export
+into the door's table, and a sample table per provider ships in
+[sample-data](sample-data) so each can be tried at once. The jq
+recipes run in the test suite against inputs in the provider's
+documented shape, so a recipe that stops producing the table fails the
+build; the PowerShell and SQL recipes are documented and shipped, and
+their sample tables are the tested half.
+
+| Provider | The provider's own export | Recipe | Sample table |
+|---|---|---|---|
+| Kubernetes | `kubectl get rolebindings,clusterrolebindings -A -o json` | `recipes/kubernetes.jq` with `--arg cluster NAME` | `observed-kubernetes.csv` |
+| Google Cloud | `gcloud projects get-iam-policy PROJECT_ID --format=json` | `recipes/google-cloud.jq` with `--arg project PROJECT_ID` | `observed-gcp.csv` |
+| Azure | `az role assignment list --all --include-inherited --scope /subscriptions/ID -o json`, once per subscription | `recipes/azure.jq` | `observed-azure.csv` |
+| Okta | `GET /api/v1/iam/assignees/users` and `GET /api/v1/users/{id}/roles`, assembled as one array | `recipes/okta.jq` with `--arg org SUBDOMAIN` | `observed-okta.csv` |
+| Active Directory | The directory cmdlets, run by the script | `recipes/active-directory.ps1 -Domain corp -Groups ...` | `observed-active-directory.csv` |
+| Database (PostgreSQL) | `pg_roles` and `pg_auth_members`, read by the script | `psql -v instance=NAME -f recipes/database.sql` | `observed-database.csv` |
+| SaaS, generic | Whatever table the system exports | A mapping of its own columns | the shipped template |
+
+What a recipe cannot carry is stated in its header. A Kubernetes
+group is a name the cluster cannot list the members of, so it enters
+as a group with no members; a Google Cloud binding's condition is not
+read; an Azure assignment at a resource group is filed under its
+subscription, and Entra directory roles and eligibilities are not in
+the command's output; an Okta role that arrives through a group
+records the hop without the group's name; a directory account's
+password age and last logon stay behind. Each of those is what the
+native parser for that provider is for, and the plan carries them in
+the order Kubernetes, Google Cloud, Azure and Entra, Okta.
 
 -------------------------------------------------------------------------------
 
@@ -982,7 +1027,8 @@ holds the reviews and the alerts.
 | `manifest_identity/sample_data.py` | The deterministic sample account generator |
 | `frontend/` | One page, no build step; every value rendered as text |
 | `migrations/` | The schema from the first table |
-| `sample-data/` | The generated demo account, committed and checked |
+| `sample-data/` | The generated demo estates and one sample table per provider, committed and checked |
+| `recipes/` | Each provider's own export turned into the table door's file; the jq ones run in the suite |
 | `tests/` | The attack checklist; the matrix walked row by row |
 | `scripts/` | The gates: docs-truth, digest parity, the mutation check |
 | `diagrams/` | Working sketches under the drawing doctrine |

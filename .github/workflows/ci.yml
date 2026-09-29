@@ -262,8 +262,10 @@ jobs:
       # coverage upload and the analyzer's signature check refuse to run
       # without them; the tools come from Debian's own archive, verified
       # by apt, and never enter the image.
-      - name: tools the upload and the analyzer need, from the distribution
-        run: apt-get update && apt-get install -y --no-install-recommends git curl gpg dirmngr unzip ca-certificates
+      # jq runs the provider recipes under recipes/ in their tests, so
+      # a recipe that stops producing the door's table fails here.
+      - name: tools the upload, the analyzer, and the recipe tests need, from the distribution
+        run: apt-get update && apt-get install -y --no-install-recommends git curl gpg dirmngr unzip ca-certificates jq
       - name: lint
         run: ruff check .
       - name: types

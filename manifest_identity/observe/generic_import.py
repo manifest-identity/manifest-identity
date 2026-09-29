@@ -97,11 +97,20 @@ DEFAULT_FIELDS: dict[str, dict[str, str | None]] = {
 }
 
 # The partition a provider's rows land under when the file does not say.
+# A directory, a database, and a cluster are on premises unless a
+# native parser learns otherwise; an identity service and the generic
+# provider have no partition to name.
 PARTITIONS = {
     Provider.aws: Partition.aws_commercial,
     Provider.azure: Partition.azure_commercial,
     Provider.gcp: Partition.gcp,
     Provider.github: Partition.github_com,
+    Provider.kubernetes: Partition.on_premises,
+    Provider.active_directory: Partition.on_premises,
+    Provider.database: Partition.on_premises,
+    Provider.okta: Partition.none,
+    Provider.saas: Partition.none,
+    Provider.generic: Partition.none,
 }
 
 
