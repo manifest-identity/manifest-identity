@@ -527,6 +527,16 @@ async function loadDelta() {
       f.observed_as_of || "never", f.authorized_as_of || "never",
     ], () => loadDetail(f.identity_id)));
   }
+  // Findings about a definition rather than an identity (1.7). Same
+  // table, because the tiles above count them together; no identity
+  // and no route, so those cells stay empty and the row does not open
+  // a detail it does not have.
+  for (const f of body.definition_findings || []) {
+    rows.appendChild(row([
+      f.title, f.account, "", f.role, "", f.detail,
+      f.observed_as_of || "never", f.authorized_as_of || "never",
+    ]));
+  }
 }
 
 async function loadScopes() {

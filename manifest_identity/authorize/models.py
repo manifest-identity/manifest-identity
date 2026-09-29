@@ -145,3 +145,47 @@ class AuthorizedRelationship(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow
     )
+
+
+class AuthorizedRoleDefinition(Base):
+    """A custom definition someone authorized to exist as written: a
+    customer-managed policy or an inline document, bound to the hash of
+    the contents that were agreed, with an owner and a window.
+
+    An authorization says who may hold a definition. This says the
+    definition itself is supposed to exist and look like this, which is
+    a different question with a different owner: the person who wrote
+    the policy rather than the people it is attached to. A provider's
+    built-in policy is never recorded here, because the provider is the
+    one who changes it and its changes are reported per holder.
+
+    Same rules as the other two records. Nothing is edited; a new hash
+    is a new row that supersedes the old, and the chain is the history.
+    """
+
+    __tablename__ = "authorized_role_definitions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    provider_id: Mapped[int] = mapped_column(ForeignKey("providers.id"), index=True)
+    role_definition_external_id: Mapped[str] = mapped_column(String(2048))
+    role_definition_hash: Mapped[str] = mapped_column(String(64))
+    display_name: Mapped[str] = mapped_column(String(255))
+    owner_kind: Mapped[str] = mapped_column(String(16))
+    owner_ref: Mapped[str] = mapped_column(String(255))
+    authorizer_user_id: Mapped[int | None] = mapped_column(default=None)
+    authorizer_username: Mapped[str] = mapped_column(String(64))
+    authorized_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow
+    )
+    justification: Mapped[str | None] = mapped_column(String(1000), default=None)
+    valid_from: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    valid_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+    status: Mapped[str] = mapped_column(String(16), default=AuthorizationStatus.authorized)
+    supersedes_id: Mapped[int | None] = mapped_column(
+        ForeignKey("authorized_role_definitions.id"), default=None
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow
+    )

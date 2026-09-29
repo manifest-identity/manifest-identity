@@ -29,21 +29,32 @@ a claim.
 """
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from manifest_identity.authorize import authorizations, from_observed, relationships
+from manifest_identity.authorize import (
+    authorizations,
+    from_observed,
+    relationships,
+    role_definitions,
+)
 from manifest_identity.authorize.models import (
     Authorization,
     AuthorizationStatus,
     GovernanceRecord,
 )
 from manifest_identity.core.models import ScopeNode
-from manifest_identity.observe import paths
-from manifest_identity.observe.models import Identity, IdentityKind, Import
+from manifest_identity.observe import paths, policy_analysis
+from manifest_identity.observe.models import (
+    Grant,
+    Identity,
+    IdentityKind,
+    Import,
+    RoleDefinition,
+)
 
 HELD_NOT_AUTHORIZED = "held_not_authorized"
 # Access that arrives through a door nobody authorized, and privilege an
@@ -52,6 +63,12 @@ HELD_NOT_AUTHORIZED = "held_not_authorized"
 # and access does not only arrive by being held (1.6).
 ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP = "access_via_unauthorized_relationship"
 ELIGIBLE_NOT_AUTHORIZED = "eligible_not_authorized"
+# Two classes about a definition rather than about who holds it (1.7).
+# A custom policy somebody wrote is a thing somebody should own, and a
+# custom policy whose contents moved after it was agreed is the change
+# the owner has to see, whether or not any holder's reviewer does.
+CUSTOM_DEFINITION_NOT_AUTHORIZED = "custom_definition_not_authorized"
+CUSTOM_DEFINITION_CHANGED = "custom_definition_changed"
 AUTHORIZED_NOT_HELD = "authorized_not_held"
 EXPIRED_STILL_HELD = "expired_still_held"
 OWNER_DISAGREEMENT = "owner_disagreement"
@@ -65,6 +82,8 @@ CLASSES = (
     EXPIRED_STILL_HELD,
     ELIGIBLE_NOT_AUTHORIZED,
     DEFINITION_CHANGED,
+    CUSTOM_DEFINITION_CHANGED,
+    CUSTOM_DEFINITION_NOT_AUTHORIZED,
     AUTHORIZED_NOT_HELD,
     OWNER_DISAGREEMENT,
 )
@@ -77,6 +96,8 @@ TITLES = {
     EXPIRED_STILL_HELD: "expired and still held",
     OWNER_DISAGREEMENT: "owner disagreement",
     DEFINITION_CHANGED: "the role changed after it was authorized",
+    CUSTOM_DEFINITION_CHANGED: "a custom definition changed after it was authorized",
+    CUSTOM_DEFINITION_NOT_AUTHORIZED: "a custom definition nobody authorized",
 }
 
 
@@ -93,14 +114,131 @@ class DeltaFinding:
     authorization_id: int | None
     observed_as_of: datetime | None
     authorized_as_of: datetime | None
+    # For a definition that changed: what arrived, what left, and which
+    # lines the new version crosses, so a page can show them as a list
+    # rather than making a reviewer parse a sentence.
+    actions_added: list[str] = field(default_factory=list)
+    actions_removed: list[str] = field(default_factory=list)
+    capabilities_gained: list[str] = field(default_factory=list)
 
     @property
     def title(self) -> str:
         return TITLES[self.kind]
 
 
+@dataclass
+class RoleDefinitionFinding:
+    """A finding whose subject is a definition rather than an identity.
+    It carries the same two timestamps as an identity finding, for the
+    same reason: a month-old import is true about a month-old world."""
+
+    kind: str
+    role_definition_id: int
+    role: str
+    role_ref: str
+    account: str
+    detail: str
+    authorization_id: int | None
+    observed_as_of: datetime | None
+    authorized_as_of: datetime | None
+    actions_added: list[str] = field(default_factory=list)
+    actions_removed: list[str] = field(default_factory=list)
+    capabilities_gained: list[str] = field(default_factory=list)
+
+    @property
+    def title(self) -> str:
+        return TITLES[self.kind]
+
+
+def for_definitions(
+    db: Session, now: datetime | None = None
+) -> list[RoleDefinitionFinding]:
+    """Every custom definition at each scope's newest import, against
+    the record of which ones somebody authorized and at what version.
+
+    Only customer-managed definitions are asked to justify themselves.
+    A provider's built-in policy was written by the provider and changes
+    when the provider says so; its changes reach every holder through
+    the per-holder finding, and nobody in the organization owns it.
+    """
+    out: list[RoleDefinitionFinding] = []
+    nodes = db.execute(select(ScopeNode)).scalars().all()
+    for node in nodes:
+        newest = paths.newest_import(db, node.id)
+        if newest is None:
+            continue
+        observed_at = _observed_as_of(db, node.id)
+        definition_ids = {
+            definition_id
+            for (definition_id,) in db.execute(
+                select(Grant.role_definition_id).where(Grant.import_id == newest)
+            )
+        }
+        if not definition_ids:
+            continue
+        definitions = db.execute(
+            select(RoleDefinition).where(
+                RoleDefinition.id.in_(definition_ids),
+                RoleDefinition.managed_by == role_definitions.CUSTOMER,
+            ).order_by(RoleDefinition.display_name_last)
+        ).scalars().all()
+        for definition in definitions:
+            standing = role_definitions.active_for(db, definition.external_id, now)
+            if standing is None:
+                out.append(RoleDefinitionFinding(
+                    kind=CUSTOM_DEFINITION_NOT_AUTHORIZED,
+                    role_definition_id=definition.id,
+                    role=definition.display_name_last,
+                    role_ref=definition.external_id,
+                    account=node.external_id,
+                    detail="this custom definition exists and nobody has said it "
+                    "should, so nobody owns what it grants",
+                    authorization_id=None,
+                    observed_as_of=observed_at,
+                    authorized_as_of=None,
+                ))
+                continue
+            if standing.role_definition_hash == definition.contents_hash:
+                continue
+            change = policy_analysis.describe_change(
+                _definition_contents(db, definition.external_id, standing.role_definition_hash),
+                definition.contents,
+            )
+            out.append(RoleDefinitionFinding(
+                kind=CUSTOM_DEFINITION_CHANGED,
+                role_definition_id=definition.id,
+                role=definition.display_name_last,
+                role_ref=definition.external_id,
+                account=node.external_id,
+                detail="the definition's contents changed after it was authorized: "
+                + change.as_text(),
+                authorization_id=standing.id,
+                observed_as_of=observed_at,
+                authorized_as_of=standing.authorized_at,
+                actions_added=change.added,
+                actions_removed=change.removed,
+                capabilities_gained=change.crossed,
+            ))
+    out.sort(key=lambda f: (CLASSES.index(f.kind), f.role))
+    return out
+
+
 def _key(path: list[dict[str, str]], role: str) -> str:
     return authorizations.grant_key(path, role)
+
+
+def _definition_contents(
+    db: Session, external_id: str, contents_hash: str
+) -> dict[str, object] | None:
+    """One version's document, or nothing when that version was never
+    observed, which the comparison says out loud rather than treating
+    as an empty policy."""
+    return db.execute(
+        select(RoleDefinition.contents).where(
+            RoleDefinition.external_id == external_id[:2048],
+            RoleDefinition.contents_hash == contents_hash,
+        ).limit(1)
+    ).scalar()
 
 
 def _observed_as_of(db: Session, node_id: int) -> datetime | None:
@@ -190,12 +328,29 @@ def for_identity(
             and observed.role_definition_hash
             and row.role_definition_hash != observed.role_definition_hash
         ):
-            out.append(finding(
+            # Naming what changed is the part that tells a reviewer
+            # whether it matters (1.7). Both versions are rows this
+            # product already holds, looked up by the hash each side
+            # recorded.
+            change = policy_analysis.describe_change(
+                _definition_contents(
+                    db, row.role_definition_external_id, row.role_definition_hash
+                ),
+                _definition_contents(
+                    db, row.role_definition_external_id,
+                    observed.role_definition_hash,
+                ),
+            )
+            changed = finding(
                 DEFINITION_CHANGED, row.role_definition_external_id, row.path,
-                "the role's contents changed after it was authorized, "
-                "so what is held is not what was agreed",
+                "the role's contents changed after it was authorized: "
+                + change.as_text(),
                 row,
-            ))
+            )
+            changed.actions_added = change.added
+            changed.actions_removed = change.removed
+            changed.capabilities_gained = change.crossed
+            out.append(changed)
         if owner_tag and row.owner_ref and owner_tag != row.owner_ref:
             out.append(finding(
                 OWNER_DISAGREEMENT, row.role_definition_external_id, row.path,
@@ -290,6 +445,13 @@ def for_estate(db: Session, now: datetime | None = None) -> list[DeltaFinding]:
     for identity in identities:
         out.extend(for_identity(db, identity, now))
     out.sort(key=lambda f: (CLASSES.index(f.kind), f.account, f.display_name))
+    return out
+
+
+def definition_counts(findings: list[RoleDefinitionFinding]) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for finding in findings:
+        out[finding.kind] = out.get(finding.kind, 0) + 1
     return out
 
 

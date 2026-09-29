@@ -39,6 +39,26 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         ["tests/test_delta.py"],
     ),
     (
+        # 1.7: the finding that names what a changed definition gained.
+        # Without the names it says "the role changed", which tells a
+        # reviewer to look and not what to look at.
+        "the actions a changed definition gained go unnamed",
+        "manifest_identity/observe/policy_analysis.py",
+        "        added=sorted(now - was),",
+        "        added=[],",
+        ["tests/test_role_definitions.py"],
+    ),
+    (
+        # A custom definition nobody authorized is the row worth reading
+        # on that page, and losing it leaves every custom policy reading
+        # as owned when nobody said so.
+        "a custom definition nobody authorized goes unreported",
+        "manifest_identity/compare/delta.py",
+        "            if standing is None:",
+        "            if False:",
+        ["tests/test_role_definitions.py"],
+    ),
+    (
         "authorization check removed",
         "manifest_identity/core/deps.py",
         "        if not held & {r.value for r in allowed}:",
