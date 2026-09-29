@@ -226,6 +226,25 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         "            for ancestor in chain[:1]:",
         ["tests/test_github_import.py"],
     ),
+    (
+        # 1.14b: bind and escalate are the verbs that hand out roles.
+        # A reading that ignored them would call a role that can make
+        # itself cluster-admin harmless.
+        "the verbs that hand out roles do not change access",
+        "manifest_identity/observe/kubernetes_importer.py",
+        "        if verbs & ACCESS_VERBS:",
+        "        if False:",
+        ["tests/test_kubernetes_import.py"],
+    ),
+    (
+        # A RoleBinding grants inside its namespace; recording it at the
+        # cluster would hand a namespace editor the whole cluster.
+        "a namespace binding is recorded at the cluster",
+        "manifest_identity/observe/kubernetes_importer.py",
+        "        node = namespace_node(binding.namespace) if binding.namespace else cluster_node",
+        "        node = cluster_node",
+        ["tests/test_kubernetes_import.py"],
+    ),
 ]
 
 

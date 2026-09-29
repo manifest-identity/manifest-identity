@@ -126,16 +126,23 @@ CAPABILITY_KIND = "capabilities"
 def capability_document(
     provider: str, level: str, scope: str, *,
     administers: bool, changes_access: bool, writes: bool, reads: bool,
+    actions: list[str] | None = None,
 ) -> dict[str, object]:
     """A definition's contents for a provider whose roles are fixed
     levels rather than documents of actions. It says what the level
     can do in the reading's own terms, so the finding engine reads it
-    the way it reads a policy and never learns the provider's words."""
-    return {
+    the way it reads a policy and never learns the provider's words.
+    A provider whose roles do enumerate what they allow (a cluster
+    role's verbs on resources) lists them as actions, so a changed
+    definition can name what it gained the way a policy can (1.7)."""
+    document: dict[str, object] = {
         "kind": CAPABILITY_KIND, "provider": provider, "level": level, "scope": scope,
         "administers": administers, "changes_access": changes_access,
         "writes": writes, "reads": reads,
     }
+    if actions is not None:
+        document["actions"] = sorted(set(actions))
+    return document
 
 
 def read_policy(document: object) -> PolicyReading:
@@ -312,6 +319,15 @@ def allowed_actions(document: object) -> frozenset[str]:
     found: set[str] = set()
     if not isinstance(document, dict):
         return frozenset()
+    if document.get("kind") == CAPABILITY_KIND:
+        # A capability document that enumerates what it allows names
+        # those as its actions; one that only states a level has none
+        # to name, and a change between two levels reads as a change
+        # of level rather than of actions.
+        listed = document.get("actions")
+        return frozenset(
+            str(a).lower() for a in listed
+        ) if isinstance(listed, list) else frozenset()
     statements = document.get("Statement")
     if isinstance(statements, dict):
         statements = [statements]

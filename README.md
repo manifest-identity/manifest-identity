@@ -73,10 +73,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **348 tests in 39 files**, coverage 94 over a 90 percent floor |
+| Tests | **364 tests in 40 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **64 routes**, every one in the role matrix the tests walk |
-| Record | **78 recorded decisions**, each with its rejected alternatives |
+| Surface | **65 routes**, every one in the role matrix the tests walk |
+| Record | **79 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -551,10 +551,10 @@ style, and the page needs neither.
 
 ## Every provider's file
 
-Two providers are read natively, AWS through its two export formats
-and GitHub through the assembled organization export (D-076). Every
-other provider on the list enters through the table door (D-074,
-D-078): a file of who holds what, read through a mapping, with the
+Three providers are read natively: AWS through its two export
+formats, GitHub through the assembled organization export (D-076), and
+Kubernetes through the cluster's own dump (D-079). Every other provider
+on the list enters through the table door (D-074, D-078): a file of who holds what, read through a mapping, with the
 shipped template's columns as the default. A provider through the door
 gets the inventory, the authorization record, the delta, and campaigns
 the same day; what it does not get until it earns a parser of its own
@@ -572,7 +572,7 @@ their sample tables are the tested half.
 
 | Provider | The provider's own export | Recipe | Sample table |
 |---|---|---|---|
-| Kubernetes | `kubectl get rolebindings,clusterrolebindings -A -o json` | `recipes/kubernetes.jq` with `--arg cluster NAME` | `observed-kubernetes.csv` |
+| Kubernetes | Read natively (D-079): `kubectl get roles,clusterroles,rolebindings,clusterrolebindings,serviceaccounts -A -o json` through `POST /imports/kubernetes-rbac`, the cluster's name given beside the file | `recipes/kubernetes.jq` remains for the table door | `observed-kubernetes.csv` and the three `kubernetes-rbac.json` months |
 | Google Cloud | `gcloud projects get-iam-policy PROJECT_ID --format=json` | `recipes/google-cloud.jq` with `--arg project PROJECT_ID` | `observed-gcp.csv` |
 | Azure | `az role assignment list --all --include-inherited --scope /subscriptions/ID -o json`, once per subscription | `recipes/azure.jq` | `observed-azure.csv` |
 | Okta | `GET /api/v1/iam/assignees/users` and `GET /api/v1/users/{id}/roles`, assembled as one array | `recipes/okta.jq` with `--arg org SUBDOMAIN` | `observed-okta.csv` |
@@ -873,6 +873,15 @@ audit_events
   organization owner, a repository admin, and an app that may write
   members read as administrator equivalent through the same finding as
   an AWS administrator policy.
+- **Kubernetes is the third native provider** (D-079): the cluster's
+  own dump becomes the same rows, with the cluster and its namespaces
+  as scope nodes, service accounts as services, users and outside
+  groups as identities the authenticator asserts, the cluster's own
+  two groups with their members written, and every role's rules read
+  as capabilities, so a role that can bind or escalate reads as
+  changing access and a rule for every verb on every resource reads
+  as administering. The rules ride as actions, so a changed custom
+  role names what it gained.
 - The **observed side reads any provider's table** through the same
   mapping mechanism the authorized side uses, with its own field set
   and a shipped template. An organization with a spreadsheet of
@@ -925,6 +934,7 @@ PUT /admin/settings
 POST /imports/credential-report
 POST /imports/authorization-details
 POST /imports/github-organization
+POST /imports/kubernetes-rbac
 POST /imports/observed/dry-run
 POST /imports/observed
 GET /imports
@@ -998,9 +1008,10 @@ holds the reviews and the alerts.
 | `manifest_identity/core/models.py` | Users, sessions, scope nodes, role bindings, settings, the audit chain |
 | `manifest_identity/core/audit.py` | The audit spine: the record commits with the action |
 | `manifest_identity/core/verify_chain.py` | The offline verifier: recompute the chain, compare to an anchor |
-| `manifest_identity/observe/providers/` | The three parsers, AWS and GitHub: bounded, in memory, distrusting their own preconditions |
+| `manifest_identity/observe/providers/` | The four parsers, AWS, GitHub, and Kubernetes: bounded, in memory, distrusting their own preconditions |
 | `manifest_identity/observe/importer.py` | AWS records become neutral rows; the vocabulary ends here |
 | `manifest_identity/observe/github_importer.py` | GitHub records become the same neutral rows: teams as groups, permission levels as capability documents |
+| `manifest_identity/observe/kubernetes_importer.py` | A cluster's dump becomes the same rows: rules read as capabilities, bindings as grants at the namespace or the cluster |
 | `manifest_identity/observe/models.py` | Imports, identities, credentials, grants, role definitions, relationships |
 | `manifest_identity/observe/derive.py` | State from history at read time; the freshest value per field |
 | `manifest_identity/observe/principals.py` | Who a trust policy names, one principal per row, allow statements only |

@@ -18,12 +18,13 @@ from sqlalchemy.orm import Session
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, ThrottledWrite, require_roles, require_scope
 from manifest_identity.core.models import Provider, ScopeNode
-from manifest_identity.observe import generic_import, github_importer
+from manifest_identity.observe import generic_import, github_importer, kubernetes_importer
 from manifest_identity.observe import mapping as tabular
 from manifest_identity.observe.importer import (
     SHAPE_AUTHORIZATION,
     SHAPE_CREDENTIAL,
     SHAPE_GITHUB,
+    SHAPE_KUBERNETES,
     SHAPE_TABLE,
     CaptureTimeInvalid,
     DuplicateSnapshot,
@@ -39,6 +40,7 @@ from manifest_identity.observe.providers.aws.credential_report import (
     parse_credential_report,
 )
 from manifest_identity.observe.providers.github import organization_export as github_export
+from manifest_identity.observe.providers.kubernetes import rbac_dump
 
 router = APIRouter(prefix="/imports")
 
@@ -79,6 +81,7 @@ SHAPE_NAMES = {
     SHAPE_AUTHORIZATION: "an AWS authorization details export",
     SHAPE_CREDENTIAL: "an AWS credential report",
     SHAPE_GITHUB: "a GitHub organization export",
+    SHAPE_KUBERNETES: "a Kubernetes role-based access control dump",
     SHAPE_TABLE: "a table for a mapping",
 }
 
@@ -311,6 +314,55 @@ def import_github(
         result = github_importer.import_github_organization(
             db,
             export=export,
+            captured_at=captured_at,
+            source_filename=file.filename,
+            actor_user_id=auth.user.id,
+            actor_username=auth.user.username,
+        )
+    except CaptureTimeInvalid as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except DuplicateSnapshot as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return ImportResponse(
+        account=result.account,
+        captured_at=result.captured_at.isoformat(),
+        identities_new=result.identities_new,
+        identities_known=result.identities_known,
+        observations=result.observations,
+        skipped_rows=result.skipped_rows,
+    )
+
+
+@router.post("/kubernetes-rbac", status_code=201)
+def import_kubernetes(
+    file: UploadFile,
+    captured_at: Annotated[datetime, Form()],
+    cluster: Annotated[str, Form(min_length=1, max_length=253, pattern=r"^[a-z0-9][a-z0-9.-]*$")],
+    db: Annotated[Session, Depends(get_session)],
+    auth: Annotated[AuthContext, require_roles("POST /imports/kubernetes-rbac")],
+    _budget: ThrottledWrite,
+) -> ImportResponse:
+    """The third provider's door (1.14b). The cluster's name arrives as
+    a form field because nothing in a kubectl dump names the cluster;
+    it is client input the way the capture time is, and it is checked
+    against the scope the person may write to."""
+    data = file.file.read(rbac_dump.MAX_FILE_BYTES + 1)
+    if len(data) > rbac_dump.MAX_FILE_BYTES:
+        raise HTTPException(status_code=413, detail="file exceeds the size bound")
+    _refuse_mismatch(data, SHAPE_KUBERNETES)
+    try:
+        dump = rbac_dump.parse_rbac_dump(data)
+    except rbac_dump.ParseError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    require_scope(
+        db, auth, "POST /imports/kubernetes-rbac",
+        kubernetes_importer.cluster_node_id(db, cluster),
+    )
+    try:
+        result = kubernetes_importer.import_rbac_dump(
+            db,
+            dump=dump,
+            cluster=cluster,
             captured_at=captured_at,
             source_filename=file.filename,
             actor_user_id=auth.user.id,

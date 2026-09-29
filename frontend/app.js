@@ -1098,6 +1098,15 @@ $("auth-form").addEventListener("submit", async (e) => {
 wireOwnerTypeVisibility("gov-form");
 wireOwnerTypeVisibility("group-gov-form");
 
+// The cluster name is asked for only when the file is a cluster dump,
+// the one source whose content cannot say where it came from.
+(function wireImportKind() {
+  const kind = $("import-form").querySelector('[name="kind"]');
+  const sync = () => { $("import-cluster-label").hidden = kind.value !== "kubernetes-rbac"; };
+  kind.addEventListener("change", sync);
+  sync();
+})();
+
 $("gov-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = new FormData(e.target);
@@ -1146,6 +1155,8 @@ $("import-form").addEventListener("submit", async (e) => {
   if (kind === "observed" && form.get("mapping_id")) {
     body.append("mapping_id", form.get("mapping_id"));
   }
+  // A cluster dump does not name its cluster, so the person does.
+  if (kind === "kubernetes-rbac") body.append("cluster", form.get("cluster") || "");
   const result = $("import-result");
   result.hidden = false;
   result.textContent = "importing...";
