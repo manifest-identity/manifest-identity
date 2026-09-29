@@ -39,6 +39,9 @@ class CredentialKind(StrEnum):
     access_key = "access_key"
     password = "password"  # noqa: S105
     certificate = "certificate"
+    # The AWS signing certificate, a legacy credential; an application's
+    # authentication certificate is the plain kind above.
+    signing_certificate = "signing_certificate"
     client_secret = "client_secret"  # noqa: S105
     token = "token"  # noqa: S105
     ssh_key = "ssh_key"

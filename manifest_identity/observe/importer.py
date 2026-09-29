@@ -58,6 +58,7 @@ SHAPE_CREDENTIAL = "credential-report"
 SHAPE_GITHUB = "github-organization"
 SHAPE_KUBERNETES = "kubernetes-rbac"
 SHAPE_GOOGLE = "google-cloud"
+SHAPE_AZURE = "azure-tenant"
 SHAPE_TABLE = "table"
 
 
@@ -80,6 +81,8 @@ def detect_source(data: bytes) -> str | None:
             return SHAPE_KUBERNETES
         if b'"projectId"' in window and b'"policy"' in window:
             return SHAPE_GOOGLE
+        if b'"tenant"' in window and b'"users"' in window:
+            return SHAPE_AZURE
         if b'"organization"' in window:
             return SHAPE_GITHUB
         return None
@@ -369,7 +372,7 @@ def import_credential_report(
                 Credential(
                     import_id=import_row.id,
                     identity_id=identity.id,
-                    kind=CredentialKind.certificate,
+                    kind=CredentialKind.signing_certificate,
                     external_id=label,
                     active=bool(active),
                 )

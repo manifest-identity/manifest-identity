@@ -33,6 +33,7 @@ from manifest_identity.observe.findings import Finding, evaluate
 from manifest_identity.observe.models import (
     Credential,
     Grant,
+    GrantMode,
     Identity,
     IdentityKind,
     IdentityObservation,
@@ -162,10 +163,13 @@ def scope_context(db: Session, node_id: int) -> ScopeContext:
             select(Identity).where(Identity.scope_node_id == node_id)
         ).scalars()
     }
+    # Standing grants are what an identity holds; an eligible grant is
+    # what it can obtain, reported in the detail's second list and in
+    # the delta, not as privilege held (1.14d).
     grant_rows = db.execute(
         select(Grant, RoleDefinition)
         .join(RoleDefinition, Grant.role_definition_id == RoleDefinition.id)
-        .where(Grant.import_id == newest)
+        .where(Grant.import_id == newest, Grant.mode == GrantMode.standing)
     ).all()
     inline_by_owner: dict[int, list[str]] = {}
     for grant, definition in grant_rows:

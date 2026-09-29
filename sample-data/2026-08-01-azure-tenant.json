@@ -1,0 +1,285 @@
+{
+  "tenant": {
+    "id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "displayName": "Sample Tenant",
+    "cloud": "AzureCloud"
+  },
+  "users": [
+    {
+      "id": "11111111-0000-4000-8000-000000000001",
+      "userPrincipalName": "sam@example.test",
+      "displayName": "Sam Owner",
+      "accountEnabled": true,
+      "userType": "Member",
+      "createdDateTime": "2021-04-02T00:00:00Z",
+      "signInActivity": {
+        "lastSignInDateTime": "2026-07-28T00:00:00+00:00"
+      },
+      "mfa_registered": true
+    },
+    {
+      "id": "11111111-0000-4000-8000-000000000002",
+      "userPrincipalName": "rita@example.test",
+      "displayName": "Rita Ops",
+      "accountEnabled": true,
+      "userType": "Member",
+      "createdDateTime": "2022-08-19T00:00:00Z",
+      "signInActivity": {
+        "lastSignInDateTime": "2026-07-28T00:00:00+00:00"
+      },
+      "mfa_registered": true
+    },
+    {
+      "id": "11111111-0000-4000-8000-000000000003",
+      "userPrincipalName": "mike@example.test",
+      "displayName": "Legacy Mike",
+      "accountEnabled": true,
+      "userType": "Member",
+      "createdDateTime": "2019-11-03T00:00:00Z",
+      "signInActivity": {
+        "lastSignInDateTime": "2025-11-20T00:00:00Z"
+      },
+      "mfa_registered": false
+    },
+    {
+      "id": "11111111-0000-4000-8000-000000000004",
+      "userPrincipalName": "contractor_partner.test#EXT#@sample.onmicrosoft.com",
+      "displayName": "Contractor Lee",
+      "accountEnabled": true,
+      "userType": "Guest",
+      "createdDateTime": "2026-02-10T00:00:00Z",
+      "signInActivity": {
+        "lastSignInDateTime": "2026-07-28T00:00:00+00:00"
+      }
+    },
+    {
+      "id": "11111111-0000-4000-8000-000000000005",
+      "userPrincipalName": "former@example.test",
+      "displayName": "Former Employee",
+      "accountEnabled": false,
+      "userType": "Member",
+      "createdDateTime": "2020-01-06T00:00:00Z",
+      "signInActivity": {
+        "lastSignInDateTime": "2025-06-01T00:00:00Z"
+      },
+      "mfa_registered": true
+    }
+  ],
+  "groups": [
+    {
+      "id": "33333333-0000-4000-8000-000000000001",
+      "displayName": "cloud-admins",
+      "securityEnabled": true,
+      "members": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "11111111-0000-4000-8000-000000000001"
+        },
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "11111111-0000-4000-8000-000000000002"
+        }
+      ]
+    },
+    {
+      "id": "33333333-0000-4000-8000-000000000002",
+      "displayName": "developers",
+      "securityEnabled": true,
+      "members": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "11111111-0000-4000-8000-000000000003"
+        },
+        {
+          "@odata.type": "#microsoft.graph.group",
+          "id": "33333333-0000-4000-8000-000000000003"
+        }
+      ]
+    },
+    {
+      "id": "33333333-0000-4000-8000-000000000003",
+      "displayName": "engineering",
+      "securityEnabled": true,
+      "members": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "11111111-0000-4000-8000-000000000002"
+        }
+      ]
+    }
+  ],
+  "service_principals": [
+    {
+      "id": "22222222-0000-4000-8000-000000000001",
+      "appId": "55555555-0000-4000-8000-000000000001",
+      "displayName": "deploy-pipeline",
+      "servicePrincipalType": "Application",
+      "accountEnabled": true,
+      "passwordCredentials": [
+        {
+          "keyId": "66666666-0000-4000-8000-000000000001",
+          "startDateTime": "2026-03-01T00:00:00Z",
+          "endDateTime": "2026-12-01T00:00:00Z",
+          "displayName": "ci"
+        }
+      ],
+      "keyCredentials": []
+    },
+    {
+      "id": "22222222-0000-4000-8000-000000000002",
+      "appId": "55555555-0000-4000-8000-000000000002",
+      "displayName": "legacy-integration",
+      "servicePrincipalType": "Application",
+      "accountEnabled": true,
+      "passwordCredentials": [
+        {
+          "keyId": "66666666-0000-4000-8000-000000000002",
+          "startDateTime": "2023-01-15T00:00:00Z",
+          "endDateTime": "2025-01-15T00:00:00Z",
+          "displayName": "old"
+        },
+        {
+          "keyId": "66666666-0000-4000-8000-000000000003",
+          "startDateTime": "2024-11-01T00:00:00Z",
+          "endDateTime": "2027-11-01T00:00:00Z",
+          "displayName": "current"
+        }
+      ],
+      "keyCredentials": [
+        {
+          "keyId": "66666666-0000-4000-8000-000000000004",
+          "startDateTime": "2025-05-01T00:00:00Z",
+          "endDateTime": "2027-05-01T00:00:00Z",
+          "type": "AsymmetricX509Cert",
+          "usage": "Verify"
+        }
+      ]
+    },
+    {
+      "id": "22222222-0000-4000-8000-000000000003",
+      "appId": "55555555-0000-4000-8000-000000000003",
+      "displayName": "webapp-identity",
+      "servicePrincipalType": "ManagedIdentity",
+      "accountEnabled": true,
+      "passwordCredentials": [],
+      "keyCredentials": []
+    }
+  ],
+  "directory_roles": [
+    {
+      "id": "77777777-0000-4000-8000-000000000001",
+      "roleTemplateId": "62e90394-69f5-4237-9190-012177145e10",
+      "displayName": "Global Administrator",
+      "members": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "11111111-0000-4000-8000-000000000001"
+        }
+      ]
+    },
+    {
+      "id": "77777777-0000-4000-8000-000000000002",
+      "roleTemplateId": "fe930be7-5e62-47db-91af-98c3a49a38b1",
+      "displayName": "User Administrator",
+      "members": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "11111111-0000-4000-8000-000000000002"
+        }
+      ]
+    },
+    {
+      "id": "77777777-0000-4000-8000-000000000003",
+      "roleTemplateId": "f2ef992c-3afb-46b9-b7cf-a126ee74c451",
+      "displayName": "Global Reader",
+      "members": [
+        {
+          "@odata.type": "#microsoft.graph.servicePrincipal",
+          "id": "22222222-0000-4000-8000-000000000001"
+        }
+      ]
+    }
+  ],
+  "role_eligibilities": [
+    {
+      "principalId": "11111111-0000-4000-8000-000000000002",
+      "roleDefinitionId": "62e90394-69f5-4237-9190-012177145e10",
+      "directoryScopeId": "/",
+      "startDateTime": "2026-01-10T00:00:00Z",
+      "endDateTime": "2027-01-10T00:00:00Z",
+      "memberType": "Direct"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "11111111-2222-3333-4444-555555555555",
+      "displayName": "Production",
+      "role_assignments": [
+        {
+          "principalId": "33333333-0000-4000-8000-000000000001",
+          "principalName": "cloud-admins",
+          "principalType": "Group",
+          "roleDefinitionId": "/subscriptions/11111111-2222-3333-4444-555555555555/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+          "roleDefinitionName": "Owner",
+          "scope": "/subscriptions/11111111-2222-3333-4444-555555555555"
+        },
+        {
+          "principalId": "22222222-0000-4000-8000-000000000001",
+          "principalName": "deploy-pipeline",
+          "principalType": "ServicePrincipal",
+          "roleDefinitionId": "/subscriptions/11111111-2222-3333-4444-555555555555/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",
+          "roleDefinitionName": "Contributor",
+          "scope": "/subscriptions/11111111-2222-3333-4444-555555555555"
+        },
+        {
+          "principalId": "22222222-0000-4000-8000-000000000003",
+          "principalName": "webapp-identity",
+          "principalType": "ServicePrincipal",
+          "roleDefinitionId": "/subscriptions/11111111-2222-3333-4444-555555555555/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
+          "roleDefinitionName": "Reader",
+          "scope": "/subscriptions/11111111-2222-3333-4444-555555555555"
+        },
+        {
+          "principalId": "11111111-0000-4000-8000-000000000004",
+          "principalName": "contractor_partner.test#EXT#@sample.onmicrosoft.com",
+          "principalType": "User",
+          "roleDefinitionId": "/subscriptions/11111111-2222-3333-4444-555555555555/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+          "roleDefinitionName": "Owner",
+          "scope": "/subscriptions/11111111-2222-3333-4444-555555555555/resourceGroups/app"
+        },
+        {
+          "principalId": "22222222-0000-4000-8000-000000000002",
+          "principalName": "legacy-integration",
+          "principalType": "ServicePrincipal",
+          "roleDefinitionId": "/subscriptions/11111111-2222-3333-4444-555555555555/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+          "roleDefinitionName": "Owner",
+          "scope": "/subscriptions/11111111-2222-3333-4444-555555555555/resourceGroups/legacy"
+        },
+        {
+          "principalId": "33333333-0000-4000-8000-000000000002",
+          "principalName": "developers",
+          "principalType": "Group",
+          "roleDefinitionId": "/subscriptions/11111111-2222-3333-4444-555555555555/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",
+          "roleDefinitionName": "Contributor",
+          "scope": "/subscriptions/11111111-2222-3333-4444-555555555555/resourceGroups/app"
+        },
+        {
+          "principalId": "44444444-0000-4000-8000-000000000001",
+          "principalName": null,
+          "principalType": "User",
+          "roleDefinitionId": "/subscriptions/11111111-2222-3333-4444-555555555555/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
+          "roleDefinitionName": "Reader",
+          "scope": "/subscriptions/11111111-2222-3333-4444-555555555555"
+        },
+        {
+          "principalId": "11111111-0000-4000-8000-000000000003",
+          "principalName": "mike@example.test",
+          "principalType": "User",
+          "roleDefinitionId": "/subscriptions/11111111-2222-3333-4444-555555555555/providers/Microsoft.Authorization/roleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
+          "roleDefinitionName": "User Access Administrator",
+          "scope": "/subscriptions/11111111-2222-3333-4444-555555555555"
+        }
+      ]
+    }
+  ]
+}

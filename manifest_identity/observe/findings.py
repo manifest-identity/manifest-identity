@@ -87,7 +87,7 @@ def evaluate(state: DerivedState) -> list[Finding]:
             ),
         ))
 
-    if state.active(CredentialKind.certificate):
+    if state.active(CredentialKind.signing_certificate):
         found.append(Finding(
             code="legacy_certificate",
             tier="warning",
