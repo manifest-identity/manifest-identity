@@ -35,12 +35,60 @@ class DeltaFindingView(BaseModel):
     # and saying so is the difference between a delta and a claim.
     observed_as_of: str | None
     authorized_as_of: str | None
+    actions_added: list[str] = []
+    actions_removed: list[str] = []
+    capabilities_gained: list[str] = []
+
+
+class DefinitionFindingView(BaseModel):
+    kind: str
+    title: str
+    role_definition_id: int
+    role: str
+    role_ref: str
+    account: str
+    detail: str
+    authorization_id: int | None
+    observed_as_of: str | None
+    authorized_as_of: str | None
+    actions_added: list[str] = []
+    actions_removed: list[str] = []
+    capabilities_gained: list[str] = []
 
 
 class DeltaView(BaseModel):
     counts: dict[str, int]
     titles: dict[str, str]
     findings: list[DeltaFindingView]
+    # Findings whose subject is a definition rather than an identity
+    # (1.7). Listed apart because they have a different owner and a
+    # different page, and counted together because the tiles are the
+    # estate's whole picture.
+    definition_findings: list[DefinitionFindingView] = []
+
+
+def definition_view(finding: delta.RoleDefinitionFinding) -> DefinitionFindingView:
+    return DefinitionFindingView(
+        kind=finding.kind,
+        title=finding.title,
+        role_definition_id=finding.role_definition_id,
+        role=finding.role,
+        role_ref=finding.role_ref,
+        account=finding.account,
+        detail=finding.detail,
+        authorization_id=finding.authorization_id,
+        observed_as_of=(
+            finding.observed_as_of.isoformat(timespec="seconds")
+            if finding.observed_as_of else None
+        ),
+        authorized_as_of=(
+            finding.authorized_as_of.isoformat(timespec="seconds")
+            if finding.authorized_as_of else None
+        ),
+        actions_added=finding.actions_added,
+        actions_removed=finding.actions_removed,
+        capabilities_gained=finding.capabilities_gained,
+    )
 
 
 def view(finding: delta.DeltaFinding) -> DeltaFindingView:
@@ -63,6 +111,9 @@ def view(finding: delta.DeltaFinding) -> DeltaFindingView:
             finding.authorized_as_of.isoformat(timespec="seconds")
             if finding.authorized_as_of else None
         ),
+        actions_added=finding.actions_added,
+        actions_removed=finding.actions_removed,
+        capabilities_gained=finding.capabilities_gained,
     )
 
 
@@ -72,10 +123,12 @@ def estate_delta(
     _auth: Annotated[AuthContext, require_roles("GET /delta")],
 ) -> DeltaView:
     findings = delta.for_estate(db)
+    definitions = delta.for_definitions(db)
     return DeltaView(
-        counts=delta.counts(findings),
+        counts={**delta.counts(findings), **delta.definition_counts(definitions)},
         titles=dict(delta.TITLES),
         findings=[view(f) for f in findings],
+        definition_findings=[definition_view(f) for f in definitions],
     )
 
 

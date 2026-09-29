@@ -141,7 +141,7 @@
       "UserPolicyList": [
         {
           "PolicyName": "user-tidier",
-          "PolicyDocument": "%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Action%22%3A%20%5B%22iam%3AUpdateUser%22%2C%20%22iam%3ATagUser%22%5D%2C%20%22Resource%22%3A%20%22arn%3Aaws%3Aiam%3A%3A555555555555%3Auser/%2A%22%7D%5D%7D"
+          "PolicyDocument": "%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Action%22%3A%20%5B%22iam%3AUpdateUser%22%2C%20%22iam%3ATagUser%22%2C%20%22iam%3ADeleteUser%22%5D%2C%20%22Resource%22%3A%20%22arn%3Aaws%3Aiam%3A%3A555555555555%3Auser/%2A%22%7D%5D%7D"
         }
       ],
       "Tags": [

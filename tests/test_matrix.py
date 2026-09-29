@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from manifest_identity.core.roles import PUBLIC_ROUTES, ROUTE_ROLES, Role
 from manifest_identity.main import app
+from manifest_identity.observe.importer import contents_hash
 from tests.conftest import ROLE_USERS, auth_header, login, make_user
 
 SAMPLE_REPORT = (
@@ -41,6 +42,14 @@ SAMPLE_AUTHORIZATIONS = (
 
 # How to call each governed route with a valid request, so a denial is
 # provably authorization and not validation. Values are request kwargs.
+# A customer-managed policy the matrix import carries, so the
+# role-definition write has a version to name.
+MATRIX_POLICY_ARN = "arn:aws:iam::123456789012:policy/matrix-tools"
+MATRIX_POLICY_DOCUMENT = {
+    "Version": "2012-10-17",
+    "Statement": [{"Effect": "Allow", "Action": "s3:GetObject", "Resource": "*"}],
+}
+
 CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
     "GET /auth/me": ("get", "/auth/me", {}),
     "POST /auth/logout": ("post", "/auth/logout", {}),
@@ -76,6 +85,15 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
                         "UserId": "AIDAMATRIX000000000001",
                         "Arn": "arn:aws:iam::123456789012:user/matrix.auth",
                         "CreateDate": "2025-01-01T00:00:00Z",
+                        "AttachedManagedPolicies": [
+                            {"PolicyName": "matrix-tools", "PolicyArn": MATRIX_POLICY_ARN},
+                        ],
+                    }], "Policies": [{
+                        "PolicyName": "matrix-tools",
+                        "Arn": MATRIX_POLICY_ARN,
+                        "PolicyVersionList": [
+                            {"IsDefaultVersion": True, "Document": MATRIX_POLICY_DOCUMENT},
+                        ],
                     }]}).encode(),
                     "application/json",
                 )
@@ -162,6 +180,26 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
     "POST /relationships/{authorization_id}/revoke": (
         "post",
         "/relationships/999999/revoke",
+        {"json": {"reason": "matrix exercise"}},
+    ),
+    "GET /role-definitions": ("get", "/role-definitions", {}),
+    # The import rows above land first and carry a custom policy, so this
+    # names a version an import has observed and the write succeeds.
+    "POST /role-definitions/authorize": (
+        "post",
+        "/role-definitions/authorize",
+        {
+            "json": {
+                "role_definition_external_id": MATRIX_POLICY_ARN,
+                "role_definition_hash": contents_hash(MATRIX_POLICY_DOCUMENT),
+                "owner_kind": "team",
+                "owner_ref": "platform-team",
+            }
+        },
+    ),
+    "POST /role-definitions/{authorization_id}/revoke": (
+        "post",
+        "/role-definitions/999999/revoke",
         {"json": {"reason": "matrix exercise"}},
     ),
     "GET /identities": ("get", "/identities", {}),

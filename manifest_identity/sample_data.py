@@ -215,9 +215,15 @@ def people(generation: int) -> list[Person]:
             why="edits access controls without being an administrator",
             key1=True, key1_rotated=d(2026, 6, 1, tzinfo=UTC),
             key1_used=d(2026, 7, 27, tzinfo=UTC),
+            # In the third generation this policy quietly gains the power
+            # to delete users. Nobody re-authorized it, which is the
+            # change 1.7 exists to name.
             inline=[("user-tidier", _document(
-                _allow(["iam:UpdateUser", "iam:TagUser"],
-                       f"arn:aws:iam::{ACCOUNT}:user/*")))],
+                _allow(
+                    ["iam:UpdateUser", "iam:TagUser"]
+                    + (["iam:DeleteUser"] if generation >= 2 else []),
+                    f"arn:aws:iam::{ACCOUNT}:user/*",
+                )))],
             tags={"owner": "platform-team"},
         ),
         Person(

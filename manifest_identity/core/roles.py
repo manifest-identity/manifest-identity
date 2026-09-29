@@ -55,6 +55,15 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /relationships/{authorization_id}/revoke": frozenset(
         {Role.operator, Role.administrator}
     ),
+    # A custom definition is read by everyone who reviews and authorized
+    # by the same actors who authorize a holder, because saying a policy
+    # is supposed to exist is the same act as saying who may hold it,
+    # asked of a different owner.
+    "GET /role-definitions": ALL_ROLES,
+    "POST /role-definitions/authorize": frozenset({Role.operator, Role.administrator}),
+    "POST /role-definitions/{authorization_id}/revoke": frozenset(
+        {Role.operator, Role.administrator}
+    ),
     "GET /identities": ALL_ROLES,
     "GET /identities/{identity_id}": ALL_ROLES,
     "GET /groups": ALL_ROLES,

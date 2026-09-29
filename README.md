@@ -71,9 +71,9 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **260 tests in 32 files**, coverage 94 over a 90 percent floor |
+| Tests | **276 tests in 33 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **51 routes**, every one in the role matrix the tests walk |
+| Surface | **54 routes**, every one in the role matrix the tests walk |
 | Record | **74 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
@@ -763,13 +763,18 @@ audit_events
   (D-024).
 - The **delta** is the product, and it is stored nowhere. It is the
   difference between the two records, computed every time somebody
-  asks, in seven classes: held but not authorized, reached through an
+  asks, in nine classes: held but not authorized, reached through an
   unauthorized relationship, expired and still held, can be obtained
-  and is not authorized, the role changed after it was authorized,
-  authorized but not held, and owner disagreement. The two that read
-  the route rather than the hold arrived with 1.6, because comparing
-  what an identity holds against what was authorized cannot see access
-  that arrives by assuming a role, or the door it arrives through. Every finding carries when each side
+  and is not authorized, the role changed after it was authorized, a
+  custom definition changed after it was authorized, a custom
+  definition nobody authorized, authorized but not held, and owner
+  disagreement. The two that read the route rather than the hold
+  arrived with 1.6, because comparing what an identity holds against
+  what was authorized cannot see access that arrives by assuming a
+  role, or the door it arrives through. The two about a definition
+  arrived with 1.7, because a custom policy is a thing somebody wrote
+  and should own, and when it changes after it was agreed the finding
+  names the actions that arrived rather than only saying it moved. Every finding carries when each side
   was last heard from, because a finding from a month-old import is
   true about a month-old world, and a stale side makes a difference
   look like agreement (threat 15).
@@ -825,6 +830,9 @@ POST /authorizations/{authorization_id}/revoke
 GET /relationships
 POST /relationships/authorize
 POST /relationships/{authorization_id}/revoke
+GET /role-definitions
+POST /role-definitions/authorize
+POST /role-definitions/{authorization_id}/revoke
 GET /delta
 GET /identities/{identity_id}/delta
 GET /identities/{identity_id}/observed-grants
@@ -881,13 +889,14 @@ holds the reviews and the alerts.
 | `manifest_identity/observe/principals.py` | Who a trust policy names, one principal per row, allow statements only |
 | `manifest_identity/observe/paths.py` | How access reaches an identity: direct, through a group, by assuming a role |
 | `manifest_identity/observe/findings.py` | Credential findings, each explaining itself with its OWASP anchor |
-| `manifest_identity/observe/policy_analysis.py` | What a policy document grants, read by capability |
+| `manifest_identity/observe/policy_analysis.py` | What a policy document grants, read by capability, and what one version has that another did not |
 | `manifest_identity/observe/privilege.py` | The privilege picture with source attribution; shadow admin detection |
 | `manifest_identity/observe/assessment.py` | The one computation the page, the campaigns, and the exports all read |
 | `manifest_identity/authorize/authorizations.py` | The authorization write path: attributed, append-only, bounded |
 | `manifest_identity/authorize/from_observed.py` | The observed side in the authorized side's shape, prefill and export |
 | `manifest_identity/authorize/relationships.py` | Authorizing the door: the trust itself, appended and superseded |
-| `manifest_identity/compare/delta.py` | The difference between the two records, seven classes, stored nowhere |
+| `manifest_identity/authorize/role_definitions.py` | Authorizing a custom definition as written, bound to the hash that was agreed |
+| `manifest_identity/compare/delta.py` | The difference between the two records, nine classes, stored nowhere |
 | `manifest_identity/authorize/csv_import.py` | The file door: rows become the same request the form builds |
 | `manifest_identity/observe/mapping.py` | The bounded table reader and the mapping both doors share |
 | `manifest_identity/authorize/governance.py` | The human layer: typed owners, purposes, flags, attestations |

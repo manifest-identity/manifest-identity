@@ -253,3 +253,139 @@ def read_trust_policy(document: object, own_account: str) -> TrustReading:
     reading.federated = sorted(set(reading.federated))
     reading.services = sorted(set(reading.services))
     return reading
+
+
+# Naming what changed between two versions of one definition.
+#
+# The delta already says a role changed after it was authorized. That
+# sentence tells a reviewer to look and not what to look at, and a
+# reviewer who has to open two JSON documents to find out will approve
+# the change unread. So the two versions are compared here in the same
+# capability terms the reading above uses, and the finding names the
+# actions that arrived, the actions that left, and any line the new
+# version crossed that the old one did not.
+#
+# The limits are the reading's limits. Actions are compared as the
+# patterns the document wrote, lowercased, so "s3:*" arriving is named
+# as "s3:*" and not expanded. A version written as everything-except
+# cannot be enumerated, and is named as such rather than as nothing.
+
+# How many actions a finding names before it says "and N more". A
+# policy can list hundreds, and a finding that lists hundreds is one
+# nobody reads.
+NAMED_ACTIONS = 12
+
+EVERYTHING_EXCEPT = "everything except: "
+
+
+def allowed_actions(document: object) -> frozenset[str]:
+    """The action patterns a document allows, as it wrote them. An
+    allow written with NotAction becomes one token that says so, since
+    what it grants is everything the provider will ever add."""
+    found: set[str] = set()
+    if not isinstance(document, dict):
+        return frozenset()
+    statements = document.get("Statement")
+    if isinstance(statements, dict):
+        statements = [statements]
+    if not isinstance(statements, list):
+        return frozenset()
+    for statement in statements:
+        if not isinstance(statement, dict):
+            continue
+        effect = statement.get("Effect")
+        if not isinstance(effect, str) or effect.lower() != "allow":
+            continue
+        for action in _as_list(statement.get("Action")):
+            found.add(action.lower())
+        not_actions = _as_list(statement.get("NotAction"))
+        if not_actions:
+            found.add(EVERYTHING_EXCEPT + ", ".join(sorted(a.lower() for a in not_actions)))
+    return frozenset(found)
+
+
+@dataclass
+class ChangeReading:
+    """What one version of a definition has that the other did not."""
+
+    added: list[str] = field(default_factory=list)
+    removed: list[str] = field(default_factory=list)
+    # Lines the new version crosses that the old one did not, in the
+    # words the privilege findings already use.
+    crossed: list[str] = field(default_factory=list)
+    # Set when one side's document was never observed, so the change
+    # cannot be described and the finding says so instead of guessing.
+    undescribable: str | None = None
+
+    @property
+    def material(self) -> bool:
+        """Whether the change grants anything it did not before. A
+        version that only removes is still a change worth a look, and
+        it is not the same finding as one that widens."""
+        return bool(self.added or self.crossed)
+
+    def as_text(self) -> str:
+        if self.undescribable:
+            return self.undescribable
+        parts: list[str] = []
+        if self.added:
+            parts.append("added " + _named(self.added))
+        if self.removed:
+            parts.append("removed " + _named(self.removed))
+        if self.crossed:
+            parts.append("now " + "; now ".join(self.crossed))
+        return ", ".join(parts) if parts else "the documents differ only in wording"
+
+
+def _named(actions: list[str]) -> str:
+    shown = actions[:NAMED_ACTIONS]
+    rest = len(actions) - len(shown)
+    text = ", ".join(shown)
+    return text + (f", and {rest} more" if rest > 0 else "")
+
+
+def _crossings(before: PolicyReading, after: PolicyReading) -> list[str]:
+    crossed: list[str] = []
+    if after.admin_equivalent and not before.admin_equivalent:
+        crossed.append("administrator-equivalent")
+    if after.wildcard_write and after.wildcard_resource and not (
+        before.wildcard_write and before.wildcard_resource
+    ):
+        crossed.append("a write wildcard on every resource")
+    if after.iam_mutating and not before.iam_mutating:
+        crossed.append("able to change access controls")
+    if after.negated_allow and not before.negated_allow:
+        crossed.append("an allow written as everything except")
+    for description in after.escalation:
+        if description not in before.escalation:
+            crossed.append("able to " + description)
+    return crossed
+
+
+def describe_change(before: object, after: object) -> ChangeReading:
+    """Compare two versions of one definition. Either side may be
+    missing, which happens when a version was authorized by hash and
+    its document was never observed; that is said rather than read as
+    an empty policy, because an empty policy would make every action
+    in the other version look newly added."""
+    if not isinstance(before, dict) and not isinstance(after, dict):
+        return ChangeReading(
+            undescribable="neither version's document was observed, so the "
+            "change cannot be described"
+        )
+    if not isinstance(before, dict):
+        return ChangeReading(
+            undescribable="the authorized version's document was never "
+            "observed, so what changed cannot be described"
+        )
+    if not isinstance(after, dict):
+        return ChangeReading(
+            undescribable="the current version's document was not observed, "
+            "so what changed cannot be described"
+        )
+    was, now = allowed_actions(before), allowed_actions(after)
+    return ChangeReading(
+        added=sorted(now - was),
+        removed=sorted(was - now),
+        crossed=_crossings(read_policy(before), read_policy(after)),
+    )
