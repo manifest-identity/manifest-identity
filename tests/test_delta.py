@@ -265,3 +265,113 @@ def test_an_unknown_identity_is_404(client: TestClient, db: Session) -> None:
     assert client.get(
         "/identities/999999/delta", headers=auth_header(token)
     ).status_code == 404
+
+
+# The two classes 1.6 added, which read the route rather than the hold.
+# Both exist because comparing what an identity holds against what was
+# authorized cannot see access that arrives another way.
+
+
+def seed_assumable(client: TestClient, db: Session) -> str:
+    """A user holding nothing, and a role it may assume that holds
+    everything. The user's own grant list is empty and it is one call
+    away from administrator."""
+    from tests.test_paths import (
+        ACCOUNT,
+        allow,
+        import_estate,
+        role_entry,
+        trust,
+        user_entry,
+    )
+
+    return import_estate(
+        client,
+        db,
+        {
+            "UserDetailList": [user_entry("climber", "AIDACLIMB000000000001")],
+            "RoleDetailList": [
+                role_entry(
+                    "break-glass",
+                    "AROABREAK00000000001",
+                    trust(allow({"AWS": f"arn:aws:iam::{ACCOUNT}:user/climber"})),
+                )
+            ],
+        },
+    )
+
+
+def climber(db: Session) -> Identity:
+    return db.execute(
+        select(Identity).where(Identity.external_id == "AIDACLIMB000000000001")
+    ).scalar_one()
+
+
+def test_an_unauthorized_door_and_the_access_behind_it_are_both_findings(
+    client: TestClient, db: Session
+) -> None:
+    seed_assumable(client, db)
+    kinds = [f.kind for f in delta.for_identity(db, climber(db))]
+    assert delta.ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP in kinds
+    assert delta.ELIGIBLE_NOT_AUTHORIZED in kinds
+
+
+def test_authorizing_the_door_clears_only_the_door_finding(
+    client: TestClient, db: Session
+) -> None:
+    """The two are separate questions: whether the way in should exist,
+    and whether what it reaches should be held."""
+    token = seed_assumable(client, db)
+    role = db.execute(
+        select(Identity).where(Identity.external_id == "AROABREAK00000000001")
+    ).scalar_one()
+    response = client.post(
+        "/relationships/authorize",
+        headers=auth_header(token),
+        json={
+            "kind": "trust",
+            "to_identity_id": role.id,
+            "from_ref": "arn:aws:iam::123456789012:user/climber",
+            "from_kind": "aws",
+            "owner_kind": "team",
+            "owner_ref": "platform-team",
+            "justification": "break glass, reviewed quarterly",
+        },
+    )
+    assert response.status_code == 201, response.text
+    kinds = [f.kind for f in delta.for_identity(db, climber(db))]
+    assert delta.ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP not in kinds
+    assert delta.ELIGIBLE_NOT_AUTHORIZED in kinds
+
+
+def test_authorizing_what_can_be_obtained_clears_its_finding(
+    client: TestClient, db: Session
+) -> None:
+    token = seed_assumable(client, db)
+    identity = climber(db)
+    response = client.post(
+        f"/identities/{identity.id}/authorizations",
+        headers=auth_header(token),
+        json={
+            "role_definition_external_id": ADMIN_ARN,
+            "mode": "eligible",
+            "path": [{"via": "trust", "ref": "break-glass", "mode": "assumable"}],
+            "owner_kind": "team",
+            "owner_ref": "platform-team",
+            "justification": "break glass access, agreed",
+        },
+    )
+    assert response.status_code == 201, response.text
+    kinds = [f.kind for f in delta.for_identity(db, climber(db))]
+    assert delta.ELIGIBLE_NOT_AUTHORIZED not in kinds
+
+
+def test_a_directly_held_grant_produces_neither_class(
+    client: TestClient, db: Session
+) -> None:
+    """The fixture that does not produce them: nothing is reached
+    through a door, so neither class has anything to say."""
+    seed(client, db)
+    kinds = [f.kind for f in delta.for_identity(db, who(db))]
+    assert delta.ACCESS_VIA_UNAUTHORIZED_RELATIONSHIP not in kinds
+    assert delta.ELIGIBLE_NOT_AUTHORIZED not in kinds

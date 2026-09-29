@@ -23,6 +23,7 @@ from manifest_identity.authorize.routes_governance import RecordView, record_vie
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import require_roles
 from manifest_identity.core.models import ScopeNode
+from manifest_identity.observe import paths
 from manifest_identity.observe.assessment import (
     AssessedIdentity,
     assess_groups,
@@ -72,6 +73,16 @@ class ObservationView(BaseModel):
     fields_present: int
 
 
+class AccessView(BaseModel):
+    """One definition this identity can exercise, and the route to it."""
+
+    role: str
+    role_ref: str
+    mode: str
+    through: str
+    path: list[dict[str, str]]
+
+
 class IdentityDetail(BaseModel):
     id: int
     account: str
@@ -88,6 +99,11 @@ class IdentityDetail(BaseModel):
     kind: str
     kind_reason: str
     privilege_sources: list[str]
+    # What the identity holds this second, and what it can take whenever
+    # it chooses. The second list is the one an inventory of attached
+    # policies cannot show, and it is where a break-glass role hides.
+    holds_now: list[AccessView]
+    can_obtain: list[AccessView]
     findings: list[FindingView]
     governance: list[RecordView]
     timeline: list[ObservationView]
@@ -110,6 +126,16 @@ class InventoryPage(BaseModel):
     offset: int
     limit: int
     rows: list[IdentityView]
+
+
+def _access_view(path: paths.AccessPath) -> AccessView:
+    return AccessView(
+        role=path.role_name,
+        role_ref=path.role_ref,
+        mode=path.mode,
+        through=path.through,
+        path=[hop.as_dict() for hop in path.hops],
+    )
 
 
 def _worst_tier(tiers: dict[str, int]) -> str:
@@ -247,6 +273,12 @@ def identity_detail(
         groups=ctx.groups,
     )
     findings = findings + evaluate_privilege(picture)
+    newest = paths.newest_import(db, identity.scope_node_id)
+    holds_now, can_obtain = paths.split(
+        paths.for_identity(db, import_id=newest, identity=identity)
+        if newest is not None
+        else []
+    )
     assigned = next(
         (
             r
@@ -295,6 +327,8 @@ def identity_detail(
         kind=classify(state).kind,
         kind_reason=classify(state).reason,
         privilege_sources=[source.describe() for source in picture.sources],
+        holds_now=[_access_view(p) for p in holds_now],
+        can_obtain=[_access_view(p) for p in can_obtain],
         findings=[FindingView(**vars(f)) for f in findings],
         governance=[
             record_view(r) for r in record_history(db, "identity", identity.id)

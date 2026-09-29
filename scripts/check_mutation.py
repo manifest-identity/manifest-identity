@@ -19,6 +19,26 @@ from pathlib import Path
 
 MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
     (
+        # 1.6: access that arrives by assuming a role is the half an
+        # inventory of attached policies cannot see. Treating it as
+        # standing would hide it inside what an identity already holds.
+        "assumable access is reported as if it were held",
+        "manifest_identity/observe/paths.py",
+        "            add(grant, list(chain), GrantMode.eligible)",
+        "            add(grant, list(chain), GrantMode.standing)",
+        ["tests/test_paths.py", "tests/test_delta.py"],
+    ),
+    (
+        # The door itself: a trust nobody authorized is a finding about
+        # the way in, and reporting no doors leaves every grant behind
+        # them reading as neatly owned.
+        "the doors an identity may cross are not reported",
+        "manifest_identity/observe/paths.py",
+        "        for row in _assumable_by(db, import_id, identity)",
+        "        for row in []",
+        ["tests/test_delta.py"],
+    ),
+    (
         "authorization check removed",
         "manifest_identity/core/deps.py",
         "        if not held & {r.value for r in allowed}:",

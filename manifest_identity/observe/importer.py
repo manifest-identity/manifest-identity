@@ -27,11 +27,13 @@ from sqlalchemy.orm import Session
 from manifest_identity.core import audit
 from manifest_identity.core.models import Partition, Provider, ScopeNode
 from manifest_identity.core.scope import find_or_create_node
+from manifest_identity.observe import principals
 from manifest_identity.observe.models import (
     Credential,
     CredentialKind,
     Grant,
     GrantMode,
+    Home,
     Identity,
     IdentityKind,
     IdentityObservation,
@@ -431,6 +433,56 @@ def import_authorization_details(
         new_count += 1
         return identity
 
+    observed_guests: set[int] = set()
+
+    def external_identity(principal: principals.Principal) -> None:
+        """A principal from outside this account becomes an identity, so
+        that a guest is visible in the inventory and the path from it can
+        be read. A service principal is the provider's own machinery
+        rather than an identity anybody governs, and a wildcard names
+        nobody, so neither becomes a row.
+
+        The identity is created once and observed once per import. Both
+        halves matter: an identity observed only by the import that
+        created it drops out of every later view, and an identity
+        observed twice by one import breaks the row that makes "once per
+        import" true.
+        """
+        if principal.from_kind in (principals.SERVICE, principals.WILDCARD):
+            return
+        if principal.from_kind == principals.AWS and not principals.is_external(
+            principal.ref, report.account_id
+        ):
+            return
+        guest = identities.get(principal.ref)
+        if guest is None:
+            if principal.from_kind == principals.FEDERATED:
+                home, origin = Home.identity_provider, "federation"
+            else:
+                home, origin = Home.other_tenant, "trust"
+            guest = Identity(
+                provider_id=provider.id,
+                scope_node_id=node.id,
+                external_id=principal.ref[:255],
+                provider_type=principal.from_kind,
+                kind=IdentityKind.external,
+                home=home,
+                home_ref=principals.account_of(principal.ref),
+                origin=origin,
+                first_display_name=principals.display_name(principal.ref),
+                provisional=False,
+            )
+            db.add(guest)
+            db.flush()
+            identities[principal.ref] = guest
+        if guest.id not in observed_guests:
+            observed_guests.add(guest.id)
+            db.add(IdentityObservation(
+                import_id=import_row.id, identity_id=guest.id,
+                display_name=guest.first_display_name,
+                provider_ref=principal.ref[:2048],
+            ))
+
     # Managed policies first, so attachments can point at them.
     for policy in report.policies:
         role_definition_for(
@@ -505,10 +557,17 @@ def import_authorization_details(
         ))
         add_grants(identity, role.role_id, role.attached_policies, role.inline_documents)
         if role.trust_policy is not None:
-            db.add(ObservedRelationship(
-                import_id=import_row.id, kind="trust", to_identity_id=identity.id,
-                from_ref="trust policy", from_kind="principal", document=role.trust_policy,
-            ))
+            # One row per principal the document allows, not one row per
+            # role. A relationship recorded as the words "trust policy"
+            # says a door exists and cannot say who holds a key, which is
+            # the question a review asks.
+            for principal in principals.principals(role.trust_policy):
+                db.add(ObservedRelationship(
+                    import_id=import_row.id, kind=principal.kind,
+                    to_identity_id=identity.id, from_ref=principal.ref,
+                    from_kind=principal.from_kind, document=role.trust_policy,
+                ))
+                external_identity(principal)
         observations += 1
 
     group_by_name: dict[str, Identity] = {}

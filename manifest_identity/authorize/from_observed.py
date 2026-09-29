@@ -27,14 +27,8 @@ from sqlalchemy.orm import Session
 
 from manifest_identity.authorize import authorizations, csv_import
 from manifest_identity.core.models import ScopeNode
-from manifest_identity.observe.assessment import _newest_import_ids
-from manifest_identity.observe.models import (
-    Grant,
-    Identity,
-    IdentityKind,
-    Membership,
-    RoleDefinition,
-)
+from manifest_identity.observe import paths
+from manifest_identity.observe.models import Identity, IdentityKind
 
 
 @dataclass
@@ -66,13 +60,20 @@ class ObservedGrant:
         )
 
 
-def _newest_grant_import(db: Session, node_id: int) -> int | None:
-    newest, _ = _newest_import_ids(db, node_id, "aws_authorization_details")
-    return newest
-
-
 def for_identity(db: Session, identity: Identity) -> list[ObservedGrant]:
-    newest = _newest_grant_import(db, identity.scope_node_id)
+    """The standing access this identity holds, whatever route it takes.
+
+    The expansion itself lives in observe.paths, which is the one place
+    that knows how access travels: directly, through a group, or by
+    assuming a role. This module had its own copy of the group rule
+    until 1.6, and two copies of one rule is how the two stop agreeing.
+
+    Only standing access is offered here. What an identity can obtain by
+    assuming a role is real and belongs in the delta and on the page,
+    and offering it as a draft authorization would invite somebody to
+    authorize a hold that does not exist.
+    """
+    newest = paths.newest_import(db, identity.scope_node_id)
     if newest is None:
         return []
     node = db.get(ScopeNode, identity.scope_node_id)
@@ -81,76 +82,38 @@ def for_identity(db: Session, identity: Identity) -> list[ObservedGrant]:
         authorizations.grant_key(row.path, row.role_definition_external_id)
         for row in authorizations.active(db, identity.id)
     }
-    out: list[ObservedGrant] = []
-    rows = db.execute(
-        select(Grant, RoleDefinition)
-        .join(RoleDefinition, Grant.role_definition_id == RoleDefinition.id)
-        .where(Grant.import_id == newest, Grant.identity_id == identity.id)
-        .order_by(RoleDefinition.display_name_last)
-    ).all()
-    for grant, definition in rows:
-        out.append(_candidate(identity, account, definition, grant.mode,
-                              grant.path, grant.source_kind, live))
-
-    # Access that arrives through a group is still access the identity
-    # holds, and leaving it out of the export would let a person fill
-    # in a file, import it, and believe an estate authorized while a
-    # whole class of privilege went unmentioned. The hop is recorded
-    # rather than flattened, so the authorization says how it arrives.
-    for group, grant, definition in _group_grants(db, identity, newest):
-        out.append(_candidate(
-            identity, account, definition, grant.mode,
-            [{"via": "membership", "ref": group.first_display_name,
-              "mode": "active"}],
-            grant.source_kind, live,
-        ))
-    return out
+    holds_now, _ = paths.split(
+        paths.for_identity(db, import_id=newest, identity=identity)
+    )
+    holds_now.sort(key=lambda path: (path.role_name, path.through))
+    return [
+        _candidate(identity, account, path, live) for path in holds_now
+    ]
 
 
 def _candidate(
     identity: Identity,
     account: str,
-    definition: RoleDefinition,
-    mode: str,
-    path: list[dict[str, str]],
-    source_kind: str,
+    path: paths.AccessPath,
     live: set[str],
 ) -> ObservedGrant:
-    key = authorizations.grant_key(path, definition.external_id)
+    hops = [hop.as_dict() for hop in path.hops]
+    # A directly held grant carries the one direct hop, which is the
+    # shape the authorization record and its import have always used.
+    key = authorizations.grant_key(hops, path.role_ref)
     return ObservedGrant(
         identity_id=identity.id,
         identity_external_id=identity.external_id,
         display_name=identity.first_display_name,
         account=account,
-        role_definition_external_id=definition.external_id,
-        role_definition_hash=definition.contents_hash,
-        role_display_name=definition.display_name_last,
-        mode=mode,
-        path=path,
-        source_kind=source_kind,
+        role_definition_external_id=path.role_ref,
+        role_definition_hash=path.role_hash,
+        role_display_name=path.role_name,
+        mode=path.mode,
+        path=hops,
+        source_kind=path.source_kind,
         authorized=key in live,
     )
-
-
-def _group_grants(
-    db: Session, identity: Identity, import_id: int
-) -> list[tuple[Identity, Grant, RoleDefinition]]:
-    group_ids = list(db.execute(
-        select(Membership.group_id).where(
-            Membership.import_id == import_id,
-            Membership.member_id == identity.id,
-        )
-    ).scalars())
-    if not group_ids:
-        return []
-    rows = db.execute(
-        select(Identity, Grant, RoleDefinition)
-        .join(Grant, Grant.identity_id == Identity.id)
-        .join(RoleDefinition, Grant.role_definition_id == RoleDefinition.id)
-        .where(Grant.import_id == import_id, Identity.id.in_(group_ids))
-        .order_by(Identity.first_display_name, RoleDefinition.display_name_last)
-    ).all()
-    return [(group, grant, definition) for group, grant, definition in rows]
 
 
 def for_estate(db: Session) -> list[ObservedGrant]:
