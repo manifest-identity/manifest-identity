@@ -38,12 +38,11 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from manifest_identity.core import audit
-from manifest_identity.core.models import Partition, Provider, ScopeNode
-from manifest_identity.core.scope import find_or_create_node
+from manifest_identity.core.models import Partition, Provider
+from manifest_identity.observe.estate import Estate, provider_root
 from manifest_identity.observe.importer import (
     ImportResult,
     _check_capture,
@@ -58,9 +57,7 @@ from manifest_identity.observe.models import (
     GrantMode,
     Identity,
     IdentityKind,
-    IdentityObservation,
     Membership,
-    ProviderInstance,
     RoleDefinition,
 )
 from manifest_identity.observe.policy_analysis import capability_document
@@ -118,35 +115,6 @@ def custom_role_capabilities(role: ParsedCustomRole) -> dict[str, object]:
     )
 
 
-def org_scope(db: Session, org_id: str, subdomain: str) -> tuple[ProviderInstance, ScopeNode]:
-    node = find_or_create_node(
-        db, Provider.okta, Partition.none, "organization", org_id, subdomain, None
-    )
-    provider = db.execute(
-        select(ProviderInstance).where(
-            ProviderInstance.provider == Provider.okta.value,
-            ProviderInstance.root_scope_node_id == node.id,
-        )
-    ).scalar_one_or_none()
-    if provider is None:
-        provider = ProviderInstance(
-            provider=Provider.okta.value, display_name=subdomain, root_scope_node_id=node.id,
-        )
-        db.add(provider)
-        db.flush()
-    return provider, node
-
-
-def org_node_id(db: Session, org_id: str) -> int | None:
-    return db.execute(
-        select(ScopeNode.id).where(
-            ScopeNode.provider == Provider.okta.value,
-            ScopeNode.kind == "organization",
-            ScopeNode.external_id == org_id,
-        )
-    ).scalar()
-
-
 def import_org_export(
     db: Session,
     *,
@@ -157,7 +125,9 @@ def import_org_export(
     actor_username: str,
 ) -> ImportResult:
     captured_at = _check_capture(captured_at)
-    provider, node = org_scope(db, export.id, export.subdomain)
+    provider, node = provider_root(
+        db, Provider.okta, Partition.none, "organization", export.id, export.subdomain,
+    )
     import_row = _new_import(
         db, provider, node, SOURCE_ORG, captured_at, source_filename, actor_username,
         len(export.users) + len(export.groups) + len(export.role_assignments)
@@ -165,47 +135,22 @@ def import_org_export(
         export.skipped,
     )
 
-    identities = {
-        identity.external_id: identity
-        for identity in db.execute(
-            select(Identity).where(Identity.scope_node_id == node.id)
-        ).scalars()
-    }
-    new_count = 0
-    observations = 0
+    estate = Estate(db, import_row, provider, node)
+    get_or_create = estate.get_or_create
     definitions: dict[tuple[str, str], RoleDefinition] = {}
-
-    def get_or_create(
-        external_id: str, name: str, provider_type: str, kind: IdentityKind,
-    ) -> Identity:
-        nonlocal new_count
-        identity = identities.get(external_id)
-        if identity is None:
-            identity = Identity(
-                provider_id=provider.id, scope_node_id=node.id, external_id=external_id,
-                provider_type=provider_type, kind=kind, first_display_name=name[:255],
-                provisional=False,
-            )
-            db.add(identity)
-            db.flush()
-            identities[external_id] = identity
-            new_count += 1
-        return identity
 
     by_id: dict[str, Identity] = {}
     for user in export.users:
         identity = get_or_create(f"user:{user.id}", user.login, "user", IdentityKind.unknown)
         by_id[user.id] = identity
         live = user.status in LIVE_STATUSES
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=identity.id, display_name=user.login[:255],
-            provider_ref=user.login[:2048], identity_created_at=user.created,
+        estate.observe(
+            identity, user.login, user.login, identity_created_at=user.created,
             mfa_active=None if user.factors is None else bool(user.factors),
             last_activity=user.last_login,
             raw={"status": user.status, "provider": user.provider_type,
                  "factors": user.factors},
-        ))
-        observations += 1
+        )
         # A password lives here only when Okta holds it; a directory or
         # a federation holds the others.
         if user.provider_type == "OKTA":
@@ -218,11 +163,7 @@ def import_org_export(
     for group in export.groups:
         identity = get_or_create(f"group:{group.id}", group.name, "group", IdentityKind.group)
         by_id[group.id] = identity
-        db.add(IdentityObservation(
-            import_id=import_row.id, identity_id=identity.id, display_name=group.name[:255],
-            provider_ref=group.id, raw={"type": group.kind},
-        ))
-        observations += 1
+        estate.observe(identity, group.name, group.id, raw={"type": group.kind})
         for member_id in group.member_ids:
             member = by_id.get(member_id)
             if member is not None:
@@ -293,7 +234,7 @@ def import_org_export(
         target=f"organization {export.subdomain}",
         detail=(
             f"source {SOURCE_ORG}, captured {captured_at.isoformat()}, "
-            f"{observations} observations, {new_count} new identities, "
+            f"{estate.observations} observations, {estate.new_count} new identities, "
             f"{len(export.role_assignments)} role assignments, {len(export.apps)} apps, "
             f"{app_grants} app assignments"
         ),
@@ -302,8 +243,8 @@ def import_org_export(
     return ImportResult(
         account=export.subdomain,
         captured_at=captured_at,
-        identities_new=new_count,
+        identities_new=estate.new_count,
         identities_known=0,
-        observations=observations,
+        observations=estate.observations,
         skipped_rows=export.skipped,
     )

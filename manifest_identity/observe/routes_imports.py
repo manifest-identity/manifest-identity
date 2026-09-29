@@ -452,35 +452,16 @@ def import_okta(
 ) -> ImportResponse:
     """The sixth provider's door (1.14e): the organization export
     assembled from the management API's objects."""
-    data = file.file.read(okta_export.MAX_FILE_BYTES + 1)
-    if len(data) > okta_export.MAX_FILE_BYTES:
-        raise HTTPException(status_code=413, detail="file exceeds the size bound")
-    _refuse_mismatch(data, SHAPE_OKTA)
-    try:
-        export = okta_export.parse_org_export(data)
-    except okta_export.ParseError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    require_scope(db, auth, "POST /imports/okta-org", okta_importer.org_node_id(db, export.id))
-    try:
-        result = okta_importer.import_org_export(
-            db,
-            export=export,
-            captured_at=captured_at,
-            source_filename=file.filename,
-            actor_user_id=auth.user.id,
-            actor_username=auth.user.username,
-        )
-    except CaptureTimeInvalid as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except DuplicateSnapshot as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return ImportResponse(
-        account=result.account,
-        captured_at=result.captured_at.isoformat(),
-        identities_new=result.identities_new,
-        identities_known=result.identities_known,
-        observations=result.observations,
-        skipped_rows=result.skipped_rows,
+    return _document_import(
+        file=file, captured_at=captured_at, db=db, auth=auth,
+        key="POST /imports/okta-org",
+        shape=SHAPE_OKTA, max_bytes=okta_export.MAX_FILE_BYTES,
+        parse=okta_export.parse_org_export, error=okta_export.ParseError,
+        node_id=lambda export: root_node_id(db, Provider.okta, "organization", export.id),
+        run=lambda export, when: okta_importer.import_org_export(
+            db, export=export, captured_at=when, source_filename=file.filename,
+            actor_user_id=auth.user.id, actor_username=auth.user.username,
+        ),
     )
 
 
