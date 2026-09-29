@@ -7,8 +7,9 @@ responses by contract: they state rules and positions, never file
 content.
 """
 
+from collections.abc import Callable
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -27,6 +28,7 @@ from manifest_identity.observe import (
     okta_importer,
 )
 from manifest_identity.observe import mapping as tabular
+from manifest_identity.observe.estate import root_node_id
 from manifest_identity.observe.importer import (
     SHAPE_AUTHORIZATION,
     SHAPE_AZURE,
@@ -38,6 +40,7 @@ from manifest_identity.observe.importer import (
     SHAPE_TABLE,
     CaptureTimeInvalid,
     DuplicateSnapshot,
+    ImportResult,
     detect_source,
     import_authorization_details,
     import_credential_report,
@@ -303,38 +306,35 @@ def import_authorization(
     )
 
 
-@router.post("/github-organization", status_code=201)
-def import_github(
+def _document_import(
+    *,
     file: UploadFile,
-    captured_at: Annotated[datetime, Form()],
-    db: Annotated[Session, Depends(get_session)],
-    auth: Annotated[AuthContext, require_roles("POST /imports/github-organization")],
-    _budget: ThrottledWrite,
+    captured_at: datetime,
+    db: Session,
+    auth: AuthContext,
+    key: str,
+    shape: str,
+    max_bytes: int,
+    parse: Callable[[bytes], Any],
+    error: type[Exception],
+    node_id: Callable[[Any], int | None],
+    run: Callable[[Any, datetime], ImportResult],
 ) -> ImportResponse:
-    """The second provider's door (1.12): the same shape check, the
-    same scope check against the organization's node, the same
-    transaction, a different parser."""
-    data = file.file.read(github_export.MAX_FILE_BYTES + 1)
-    if len(data) > github_export.MAX_FILE_BYTES:
+    """What every native provider's door does the same way: bound the
+    upload before parsing, refuse a file shaped as another source, parse
+    with the provider's own parser, check the scope the person may write
+    to, run the importer, and name a duplicate or a bad capture time."""
+    data = file.file.read(max_bytes + 1)
+    if len(data) > max_bytes:
         raise HTTPException(status_code=413, detail="file exceeds the size bound")
-    _refuse_mismatch(data, SHAPE_GITHUB)
+    _refuse_mismatch(data, shape)
     try:
-        export = github_export.parse_organization_export(data)
-    except github_export.ParseError as exc:
+        export = parse(data)
+    except error as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    require_scope(
-        db, auth, "POST /imports/github-organization",
-        github_importer.organization_node_id(db, export.login),
-    )
+    require_scope(db, auth, key, node_id(export))
     try:
-        result = github_importer.import_github_organization(
-            db,
-            export=export,
-            captured_at=captured_at,
-            source_filename=file.filename,
-            actor_user_id=auth.user.id,
-            actor_username=auth.user.username,
-        )
+        result = run(export, captured_at)
     except CaptureTimeInvalid as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except DuplicateSnapshot as exc:
@@ -348,6 +348,29 @@ def import_github(
         skipped_rows=result.skipped_rows,
     )
 
+
+@router.post("/github-organization", status_code=201)
+def import_github(
+    file: UploadFile,
+    captured_at: Annotated[datetime, Form()],
+    db: Annotated[Session, Depends(get_session)],
+    auth: Annotated[AuthContext, require_roles("POST /imports/github-organization")],
+    _budget: ThrottledWrite,
+) -> ImportResponse:
+    """The second provider's door (1.12): the same shape check, the
+    same scope check against the organization's node, the same
+    transaction, a different parser."""
+    return _document_import(
+        file=file, captured_at=captured_at, db=db, auth=auth,
+        key="POST /imports/github-organization",
+        shape=SHAPE_GITHUB, max_bytes=github_export.MAX_FILE_BYTES,
+        parse=github_export.parse_organization_export, error=github_export.ParseError,
+        node_id=lambda export: root_node_id(db, Provider.github, "organization", export.login),
+        run=lambda export, when: github_importer.import_github_organization(
+            db, export=export, captured_at=when, source_filename=file.filename,
+            actor_user_id=auth.user.id, actor_username=auth.user.username,
+        ),
+    )
 
 @router.post("/kubernetes-rbac", status_code=201)
 def import_kubernetes(
@@ -362,41 +385,18 @@ def import_kubernetes(
     a form field because nothing in a kubectl dump names the cluster;
     it is client input the way the capture time is, and it is checked
     against the scope the person may write to."""
-    data = file.file.read(rbac_dump.MAX_FILE_BYTES + 1)
-    if len(data) > rbac_dump.MAX_FILE_BYTES:
-        raise HTTPException(status_code=413, detail="file exceeds the size bound")
-    _refuse_mismatch(data, SHAPE_KUBERNETES)
-    try:
-        dump = rbac_dump.parse_rbac_dump(data)
-    except rbac_dump.ParseError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    require_scope(
-        db, auth, "POST /imports/kubernetes-rbac",
-        kubernetes_importer.cluster_node_id(db, cluster),
-    )
-    try:
-        result = kubernetes_importer.import_rbac_dump(
-            db,
-            dump=dump,
-            cluster=cluster,
-            captured_at=captured_at,
-            source_filename=file.filename,
-            actor_user_id=auth.user.id,
+    return _document_import(
+        file=file, captured_at=captured_at, db=db, auth=auth,
+        key="POST /imports/kubernetes-rbac",
+        shape=SHAPE_KUBERNETES, max_bytes=rbac_dump.MAX_FILE_BYTES,
+        parse=rbac_dump.parse_rbac_dump, error=rbac_dump.ParseError,
+        node_id=lambda export: root_node_id(db, Provider.kubernetes, "cluster", cluster),
+        run=lambda export, when: kubernetes_importer.import_rbac_dump(
+            db, dump=export, cluster=cluster, captured_at=when,
+            source_filename=file.filename, actor_user_id=auth.user.id,
             actor_username=auth.user.username,
-        )
-    except CaptureTimeInvalid as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except DuplicateSnapshot as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return ImportResponse(
-        account=result.account,
-        captured_at=result.captured_at.isoformat(),
-        identities_new=result.identities_new,
-        identities_known=result.identities_known,
-        observations=result.observations,
-        skipped_rows=result.skipped_rows,
+        ),
     )
-
 
 @router.post("/google-cloud", status_code=201)
 def import_google_cloud(
@@ -408,40 +408,17 @@ def import_google_cloud(
 ) -> ImportResponse:
     """The fourth provider's door (1.14c): the project export assembled
     from gcloud's own answers."""
-    data = file.file.read(google_export.MAX_FILE_BYTES + 1)
-    if len(data) > google_export.MAX_FILE_BYTES:
-        raise HTTPException(status_code=413, detail="file exceeds the size bound")
-    _refuse_mismatch(data, SHAPE_GOOGLE)
-    try:
-        export = google_export.parse_project_export(data)
-    except google_export.ParseError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    require_scope(
-        db, auth, "POST /imports/google-cloud",
-        google_cloud_importer.project_node_id(db, export.project_id),
+    return _document_import(
+        file=file, captured_at=captured_at, db=db, auth=auth,
+        key="POST /imports/google-cloud",
+        shape=SHAPE_GOOGLE, max_bytes=google_export.MAX_FILE_BYTES,
+        parse=google_export.parse_project_export, error=google_export.ParseError,
+        node_id=lambda export: root_node_id(db, Provider.gcp, "project", export.project_id),
+        run=lambda export, when: google_cloud_importer.import_project_export(
+            db, export=export, captured_at=when, source_filename=file.filename,
+            actor_user_id=auth.user.id, actor_username=auth.user.username,
+        ),
     )
-    try:
-        result = google_cloud_importer.import_project_export(
-            db,
-            export=export,
-            captured_at=captured_at,
-            source_filename=file.filename,
-            actor_user_id=auth.user.id,
-            actor_username=auth.user.username,
-        )
-    except CaptureTimeInvalid as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except DuplicateSnapshot as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return ImportResponse(
-        account=result.account,
-        captured_at=result.captured_at.isoformat(),
-        identities_new=result.identities_new,
-        identities_known=result.identities_known,
-        observations=result.observations,
-        skipped_rows=result.skipped_rows,
-    )
-
 
 @router.post("/azure-tenant", status_code=201)
 def import_azure(
@@ -453,39 +430,17 @@ def import_azure(
 ) -> ImportResponse:
     """The fifth provider's door (1.14d): the tenant export assembled
     from Graph's objects and the command line's output."""
-    data = file.file.read(azure_export.MAX_FILE_BYTES + 1)
-    if len(data) > azure_export.MAX_FILE_BYTES:
-        raise HTTPException(status_code=413, detail="file exceeds the size bound")
-    _refuse_mismatch(data, SHAPE_AZURE)
-    try:
-        export = azure_export.parse_tenant_export(data)
-    except azure_export.ParseError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    require_scope(
-        db, auth, "POST /imports/azure-tenant", azure_importer.tenant_node_id(db, export.id),
+    return _document_import(
+        file=file, captured_at=captured_at, db=db, auth=auth,
+        key="POST /imports/azure-tenant",
+        shape=SHAPE_AZURE, max_bytes=azure_export.MAX_FILE_BYTES,
+        parse=azure_export.parse_tenant_export, error=azure_export.ParseError,
+        node_id=lambda export: root_node_id(db, Provider.azure, "tenant", export.id),
+        run=lambda export, when: azure_importer.import_tenant_export(
+            db, export=export, captured_at=when, source_filename=file.filename,
+            actor_user_id=auth.user.id, actor_username=auth.user.username,
+        ),
     )
-    try:
-        result = azure_importer.import_tenant_export(
-            db,
-            export=export,
-            captured_at=captured_at,
-            source_filename=file.filename,
-            actor_user_id=auth.user.id,
-            actor_username=auth.user.username,
-        )
-    except CaptureTimeInvalid as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except DuplicateSnapshot as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return ImportResponse(
-        account=result.account,
-        captured_at=result.captured_at.isoformat(),
-        identities_new=result.identities_new,
-        identities_known=result.identities_known,
-        observations=result.observations,
-        skipped_rows=result.skipped_rows,
-    )
-
 
 @router.post("/okta-org", status_code=201)
 def import_okta(

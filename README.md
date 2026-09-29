@@ -1045,6 +1045,7 @@ holds the reviews and the alerts.
 | `manifest_identity/core/verify_chain.py` | The offline verifier: recompute the chain, compare to an anchor |
 | `manifest_identity/observe/providers/` | The seven parsers, AWS, GitHub, Kubernetes, Google Cloud, Azure, and Okta: bounded, in memory, distrusting their own preconditions |
 | `manifest_identity/observe/importer.py` | AWS records become neutral rows; the vocabulary ends here |
+| `manifest_identity/observe/estate.py` | What every native importer does the same way, written once: the root node, the identities at it, one observation per import |
 | `manifest_identity/observe/github_importer.py` | GitHub records become the same neutral rows: teams as groups, permission levels as capability documents |
 | `manifest_identity/observe/kubernetes_importer.py` | A cluster's dump becomes the same rows: rules read as capabilities, bindings as grants at the namespace or the cluster |
 | `manifest_identity/observe/google_cloud_importer.py` | A project export becomes the same rows: user-managed keys as credentials, every member form a policy writes, roles read from permissions, a table, or a name |
