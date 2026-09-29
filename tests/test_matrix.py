@@ -100,6 +100,25 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
             "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
         },
     ),
+    "POST /imports/azure-tenant": (
+        "post",
+        "/imports/azure-tenant",
+        {
+            "files": {
+                "file": (
+                    "tenant.json",
+                    json.dumps({
+                        "tenant": {"id": "00000000-0000-0000-0000-00000000aaaa",
+                                   "displayName": "matrix tenant"},
+                        "users": [{"id": "00000000-0000-0000-0000-00000000bbbb",
+                                   "userPrincipalName": "matrix@example.test"}],
+                    }).encode(),
+                    "application/json",
+                )
+            },
+            "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
+        },
+    ),
     "POST /imports/google-cloud": (
         "post",
         "/imports/google-cloud",

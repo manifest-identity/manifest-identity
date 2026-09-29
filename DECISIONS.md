@@ -2226,3 +2226,74 @@ the grant's source reference unread.
 The cost is the reading of a name for a predefined role the export
 does not describe, which is the weakest reading in this repository and
 is stated as such beside the stronger one that replaces it.
+
+## D-081: A tenant is Graph's objects under one roof, and an eligibility is what can be obtained
+
+Azure and Entra are the fifth native provider and the first with two
+authority systems in one estate: the directory's roles over identities,
+and the resource manager's roles over subscriptions and what sits in
+them. Neither ships an export of who holds what, so the file is one
+document assembled from Graph's own objects and the command line's own
+output, each list under a key naming where it came from, in the
+pattern D-076 set: users with their sign-in activity and, when joined
+in, their second factor registration; groups with their members;
+service principals with the secrets and certificates that live on
+their registrations; directory roles with their members; the
+privileged identity management eligibilities; and each subscription's
+role assignments. The assembly is the operator's private act.
+
+The reading that matters most is the one for eligibilities. The model
+has carried the eligible mode since 1.6 with nothing but an AWS trust
+to show for it; a directory role eligibility is that mode exactly: the
+identity can obtain the role by activating it and does not hold it.
+It is recorded as the same grant in the eligible mode, so it shows in
+the detail's second list and in the delta as eligibility nobody
+authorized, and it does not read as privilege held. That last part
+needed a change downstream: the assessment now reads only standing
+grants as what an identity holds, which the AWS estate never tested
+because its eligibilities are trusts and not grants. An eligible
+administrator therefore carries no administrator finding, which is
+noted as an open question rather than decided in passing, since a
+standing eligibility to administer everything is arguably a finding of
+its own.
+
+Two authority systems become two families of definitions. A directory
+role is provider managed, keyed by its template identifier, and read
+from its published name: Global Administrator administers; the roles
+that manage users, groups, applications, credentials, or other roles
+change access; any other administrator writes; a reader reads. An
+Azure role is read from its actions when the export lists them (a
+wildcard administers; writing role assignments or the authorization
+namespace changes access) and from its name otherwise, with Owner
+administering and User Access Administrator changing access. Reading
+a name is the weakest reading in this repository, as D-080 said, and
+the action list is the way to replace it for any role that matters.
+
+A member signs in, so a member has a password credential whose second
+factor state is the registration report's answer; a guest is from
+another tenant and holds no password here. A service principal's
+password credential is a client secret and its key credential a
+certificate, each with its window, so an expired one reads as
+inactive. That forced a correction to the AWS reading: the legacy
+signing certificate finding had fired on any certificate credential,
+which would have flagged every application that authenticates the
+recommended way. The AWS signing certificate is now its own credential
+kind, and the finding reads that kind alone.
+
+A group inside a group passes its members up, as D-076's teams do. An
+assignment is recorded at the subscription or the resource group its
+scope names, with a deeper scope kept in the grant's source reference.
+An assignment to a principal the directory does not list, which is
+what a deleted principal leaves behind, enters as a guest with origin
+unresolved, so it shows in the delta rather than vanishing.
+
+Rejected: reading the resource manager's own PIM eligibilities for
+Azure roles, which are a separate service and wait for the export to
+carry them; a finding for a secret near or past expiry, because expiry
+is the platform doing its job and an expired secret reads as inactive;
+and the management group layer, which the export does not yet carry
+and arrives with it.
+
+The cost is the reading of names for the roles the export does not
+describe, and the open question on eligible administrators, both
+stated so they are not mistaken for settled.

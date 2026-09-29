@@ -724,6 +724,146 @@ def google_cloud_project(generation: int) -> str:
     return json.dumps(document, indent=2) + "\n"
 
 
+# The Azure and Entra tenant: the fifth provider's estate (1.14d), the
+# document the parser reads, assembled from Graph's objects and the
+# command line's output.
+
+TENANT = "aaaaaaaa-0000-4000-8000-000000000001"
+SUBSCRIPTION = "11111111-2222-3333-4444-555555555555"
+_ROLE_PREFIX = f"/subscriptions/{SUBSCRIPTION}/providers/Microsoft.Authorization/roleDefinitions/"
+AZURE_OWNER = "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
+AZURE_CONTRIBUTOR = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+AZURE_READER = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+AZURE_USER_ACCESS = "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9"
+GLOBAL_ADMINISTRATOR = "62e90394-69f5-4237-9190-012177145e10"
+USER_ADMINISTRATOR = "fe930be7-5e62-47db-91af-98c3a49a38b1"
+GLOBAL_READER = "f2ef992c-3afb-46b9-b7cf-a126ee74c451"
+
+
+def _oid(kind: str, number: int) -> str:
+    """An invented object identifier in GUID form."""
+    return f"{kind}-0000-4000-8000-{number:012d}"
+
+
+def _member(kind: str, oid: str) -> dict[str, str]:
+    return {"@odata.type": f"#microsoft.graph.{kind}", "id": oid}
+
+
+def _assignment(principal: str, name: str | None, principal_type: str, role: str,
+                role_name: str, scope: str) -> dict[str, object]:
+    return {"principalId": principal, "principalName": name, "principalType": principal_type,
+            "roleDefinitionId": _ROLE_PREFIX + role, "roleDefinitionName": role_name,
+            "scope": scope}
+
+
+def azure_tenant(generation: int) -> str:
+    """The tenant at one generation. The guest's Contributor becomes
+    Owner in the second month; a member gains User Access Administrator
+    at the subscription in the third."""
+    sam, rita, mike, guest, dormant = (_oid("11111111", n) for n in (1, 2, 3, 4, 5))
+    pipeline, legacy, webapp = (_oid("22222222", n) for n in (1, 2, 3))
+    admins, developers, engineering = (_oid("33333333", n) for n in (1, 2, 3))
+    signed = _stamp(datetime(2026, 5, 29, tzinfo=UTC) + timedelta(days=30 * generation))
+    sub = f"/subscriptions/{SUBSCRIPTION}"
+    guest_role = (AZURE_CONTRIBUTOR, "Contributor") if generation == 0 else (AZURE_OWNER, "Owner")
+    assignments = [
+        _assignment(admins, "cloud-admins", "Group", AZURE_OWNER, "Owner", sub),
+        _assignment(pipeline, "deploy-pipeline", "ServicePrincipal", AZURE_CONTRIBUTOR,
+                    "Contributor", sub),
+        _assignment(webapp, "webapp-identity", "ServicePrincipal", AZURE_READER, "Reader", sub),
+        _assignment(guest, "contractor_partner.test#EXT#@sample.onmicrosoft.com", "User",
+                    guest_role[0], guest_role[1], f"{sub}/resourceGroups/app"),
+        _assignment(legacy, "legacy-integration", "ServicePrincipal", AZURE_OWNER, "Owner",
+                    f"{sub}/resourceGroups/legacy"),
+        _assignment(developers, "developers", "Group", AZURE_CONTRIBUTOR, "Contributor",
+                    f"{sub}/resourceGroups/app"),
+        # An assignment the directory no longer explains: the principal
+        # was deleted after it was made.
+        _assignment(_oid("44444444", 1), None, "User", AZURE_READER, "Reader", sub),
+    ]
+    if generation >= 2:
+        assignments.append(_assignment(
+            mike, "mike@example.test", "User", AZURE_USER_ACCESS, "User Access Administrator",
+            sub,
+        ))
+    document = {
+        "tenant": {"id": TENANT, "displayName": "Sample Tenant", "cloud": "AzureCloud"},
+        "users": [
+            {"id": sam, "userPrincipalName": "sam@example.test", "displayName": "Sam Owner",
+             "accountEnabled": True, "userType": "Member",
+             "createdDateTime": "2021-04-02T00:00:00Z",
+             "signInActivity": {"lastSignInDateTime": signed}, "mfa_registered": True},
+            {"id": rita, "userPrincipalName": "rita@example.test", "displayName": "Rita Ops",
+             "accountEnabled": True, "userType": "Member",
+             "createdDateTime": "2022-08-19T00:00:00Z",
+             "signInActivity": {"lastSignInDateTime": signed}, "mfa_registered": True},
+            {"id": mike, "userPrincipalName": "mike@example.test", "displayName": "Legacy Mike",
+             "accountEnabled": True, "userType": "Member",
+             "createdDateTime": "2019-11-03T00:00:00Z",
+             "signInActivity": {"lastSignInDateTime": "2025-11-20T00:00:00Z"},
+             "mfa_registered": False},
+            {"id": guest,
+             "userPrincipalName": "contractor_partner.test#EXT#@sample.onmicrosoft.com",
+             "displayName": "Contractor Lee", "accountEnabled": True, "userType": "Guest",
+             "createdDateTime": "2026-02-10T00:00:00Z",
+             "signInActivity": {"lastSignInDateTime": signed}},
+            {"id": dormant, "userPrincipalName": "former@example.test",
+             "displayName": "Former Employee", "accountEnabled": False, "userType": "Member",
+             "createdDateTime": "2020-01-06T00:00:00Z",
+             "signInActivity": {"lastSignInDateTime": "2025-06-01T00:00:00Z"},
+             "mfa_registered": True},
+        ],
+        "groups": [
+            {"id": admins, "displayName": "cloud-admins", "securityEnabled": True,
+             "members": [_member("user", sam), _member("user", rita)]},
+            {"id": developers, "displayName": "developers", "securityEnabled": True,
+             "members": [_member("user", mike), _member("group", engineering)]},
+            {"id": engineering, "displayName": "engineering", "securityEnabled": True,
+             "members": [_member("user", rita)]},
+        ],
+        "service_principals": [
+            {"id": pipeline, "appId": _oid("55555555", 1), "displayName": "deploy-pipeline",
+             "servicePrincipalType": "Application", "accountEnabled": True,
+             "passwordCredentials": [
+                 {"keyId": _oid("66666666", 1), "startDateTime": "2026-03-01T00:00:00Z",
+                  "endDateTime": "2026-12-01T00:00:00Z", "displayName": "ci"}],
+             "keyCredentials": []},
+            {"id": legacy, "appId": _oid("55555555", 2), "displayName": "legacy-integration",
+             "servicePrincipalType": "Application", "accountEnabled": True,
+             "passwordCredentials": [
+                 {"keyId": _oid("66666666", 2), "startDateTime": "2023-01-15T00:00:00Z",
+                  "endDateTime": "2025-01-15T00:00:00Z", "displayName": "old"},
+                 {"keyId": _oid("66666666", 3), "startDateTime": "2024-11-01T00:00:00Z",
+                  "endDateTime": "2027-11-01T00:00:00Z", "displayName": "current"}],
+             "keyCredentials": [
+                 {"keyId": _oid("66666666", 4), "startDateTime": "2025-05-01T00:00:00Z",
+                  "endDateTime": "2027-05-01T00:00:00Z", "type": "AsymmetricX509Cert",
+                  "usage": "Verify"}]},
+            {"id": webapp, "appId": _oid("55555555", 3), "displayName": "webapp-identity",
+             "servicePrincipalType": "ManagedIdentity", "accountEnabled": True,
+             "passwordCredentials": [], "keyCredentials": []},
+        ],
+        "directory_roles": [
+            {"id": _oid("77777777", 1), "roleTemplateId": GLOBAL_ADMINISTRATOR,
+             "displayName": "Global Administrator", "members": [_member("user", sam)]},
+            {"id": _oid("77777777", 2), "roleTemplateId": USER_ADMINISTRATOR,
+             "displayName": "User Administrator", "members": [_member("user", rita)]},
+            {"id": _oid("77777777", 3), "roleTemplateId": GLOBAL_READER,
+             "displayName": "Global Reader",
+             "members": [_member("servicePrincipal", pipeline)]},
+        ],
+        "role_eligibilities": [
+            {"principalId": rita, "roleDefinitionId": GLOBAL_ADMINISTRATOR,
+             "directoryScopeId": "/", "startDateTime": "2026-01-10T00:00:00Z",
+             "endDateTime": "2027-01-10T00:00:00Z", "memberType": "Direct"},
+        ],
+        "subscriptions": [
+            {"id": SUBSCRIPTION, "displayName": "Production", "role_assignments": assignments},
+        ],
+    }
+    return json.dumps(document, indent=2) + "\n"
+
+
 # One sample table per provider the table door reads and no parser
 # reads yet (1.14a): what a recipe under recipes/ produces from that
 # provider's own export, so a person can import each provider the day
@@ -1035,6 +1175,7 @@ def file_set(scale: int = 0) -> dict[str, str]:
         out[f"{day}-github-organization.json"] = github_organization(generation)
         out[f"{day}-kubernetes-rbac.json"] = kubernetes_rbac(generation)
         out[f"{day}-google-cloud.json"] = google_cloud_project(generation)
+        out[f"{day}-azure-tenant.json"] = azure_tenant(generation)
     out["authorizations-template.csv"] = authorizations_template()
     out["observed-template.csv"] = observed_template()
     for provider in PROVIDER_TABLES:

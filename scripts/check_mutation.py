@@ -266,6 +266,26 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         "        p in ACCESS_PERMISSIONS for p in permissions",
         ["tests/test_google_cloud_import.py"],
     ),
+    (
+        # 1.14d: an eligibility is what an identity can obtain, and
+        # recording it as standing would report every eligible
+        # administrator as one already.
+        "an eligibility is recorded as standing access",
+        "manifest_identity/observe/azure_importer.py",
+        "            mode=GrantMode.eligible, path=list(DIRECT),",
+        "            mode=GrantMode.standing, path=list(DIRECT),",
+        ["tests/test_azure_import.py"],
+    ),
+    (
+        # A guest is from another tenant; recording it as a member
+        # would give a contractor's account a password it does not hold
+        # here and hide that it is a guest at all.
+        "a guest is recorded as a member of the directory",
+        "manifest_identity/observe/azure_importer.py",
+        "        if user.guest:",
+        "        if False:",
+        ["tests/test_azure_import.py"],
+    ),
 ]
 
 

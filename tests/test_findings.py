@@ -43,7 +43,7 @@ def obs(**fields: object) -> Seen:
     for slot in ("cert1", "cert2"):
         if f"{slot}_active" in fields:
             creds.append(Credential(
-                identity_id=1, import_id=1, kind=CredentialKind.certificate,
+                identity_id=1, import_id=1, kind=CredentialKind.signing_certificate,
                 external_id="first" if slot == "cert1" else "second",
                 active=bool(fields[f"{slot}_active"]),
             ))
