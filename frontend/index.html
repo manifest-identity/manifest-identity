@@ -12,26 +12,60 @@
        page arrives over the authenticated API and is rendered through
        textContent, never through markup: imported files control names,
        tags, and policy text, and this page treats all of it as text. -->
+
+  <!-- The one icon sprite. Every icon on the page is a reference into
+       it, so nothing is fetched from anywhere and the content policy
+       needs no image origin. The strokes take the surrounding text
+       color, so the icons follow the theme for free. -->
+  <svg xmlns="http://www.w3.org/2000/svg" hidden>
+    <symbol id="icon-inventory" viewBox="0 0 20 20">
+      <path d="M7 5h9M7 10h9M7 15h9"/><circle cx="3.5" cy="5" r="0.9"/><circle cx="3.5" cy="10" r="0.9"/><circle cx="3.5" cy="15" r="0.9"/>
+    </symbol>
+    <symbol id="icon-groups" viewBox="0 0 20 20">
+      <circle cx="7" cy="7" r="3"/><path d="M1.5 17c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="14" cy="8" r="2.3"/><path d="M13.5 12.2c2.7 0 5 1.8 5 4.8"/>
+    </symbol>
+    <symbol id="icon-campaigns" viewBox="0 0 20 20">
+      <rect x="4" y="3" width="12" height="15" rx="1.5"/><path d="M7.5 10.5l2 2 3.5-4"/><path d="M8 3V2h4v1"/>
+    </symbol>
+    <symbol id="icon-imports" viewBox="0 0 20 20">
+      <path d="M3 13v3.5h14V13"/><path d="M10 3v9M6.5 8.5L10 12l3.5-3.5"/>
+    </symbol>
+    <symbol id="icon-delta" viewBox="0 0 20 20">
+      <path d="M10 3.5l7 13H3z"/>
+    </symbol>
+    <symbol id="icon-scopes" viewBox="0 0 20 20">
+      <circle cx="10" cy="4" r="2"/><circle cx="4.5" cy="15" r="2"/><circle cx="15.5" cy="15" r="2"/><path d="M10 6v3M10 9l-4.5 4M10 9l4.5 4"/>
+    </symbol>
+    <symbol id="icon-signout" viewBox="0 0 20 20">
+      <path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v11A1.5 1.5 0 0 0 4.5 17H8"/><path d="M12 6.5l3.5 3.5-3.5 3.5M15.5 10H7.5"/>
+    </symbol>
+    <symbol id="icon-theme" viewBox="0 0 20 20">
+      <circle cx="10" cy="10" r="6.5"/><path d="M10 3.5v13A6.5 6.5 0 0 0 10 3.5z" fill="currentColor"/>
+    </symbol>
+  </svg>
+
+  <!-- The header is the sidebar: the name at the top, the views as a
+       column, the session at the bottom. -->
   <header>
     <h1>manifest-identity</h1>
-    <button id="theme-toggle" class="theme-toggle" type="button">night mode</button>
     <p id="asof" class="asof" hidden></p>
     <nav id="nav" hidden>
-      <button data-view="inventory">Inventory</button>
-      <button data-view="groups">Groups</button>
-      <button data-view="campaigns">Campaigns</button>
-      <button data-view="imports">Imports</button>
-      <button data-view="delta">Delta</button>
-      <button id="nav-scopes" data-view="scopes" hidden>Scopes</button>
+      <button data-view="inventory"><svg class="icon" aria-hidden="true"><use href="#icon-inventory"></use></svg>Inventory</button>
+      <button data-view="groups"><svg class="icon" aria-hidden="true"><use href="#icon-groups"></use></svg>Groups</button>
+      <button data-view="campaigns"><svg class="icon" aria-hidden="true"><use href="#icon-campaigns"></use></svg>Campaigns</button>
+      <button data-view="imports"><svg class="icon" aria-hidden="true"><use href="#icon-imports"></use></svg>Imports</button>
+      <button data-view="delta"><svg class="icon" aria-hidden="true"><use href="#icon-delta"></use></svg>Delta</button>
+      <button id="nav-scopes" data-view="scopes" hidden><svg class="icon" aria-hidden="true"><use href="#icon-scopes"></use></svg>Scopes</button>
       <span class="spacer"></span>
       <span id="whoami"></span>
-      <button id="signout">Sign out</button>
+      <button id="signout"><svg class="icon" aria-hidden="true"><use href="#icon-signout"></use></svg>Sign out</button>
     </nav>
+    <button id="theme-toggle" class="theme-toggle" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-theme"></use></svg><span id="theme-label">night mode</span></button>
   </header>
 
   <main>
     <section id="signin">
-      <h2>Sign in</h2>
+      <div class="page-head"><h2>Sign in</h2></div>
       <form id="signin-form">
         <label>Username <input name="username" autocomplete="username" required></label>
         <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
@@ -41,12 +75,14 @@
     </section>
 
     <section id="inventory" hidden>
-      <div id="dashboard" class="tiles"></div>
-      <div class="filters">
-        <button id="download-report" type="button">Risk report</button>
-        <button id="download-csv" type="button">CSV export</button>
-        <button id="download-json" type="button">JSON export</button>
+      <div class="page-head">
+        <h2>Inventory</h2>
+        <span class="spacer"></span>
+        <button id="download-report" type="button" class="secondary">Risk report</button>
+        <button id="download-csv" type="button" class="secondary">CSV export</button>
+        <button id="download-json" type="button" class="secondary">JSON export</button>
       </div>
+      <div id="dashboard" class="tiles"></div>
       <div class="filters">
         <input id="filter-text" placeholder="filter by name" aria-label="filter by name">
         <select id="filter-type" aria-label="filter by type">
@@ -72,8 +108,7 @@
       </div>
       <table>
         <thead id="inventory-head"><tr>
-          <th data-sort="name">identity</th><th data-sort="type">type</th><th data-sort="kind">kind</th><th data-sort="account">account</th>
-          <th data-sort="critical">critical</th><th data-sort="warning">warning</th><th data-sort="notice">notice</th>
+          <th data-sort="name">identity</th><th data-sort="critical">tier</th><th>findings</th>
           <th>top finding</th><th>flags</th>
         </tr></thead>
         <tbody id="identity-rows"></tbody>
@@ -87,8 +122,11 @@
     </section>
 
     <section id="detail" hidden>
-      <button id="back">Back to inventory</button>
-      <h2 id="detail-name"></h2>
+      <div class="page-head">
+        <h2 id="detail-name"></h2>
+        <span class="spacer"></span>
+        <button id="back" class="secondary">Back to inventory</button>
+      </div>
       <dl id="detail-facts"></dl>
       <h3>Findings</h3>
       <ul id="detail-findings"></ul>
@@ -203,7 +241,7 @@
     </section>
 
     <section id="groups" hidden>
-      <h2>Groups</h2>
+      <div class="page-head"><h2>Groups</h2></div>
       <table>
         <thead><tr>
           <th>group</th><th>account</th><th>members</th>
@@ -239,7 +277,7 @@
     </section>
 
     <section id="campaigns" hidden>
-      <h2>Campaigns</h2>
+      <div class="page-head"><h2>Campaigns</h2></div>
       <form id="campaign-form" hidden>
         <label>Name <input name="name" maxlength="255" required></label>
         <label>Scope
@@ -290,20 +328,21 @@
     </section>
 
     <section id="campaign-detail" hidden>
-      <button id="campaign-x" class="close-x" type="button" aria-label="Close campaign details">&#215;</button>
-      <button id="campaign-back">Back to campaigns</button>
-      <h2 id="campaign-name"></h2>
-      <p id="campaign-facts"></p>
-      <div class="filters">
+      <div class="page-head">
+        <h2 id="campaign-name"></h2>
+        <span class="spacer"></span>
         <button id="campaign-close" type="button" hidden>Close campaign</button>
-        <button id="campaign-evidence" type="button">Evidence export</button>
+        <button id="campaign-evidence" type="button" class="secondary">Evidence export</button>
+        <button id="campaign-back" class="secondary">Back to campaigns</button>
+        <button id="campaign-x" class="close-x secondary" type="button" aria-label="Close campaign details">&#215;</button>
       </div>
+      <p id="campaign-facts" class="empty"></p>
       <output id="campaign-detail-result" hidden></output>
       <div id="campaign-items"></div>
     </section>
 
     <section id="delta" hidden>
-      <h2>The difference</h2>
+      <div class="page-head"><h2>The difference</h2></div>
       <p class="empty">What each identity holds, against what somebody
       authorized it to hold. Nothing here is stored: it is computed
       from the two records every time you ask, and each finding says
@@ -321,7 +360,7 @@
     </section>
 
     <section id="scopes" hidden>
-      <h2>Scopes</h2>
+      <div class="page-head"><h2>Scopes</h2></div>
       <p class="empty">Authority is a binding at a place in this tree. A
       binding covers its node and everything beneath it; a binding at
       global covers everything. Bindings are managed through the
@@ -336,7 +375,7 @@
     </section>
 
     <section id="imports" hidden>
-      <h2>Imports</h2>
+      <div class="page-head"><h2>Imports</h2></div>
       <form id="import-form">
         <label>File <input name="file" type="file" required></label>
         <label>Kind

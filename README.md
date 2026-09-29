@@ -71,10 +71,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **307 tests in 36 files**, coverage 94 over a 90 percent floor |
+| Tests | **316 tests in 36 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **63 routes**, every one in the role matrix the tests walk |
-| Record | **74 recorded decisions**, each with its rejected alternatives |
+| Record | **75 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -398,6 +398,12 @@ so these images are reproducible rather than asserted):
 
 ![The risk report: identities ranked by the engine, every finding naming its reason](docs/screenshots/report.png)
 
+The page is one document with no build step (D-036, D-075). The views
+sit in a sidebar, the theme follows the system until a person chooses
+one from the bottom of that sidebar, every row that opens something
+can be reached and opened from the keyboard, and the palette is a set
+of tokens whose contrast a script checks in both themes.
+
 Four people, and the design answers their questions in their order.
 
 - **The reviewer** certifies identities and groups: what is this,
@@ -480,7 +486,7 @@ show.
 **Groups.** Privilege sources with members, owners, and their own
 findings. An empty privileged group is reported before anyone joins
 it, because it is a standing grant waiting for its next member with
-nobody reviewing it today. What changed since the previous import,
+nobody reviewing it. What changed since the previous import,
 who joined and who left, is computed and shown, because the delta is
 what a review actually reviews; re-reading the full list every
 quarter produces approval without attention.
@@ -1510,7 +1516,10 @@ load-bearing ones:
 - `test_reports.py`: formula cells arrive neutralized, hostile markup
   arrives escaped, report figures equal engine figures.
 - `test_frontend.py`: the page has no markup sink, no inline script,
-  and a hostile name survives as data end to end.
+  a hostile name survives as data end to end, the script never sets a
+  style property, and every text and background pair in both themes
+  meets the accessibility contrast ratio, computed from the
+  stylesheet's own tokens by `scripts/check_contrast.py`.
 - `test_auth.py` and `test_ratelimit.py`: indistinguishable login
   failures, revocation, expiry, a forged token refused beside a live
   session, and the write budget holding.

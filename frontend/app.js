@@ -18,21 +18,36 @@ const $ = (id) => document.getElementById(id);
 const show = (id) => $(id).hidden = false;
 const hide = (id) => $(id).hidden = true;
 
-// The theme is a browser preference, stored locally and never sent
-// anywhere: the server has no idea which mode anyone reads in.
-function applyTheme(theme) {
+// The theme follows the system until the person chooses, and a choice
+// is a browser preference, stored locally and never sent anywhere: the
+// server has no idea which mode anyone reads in. The stylesheet does
+// the work; this only sets the attribute the stylesheet reads and
+// keeps the toggle's label honest about which theme is showing.
+const THEME_KEY = "manifest-identity-theme";
+const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+
+function effectiveTheme() {
+  const chosen = document.documentElement.dataset.theme;
+  if (chosen === "dark" || chosen === "light") return chosen;
+  return systemDark.matches ? "dark" : "light";
+}
+function labelTheme() {
+  $("theme-label").textContent = effectiveTheme() === "dark" ? "day mode" : "night mode";
+}
+function chooseTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  $("theme-toggle").textContent = theme === "dark" ? "day mode" : "night mode";
-  try { localStorage.setItem("manifest-identity-theme", theme); } catch { /* private mode */ }
+  try { localStorage.setItem(THEME_KEY, theme); } catch { /* private mode */ }
+  labelTheme();
 }
 $("theme-toggle").addEventListener("click", () => {
-  const current = document.documentElement.dataset.theme === "dark";
-  applyTheme(current ? "light" : "dark");
+  chooseTheme(effectiveTheme() === "dark" ? "light" : "dark");
 });
 try {
-  const saved = localStorage.getItem("manifest-identity-theme");
-  if (saved === "dark") applyTheme("dark");
-} catch { /* private mode keeps the default */ }
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === "dark" || saved === "light") document.documentElement.dataset.theme = saved;
+} catch { /* private mode keeps the system's choice */ }
+systemDark.addEventListener("change", labelTheme);
+labelTheme();
 
 // Build one table row from a spec of plain-text cells. Numbers and
 // strings only; nothing here parses HTML.
@@ -43,11 +58,25 @@ function row(cells, onClick) {
     td.textContent = String(cell);
     tr.appendChild(td);
   }
-  if (onClick) {
-    tr.classList.add("clickable");
-    tr.addEventListener("click", onClick);
-  }
+  if (onClick) clickable(tr, onClick);
   return tr;
+}
+
+// A row that opens something is reachable from the keyboard as well
+// as the mouse: it takes focus in the tab order and opens on Enter.
+function clickable(tr, onClick) {
+  tr.classList.add("clickable");
+  tr.tabIndex = 0;
+  tr.addEventListener("click", onClick);
+  tr.addEventListener("keydown", (e) => { if (e.key === "Enter") onClick(); });
+}
+
+// A chip carries its meaning in text and in the tier color.
+function chip(text, kind) {
+  const s = document.createElement("span");
+  s.className = "chip " + kind;
+  s.textContent = text;
+  return s;
 }
 
 function tile(label, value, kind) {
@@ -113,9 +142,20 @@ function signOut() {
   show("signin");
 }
 
+// A detail view belongs to the list it opened from, so the sidebar
+// keeps that list marked as the current one.
+const PARENT_VIEW = { detail: "inventory", "campaign-detail": "campaigns" };
+
 function switchView(view) {
   for (const id of VIEWS) hide(id);
   show(view);
+  const current = PARENT_VIEW[view] || view;
+  for (const button of document.querySelectorAll("#nav button[data-view]")) {
+    const active = button.dataset.view === current;
+    button.classList.toggle("current", active);
+    if (active) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  }
 }
 
 // Downloads carry the session header, so they go through fetch and a
@@ -197,17 +237,42 @@ function renderIdentities(rows) {
   const tbody = $("identity-rows");
   tbody.replaceChildren();
   $("inventory-empty").hidden = rows.length !== 0;
+  // The row is built around the name: type, kind, and account as a
+  // subline, the tier and the per-tier counts as chips, the top
+  // finding in its own words. Every value is still a text node.
   for (const r of rows) {
-    const flags = [
-      r.name_reused ? "name reused" : "",
-      r.flagged ? "flagged" : "",
-    ].filter(Boolean).join(", ");
-    const tr = row(
-      [r.display_name, r.identity_type, r.kind, r.account,
-       r.critical, r.warning, r.notice, r.top_finding || "", flags],
-      () => loadDetail(r.id),
-    );
-    tr.classList.add("tier-" + identityTier(r));
+    const tier = identityTier(r);
+    const tr = document.createElement("tr");
+    tr.classList.add("tier-" + tier);
+    clickable(tr, () => loadDetail(r.id));
+    const name = document.createElement("td");
+    name.className = "name";
+    const strong = document.createElement("strong");
+    strong.textContent = r.display_name;
+    const sub = document.createElement("span");
+    sub.className = "sub";
+    for (const part of [r.identity_type, r.kind, r.account]) {
+      const s = document.createElement("span");
+      s.textContent = part;
+      sub.appendChild(s);
+    }
+    name.append(strong, sub);
+    const tierCell = document.createElement("td");
+    tierCell.appendChild(chip(tier, tier));
+    const counts = document.createElement("td");
+    counts.className = "counts";
+    for (const [k, v] of [["critical", r.critical], ["warning", r.warning], ["notice", r.notice]]) {
+      if (v) counts.appendChild(chip(v + " " + k, k));
+    }
+    if (!r.critical && !r.warning && !r.notice) counts.appendChild(chip("none", "quiet"));
+    const top = document.createElement("td");
+    top.className = "finding-text";
+    top.textContent = r.top_finding || "";
+    const flags = document.createElement("td");
+    flags.className = "flags";
+    if (r.name_reused) flags.appendChild(chip("name reused", "flag"));
+    if (r.flagged) flags.appendChild(chip("flagged", "flag"));
+    tr.append(name, tierCell, counts, top, flags);
     tbody.appendChild(tr);
   }
 }
@@ -779,7 +844,10 @@ $("download-json").addEventListener("click",
   () => download("/export.json", "manifest-identity.json"));
 
 $("nav").addEventListener("click", (e) => {
-  const view = e.target.dataset.view;
+  // The click may land on the icon inside the button.
+  const button = e.target.closest("button[data-view]");
+  if (!button) return;
+  const view = button.dataset.view;
   if (view === "inventory") loadInventory();
   else if (view === "groups") loadGroups();
   else if (view === "campaigns") loadCampaigns();
