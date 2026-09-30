@@ -37,7 +37,7 @@ class Home(StrEnum):
 
 class CredentialKind(StrEnum):
     access_key = "access_key"
-    password = "password"  # noqa: S105
+    password = "password"  # noqa: S105  # nosemgrep: no-credential-shaped-key-with-a-literal
     certificate = "certificate"
     # The AWS signing certificate, a legacy credential; an application's
     # authentication certificate is the plain kind above.

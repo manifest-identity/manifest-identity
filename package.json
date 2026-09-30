@@ -1,0 +1,14 @@
+{
+  "name": "manifest-identity-page-lint",
+  "private": true,
+  "description": "The page's lint, pinned; nothing here ships.",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "lint": "eslint frontend/app.js"
+  },
+  "devDependencies": {
+    "eslint": "10.11.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.0"
+  }
+}

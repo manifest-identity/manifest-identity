@@ -30,3 +30,7 @@ fi
 
 "$PYTHON" -m ruff check .
 "$PYTHON" -m mypy
+# The repository's own rules, each one a lesson a scanner taught after
+# a push (D-086). Semgrep ships in the same hashed tree as ruff.
+"$(dirname "$PYTHON")/semgrep" --config .semgrep --error --metrics=off --quiet \
+  manifest_identity frontend scripts

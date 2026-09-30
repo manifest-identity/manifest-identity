@@ -133,7 +133,25 @@ jobs:
     # (D-053). The pin is a tag on purpose: the floor is a version
     # claim, not an artifact claim.
     runs-on: ubuntu-latest
-    container:
+    page:
+    # The page's one lint rule, the one SonarCloud's rule set change
+    # turned main red on: a promise nobody awaits. typescript-eslint
+    # reads the plain script through the TypeScript checker; the tools
+    # install from the lockfile, integrity-pinned, with no scripts run.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: install the page lint from the lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: no unawaited promise in the page
+        run: npx eslint frontend/app.js
+
+  container:
       image: python:3.11-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -260,6 +278,8 @@ jobs:
         run: |
           pip install --no-cache-dir --require-hashes -r requirements.txt
           pip install --no-cache-dir --require-hashes -r requirements-dev.txt
+      - name: the repository's own scanner rules
+        run: semgrep --config .semgrep --error --metrics=off --quiet manifest_identity frontend scripts
       # The slim image ships no git, curl, gpg, dirmngr, or unzip, and the
       # coverage upload and the analyzer's signature check refuse to run
       # without them; the tools come from Debian's own archive, verified

@@ -33,3 +33,4 @@ Thumbs.db
 docs/site/
 site/
 requirements-docs.in.bak
+node_modules/
