@@ -497,6 +497,8 @@ def test_the_mutation_table_is_the_mutation_set() -> None:
     word = words.get(len(MUTATIONS))
     assert word, f"add the word for {len(MUTATIONS)} mutations to this test"
     assert f"**{word} mutations, {word.lower()} kills.**" in text
+    n = len(MUTATIONS)
+    assert f"| Mutation | {n} controls removed by the check, {n} noticed by the suite |" in text
 
 
 def test_the_stated_figures_are_the_counted_figures() -> None:
