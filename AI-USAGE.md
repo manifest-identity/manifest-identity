@@ -350,3 +350,18 @@ the catches compound, the mistakes do not. The provenance entry
 changed the attribution itself, and its lesson is the whole file's
 thesis turned on its own record: a confident correction can be wrong,
 and only an outside check settles it.
+
+- **Nineteen loads the page never waited for, and a badge that went
+  red on main without a change.** The page starts a loader from
+  every click and awaits none of them, so a load that failed had
+  nowhere to report but the console. The code had passed every gate
+  for months; SonarCloud's September rule set added a check for an
+  unawaited promise and the next analysis of main failed the quality
+  gate on nineteen of them, which put a red badge at the top of the
+  public README. The reading is the rule's: a rejection nobody
+  catches is a failure nobody sees. The fix is one helper every
+  unawaited loader runs through, which puts the failure on the page
+  as a sentence and clears it on the next view; the real-browser walk
+  drove the changed page before it went out. The lesson recorded: a
+  badge on the public README is checked after every merge, not
+  noticed by the reader.
