@@ -3,11 +3,14 @@
 
 The images in docs/screenshots/ are reproducible, not asserted: bring
 up a fresh stack with its own generated environment, import the
-curated sample account oldest first, create one campaign so the page
+curated sample estates oldest first, create one campaign so the page
 shows a live review, then run this script. It needs Playwright, which
 is deliberately not in the pinned trees; install it ad hoc in a
 scratch environment (pip install playwright; playwright install
 chromium). Credentials arrive as arguments and are never written here.
+
+Six captures: the inventory, an identity's detail beside the list,
+the delta, the imports view, the campaigns, and, by hand, the report.
 
 Usage:
   capture_screenshots.py BASE_URL USERNAME PASSWORD OUTPUT_DIR
@@ -37,9 +40,19 @@ def main() -> int:
         page.wait_for_selector("#detail-name")
         time.sleep(0.5)
         page.screenshot(path=f"{outdir}/identity-detail.png")
-
         page.click("#back")
         page.wait_for_selector("#identity-rows tr")
+
+        page.click('button[data-view="delta"]')
+        page.wait_for_selector("#delta-rows tr")
+        time.sleep(0.5)
+        page.screenshot(path=f"{outdir}/delta.png")
+
+        page.click('button[data-view="imports"]')
+        page.wait_for_selector("#import-form")
+        time.sleep(1.0)
+        page.screenshot(path=f"{outdir}/imports.png")
+
         page.click('button[data-view="campaigns"]')
         time.sleep(1.0)
         page.screenshot(path=f"{outdir}/campaigns.png")

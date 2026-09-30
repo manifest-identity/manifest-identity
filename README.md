@@ -12,11 +12,19 @@ measures and every item it scored: [SCORING.md](SCORING.md).
 
 **Inventory and governance for non-human identities.**
 
-manifest-identity imports the identity reports your providers already
-produce, works out each identity's state from what was observed, and
-puts an owner and a review decision on every one. It reads Amazon Web
-Services (AWS) identity and GitHub organizations natively, and any other
-provider's table through a mapping.
+manifest-identity keeps two records about every identity in your
+estate and shows you the difference between them. The first is what the
+identity holds, read from the exports your providers already produce
+and never edited. The second is what a named person said it may hold,
+for how long, and who owns it. The difference is the product: access
+nobody authorized, authorizations nobody honors, eligibility nobody
+approved, and definitions that changed after the decision was made.
+
+It reads seven providers natively (Amazon Web Services, GitHub,
+Kubernetes, Google Cloud, Azure and Entra, Okta, Active Directory)
+and any other
+provider's table through a mapping, holds no provider credential, and
+never changes anything in any of them.
 
 **If you run a cloud account, this happens to you.** Service accounts
 get created for one integration, roles get broad policies so something
@@ -29,18 +37,25 @@ day it is abused.
 
 **How it works**
 
-1. Export a credential report and an authorization details file from
-   AWS, the way you already can, or assemble a GitHub organization
-   export from the API's own objects, and import them. Nothing here
-   holds a provider credential.
+1. Export what each provider already produces (an AWS credential
+   report and authorization details file, a kubectl dump, a document
+   assembled from the GitHub, Google Cloud, Graph, Okta, or directory
+   cmdlets' own objects, a SharpHound collection, or a spreadsheet
+   through a mapping) and import it, oldest
+   capture first. Every import is kept and none is ever edited.
 2. Every identity's state is derived from the observed history at read
-   time, so a re-import is harmless and nothing can drift.
-3. Each identity shows what a person needs before acting: owner, last
-   use, key age, how much privilege it holds and where that privilege
-   comes from, and whether a governed name was quietly recreated.
-4. A review campaign freezes a population and asks for one decision per
-   item, with the evidence beside it and an export that proves how the
-   review was done.
+   time, so a re-import is harmless and nothing can drift: what it
+   holds now, what it can obtain, through which group or trust, with
+   which credentials, and the findings that follow.
+3. A person authorizes what an identity may hold: one grant path, an
+   owner, an expiry, a reason, with the approver taken from the session
+   and never from a form. The same door reads a spreadsheet of existing
+   approvals through a mapping.
+4. The delta is computed every time you ask and stored nowhere. Review
+   campaigns, driven by the calendar, by the delta, or by expiry, put
+   each difference in front of the person who can answer it, one
+   decision per item, with an export that proves how the review was
+   done.
 
 **What it looks at.** Twenty findings, each one named, explained, and
 anchored to the OWASP Non-Human Identities top ten:
@@ -55,14 +70,22 @@ anchored to the OWASP Non-Human Identities top ten:
   disagrees with the assigned owner, membership drift, an empty
   privileged group.
 
+And beside the findings, nine classes of difference between the two
+records: held but not authorized, authorized but not held, expired and
+still held, eligible but not authorized, access through a door nobody
+authorized, a definition that changed after it was authorized, a
+custom definition nobody authorized, a custom definition that changed,
+and an owner the tag and the record disagree about.
+
 **People decide and the machine never does.** The engine recommends
 and always names its reasons. It does not grant, revoke, or certify on
 its own judgment, and every action traces to the person who decided it.
 
-**Who it is for.** A team of one to a few people responsible for one or
-several AWS accounts, who need to answer "who owns this and is it still
-needed" and prove they asked. It is not a provisioning tool, it does not
-change anything in the account, and it does not yet read other clouds.
+**Who it is for.** A team of one to a few people responsible for
+identities across one or several providers, who need to answer "who
+owns this, is it still needed, and did anyone say it should exist" and
+prove they asked. It is not a provisioning tool and it does not change
+anything in any provider.
 
 manifest-identity is one application inside
 [control-plane](https://tltaylor1.github.io), a security engineering
@@ -73,17 +96,17 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **406 tests in 44 files**, coverage 94 over a 90 percent floor |
-| Mutation | 7 controls removed by the check, 7 noticed by the suite |
-| Surface | **68 routes**, every one in the role matrix the tests walk |
-| Record | **82 recorded decisions**, each with its rejected alternatives |
+| Tests | **422 tests in 45 files**, coverage 95 over a 90 percent floor |
+| Mutation | 34 controls removed by the check, 34 noticed by the suite |
+| Surface | **70 routes**, every one in the role matrix the tests walk |
+| Record | **84 recorded decisions**, each with its rejected alternatives |
 | Gates | 10 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
 [The numbers, proven](#the-numbers-proven); a figure that drifts from
 its count fails the build.
 
-![The inventory: sixty-seven identities across six estates, their findings counted by tier, the views in a sidebar and the exports in the page head](docs/screenshots/inventory.png)
+![The inventory: seventy-seven identities across seven estates, their findings counted by tier, the views in a sidebar and the exports in the page head](docs/screenshots/inventory.png)
 
 **Quick start**, with Docker as the only requirement:
 
@@ -134,16 +157,20 @@ The design lives in three files beside this one: [ARCHITECTURE.md](ARCHITECTURE.
 
 ## Status
 
-**Phases 1 and 2 of 8 are complete and tagged v0.2.0**, with build
-provenance attestations on every release artifact. Phase 1 built the
-application in twelve review-gated subphases whose order was fixed
-before any code ([the plan](#the-plan-fixed-before-code)): a fresh
-clone with Docker starts the stack, migrates the schema, serves
-sign-in with three roles behind a tested role matrix,
-imports identity exports append-only, derives the inventory with
-its credential and privilege findings, carries governance records and
-review campaigns, and produces the risk report and the escaped
-exports. Phase 2 put the same digest-built image on a hardened local
+**Phases 1 and 2 of 8 are complete.** Phase 1 built the observed half
+in twelve review-gated subphases whose order was fixed before any code
+([the plan](#the-plan-fixed-before-code)), tagged v0.2.0 together with
+Phase 2 and carrying build provenance attestations on every release
+artifact, and then the authorized half in fourteen more subphases,
+merged after that tag and not yet released: the scope tree, the
+authorization record and its two doors, paths and relationships,
+versioned definitions, the delta, campaigns rewired, alerts, the read
+API, the table door, six more providers, and the page. A fresh clone
+with Docker starts the stack, migrates the schema, serves sign-in with
+three roles behind a tested role matrix, imports identity exports
+append-only, derives the inventory with its findings, keeps the
+authorized record beside it, and produces the delta, the campaigns,
+the risk report, and the escaped exports. Phase 2 put the same digest-built image on a hardened local
 Kubernetes cluster: default-deny network policies with three named
 flows, the restricted pod security standard, an admission policy
 refusing unpinned images, and workload identities with nothing to
@@ -163,49 +190,156 @@ documents say so.
 
 ## What this is
 
-You feed manifest-identity export files: a record of every identity in a
-cloud account at one moment. It keeps every import and never edits
-an old one. When you open the inventory, it works out each identity's
-situation at that moment: compare the newest import with the history,
-add what humans have recorded, and show the result. No status is ever
-stored, so no status can go stale or be quietly changed; the answer is
-recomputed from the evidence every time you ask.
+You feed manifest-identity the export files your providers already
+produce: a record of every identity in an account, an organization, a
+cluster, a project, or a tenant at one moment. It keeps every import
+and never edits an old one. When you open the inventory, it works out
+each identity's situation at that moment: compare the newest import
+with the history, add what people have recorded, and show the result.
+No status is ever stored, so no status can go stale or be quietly
+changed; the answer is recomputed from the evidence every time you ask.
+
+Beside that observed record it keeps a second one that no export can
+supply: what each identity is supposed to hold, said by a named person,
+for a period, with an owner. The difference between the two records is
+what the product exists to show, and the review campaigns exist to put
+each difference in front of the person who can answer it.
 
 People supply what the files cannot: who owns this identity, which one
-is suspicious, which one was reviewed and found fine. Each of those
-records is saved with who said it and when, and the same database
-action that saves it also writes the audit line, so a decision cannot
-exist without its record. Reports and exports come from the same
-computation the screen shows, so they cannot disagree with it. And in
-version one the tool never connects to the cloud at all: files come
-in, reports go out, and nothing else moves.
+is suspicious, which one was reviewed and found fine, which access was
+meant. Each of those records is saved with who said it and when, and
+the same database action that saves it also writes the audit line, so
+a decision cannot exist without its record. Reports and exports come
+from the same computation the screen shows, so they cannot disagree
+with it. And in version one the tool never connects to any provider:
+files come in, reports go out, and nothing else moves.
 
-### What version one does
+### What it does
 
-Four operations, and nothing else:
+Each feature in three lines: what it does, why it is built that way,
+and what proves it.
 
-- An operator authenticates, into one of three roles.
-- An identity export file is imported, recorded append-only, with
-  synthetic sample data shipped so a stranger with only Docker can run
-  the demo.
-- The operator views the enriched inventory and produces the
-  self-contained risk report plus CSV and JSON exports.
-- The operator governs in manifest-identity only: owners, purposes, flags,
-  attestations, and review campaigns. Nothing is written to the cloud
-  account.
+- **Reads seven providers natively and any other through a table.**
+  AWS from its two export files, GitHub, Google Cloud, Azure and Entra,
+  and Okta from one document each assembled from the provider's own API
+  objects, Kubernetes from one kubectl dump, Active Directory from a
+  document of the directory cmdlets' objects or from the SharpHound
+  collector's zip, which adds who can obtain what through a control
+  right; every other provider from a
+  spreadsheet of who holds what, read through a mapping of its own
+  columns. Each provider's vocabulary ends at its parser and the rest of
+  the product never learns it, so the seventh provider is a parser and
+  not a rewrite (D-071, D-076, D-079 to D-084). Proven by one test file
+  per provider and a generated sample estate for each, imported by the
+  demo.
+- **Derives every identity's state at read time.** Owner, last use,
+  second factor, what it holds now and what it can obtain, through
+  which group or trust, and the findings that follow, computed from
+  the whole history every time. Its credentials are read in nine kinds
+  (access key, password, certificate, signing certificate, client
+  secret, token, SSH key, Kerberos key, API key), each with its age
+  and last use, and each identity is classified from their shape as a
+  person, a service, a workload, an application, a group, a role, an
+  external identity, or unknown (D-056). Nothing derived is stored, so
+  nothing can drift or be edited (D-006). Proven by the derivation and
+  finding suites and by the sample estates producing every finding.
+- **Twenty findings, each with its reason.** Administrator equivalence
+  judged by capability rather than name, escalation paths, keys past
+  their age, identities nobody uses, trusts open to the world, groups
+  nobody owns. Each names the rule it applied and the evidence, because
+  a finding a reviewer cannot check is a rumor. Proven by
+  `test_findings.py` and `test_privilege.py`.
+- **Access as it actually arrives.** A grant records its route, hop by
+  hop, through a membership, a trust, a delegation, and its mode:
+  standing, eligible, or session. The page separates what an identity
+  holds now from what it can obtain, which is what makes just-in-time
+  access reviewable rather than invisible (1.6). Proven by
+  `test_paths.py`.
+- **Relationships and definitions as things to authorize.** A trust
+  into a role is a door someone can authorize; a custom policy or role
+  is a definition someone can authorize at a version, and one that
+  changes afterwards names what it gained (1.6, 1.7). Proven by
+  `test_delta.py` and `test_role_definitions.py`.
+- **The authorization record.** What an identity may hold, written by
+  a named person from the session and never from a form, with an owner
+  who is never a lone individual, an expiry the clock enforces with no
+  job, and a reason; append-only, superseded rather than edited,
+  revoked with a reason rather than deleted (D-073). Proven by
+  `test_authorizations.py` and the matrix walk.
+- **Two doors into that record.** A form that prefills from what is
+  observed, and a file door that reads an organization's own
+  spreadsheet of approvals through a mapping of its columns, with a dry
+  run that shows how the system read it before anything is written
+  (D-074). Proven by `test_csv_import.py` and `test_from_observed.py`.
+- **The delta, stored nowhere.** Nine classes of difference between
+  held and authorized, each carrying the time each side was last heard
+  from, because a stale side makes a difference look like agreement.
+  Proven by `test_delta.py` and the mutation that removes the central
+  comparison.
+- **Review campaigns driven by the calendar, the delta, or expiry.** A
+  frozen population, one decision per item with no bulk certification,
+  recommendations with their reasons, the changes since the last
+  certification, insufficient evidence as a recorded outcome, and an
+  evidence export with the audit chain's head in it (D-039, 1.8).
+  Proven by `test_campaigns.py`.
+- **Alerts that are records first.** A revocation recommended, an
+  authorization approaching expiry, a difference for an owner to
+  answer: each recorded, each delivery recorded per recipient, sent
+  through one interface that records rather than sends until a
+  provider is chosen, a failed delivery recorded as failed (1.9).
+  Proven by `test_alerts.py`.
+- **A read-only API under integration tokens.** Identities from a
+  cursor, the delta, and a change feed over the audit record, so a
+  ticketing or monitoring system follows decisions as they happen;
+  tokens are minted once, revocable, and budgeted each (1.10). Proven
+  by `test_api.py`.
+- **Governance on identities and groups.** Owners, purposes, flags, and
+  attestations, attributed and audited, clearable, with an assigned
+  owner answering the unowned finding and a disagreement with the
+  provider's tag surfaced (D-019). Proven by `test_governance.py`.
+- **Scoped authority.** A user holds a role at a place in the provider
+  tree and can act on that place and everything beneath it, so an
+  operator for one account is not an operator for another (D-072).
+  Proven by `test_scope.py` and the mutation that widens the check.
+- **A page proven by use.** One document, no build step, every value
+  rendered as text under a content policy that forbids inline script;
+  the detail opens beside the list, every list has a skeleton and an
+  empty state, both themes pass a contrast check computed from the
+  stylesheet's own tokens, and a real browser drives it in the
+  pipeline (D-036, D-075, D-077). Proven by `test_frontend.py` and
+  `test_browser.py`.
+- **Reports and exports that cannot disagree with the screen.** The
+  self-contained risk report, CSV and JSON with the spreadsheet exit
+  neutralized, and the per-campaign evidence export, all from the same
+  computation the page shows (D-040). Proven by `test_reports.py`.
+- **Sample estates, generated and checked.** One per native provider,
+  three months each, built to trigger every finding and every class of
+  difference, regenerated by a test so the shipped files and the
+  generator cannot drift; nothing about anyone's real estate is ever
+  published. Proven by `test_sample_data.py`.
 
-That set exercises authentication, the role matrix across three roles,
-input validation, derived state, audit logging, and the enrichment
-model, and it holds no cloud credential at all; when the live pull
-phases add one, it will be read-only (D-015, D-020). Adding
-more operations would not add a property that is not already
-demonstrated.
+### What it is not
+
+Stated as firmly as what it is, so the tool is not asked to be
+something else:
+
+- Not a provisioning tool. It never grants, revokes, or writes
+  anything to any provider; a revocation it recommends becomes a work
+  item for a person (D-024).
+- Not a connector. In version one it holds no provider credential and
+  never connects; files come in and reports go out.
+- Not a secrets manager, an identity provider, a security information
+  and event management system, or a ticket system. It feeds all of
+  them through its exports and its read API, and it replaces none of
+  them.
+- Not a judge. It recommends with its reasons and a named person
+  decides, every time.
 
 -------------------------------------------------------------------------------
 
 ## Run it
 
-**Coming from a role-call checkout:** the variables in `.env` are now
+**Coming from a role-call checkout:** the variables in `.env` are
 `MANIFEST_IDENTITY_*` (see `.env.example`), the database and its roles
 are `manifest_identity` and `manifest_identity_app`, and an existing
 data volume does not carry over: run `docker compose down -v` and
@@ -242,11 +376,14 @@ your .env. No password or secret is written anywhere in this
 repository; you create all of them locally.
 
 Then import the sample estate that ships in
-[sample-data](sample-data): three import generations of an AWS account
-in both file formats and of a GitHub organization, the capture time in
-each file's name. Import them oldest first from the Imports view,
-because state is derived from history and the history should arrive in
-the order it happened; then read the inventory.
+[sample-data](sample-data): three import generations of seven
+estates, an AWS account in both file formats, a GitHub organization,
+a Kubernetes cluster, a Google Cloud project, an Azure tenant, an Okta
+organization, and an Active Directory domain through both of its
+doors, the capture time in each file's name, plus one
+table per recipe for the door. Import them oldest first from the
+Imports view, because state is derived from history and the history
+should arrive in the order it happened; then read the inventory.
 
 The sample account is synthetic and deterministic, generated by
 `python -m manifest_identity.sample_data`, and it is built to trigger every
@@ -397,7 +534,7 @@ so these images are reproducible rather than asserted):
 
 ![An identity's detail open beside the list: the derived facts, what it holds now and through which group, and the authorization form](docs/screenshots/identity-detail.png)
 
-![A review campaign open over the whole inventory, eighty-two items awaiting decisions](docs/screenshots/campaigns.png)
+![A review campaign open over the whole inventory, ninety-nine items awaiting decisions](docs/screenshots/campaigns.png)
 
 ![The risk report: identities ranked by the engine, every finding naming its reason](docs/screenshots/report.png)
 
@@ -431,16 +568,23 @@ review decisions. An operator additionally imports files and sets
 governance: owners, purposes, flags. An administrator additionally
 manages the application's local users.
 
-**Imports.** The two AWS export formats, the credential report and the
-authorization details file, and the GitHub organization export, are
-parsed in memory, bounded on every axis, and never written to disk. The file's content is authoritative
-and its name is not, because a filename is client input; a file
-claiming to cover one account is verified to cover one account rather
-than trusted; a timestamp with an unrecognized timezone is rejected
+**Imports.** Nine file shapes are read natively, the two AWS export
+formats, one document each for GitHub, Kubernetes, Google Cloud,
+Azure and Entra, and Okta, and two for Active Directory, the cmdlet
+document and the SharpHound collection; a tenth, the table, carries
+any other provider through a mapping; the Imports view names the shape
+and a file of another shape is refused rather than guessed. Every
+parser works in memory, bounded on every axis, and never writes to
+disk. The file's content is authoritative and its name is not,
+because a filename is client input; a file claiming to cover one
+account, cluster, project, tenant, organization, or domain is
+verified to cover one rather than trusted; a timestamp with an unrecognized timezone is rejected
 rather than guessed, because capture times order the history and
 therefore decide what counts as current. Imports are append-only and
 duplicates are rejected, so a re-import is harmless and out-of-order
 syncs self-correct.
+
+![The imports view: the file, its kind chosen from the nine native shapes or the table, the capture time, and the record of every import so far](docs/screenshots/imports.png)
 
 **Inventory.** The dashboard counts identities by their worst finding
 tier; the table filters by name, type, and tier, and each row shows
@@ -489,6 +633,34 @@ disagreement between the assigned owner and the provider's tag is
 surfaced as its own notice naming both values, because a silent
 winner would hide exactly the staleness a governance tool exists to
 show.
+
+**Authorizations.** Beneath the observed facts, the detail shows the
+second record: what a named person said this identity may hold, for
+how long, and who owns it, beside what it holds now and what it can
+obtain, each grant with the route it arrives by (directly, through a
+group, by assuming a role, or, in a directory, through a control
+right). The authorization form prefills from an observed grant, so
+authorizing what exists is one confirmation and not a transcription;
+the approver is taken from the session and never from a field, and
+an authorization is superseded or revoked with a reason rather than
+edited, so the record of who allowed what stands the way the machine
+history does. An organization that already keeps its approvals in a
+spreadsheet imports them through the file door, with a dry run that
+shows how each row was read before anything is written.
+
+**The delta.** One view of every difference between the two records,
+in nine classes: held but not authorized, authorized but not held,
+expired and still held, eligible but not authorized, reached through
+a door nobody authorized, a definition that changed after it was
+authorized, a custom definition nobody authorized, a custom
+definition that changed, and an owner the tag and the record disagree
+about. Each row names both sides and when each side was last heard
+from, because a stale side makes a difference look like agreement.
+The tiles at the top count each class and narrow the list; the view
+is computed every time it opens and stored nowhere, so it cannot say
+yesterday's answer.
+
+![The delta: every difference between what identities hold and what a person authorized, counted by class and listed with both sides](docs/screenshots/delta.png)
 
 **Groups.** Privilege sources with members, owners, and their own
 findings. An empty privileged group is reported before anyone joins
@@ -551,13 +723,16 @@ style, and the page needs neither.
 
 ## Every provider's file
 
-Six providers are read natively: AWS through its two export
+Seven providers are read natively: AWS through its two export
 formats, GitHub through the assembled organization export (D-076),
 Kubernetes through the cluster's own dump (D-079), Google Cloud
 through a document of gcloud's own answers (D-080), Azure and Entra
 through a document of Graph's objects and the command line's output
-(D-081), and Okta through a document of the management API's objects
-(D-082). Every other provider
+(D-081), Okta through a document of the management API's objects
+(D-082), and Active Directory through two doors, a document of the
+directory cmdlets' objects (D-083) and the SharpHound collector's zip
+(D-084), the second carrying the control rights that say who can
+obtain what without being a member. Every other provider
 on the list enters through the table door (D-074, D-078): a file of who holds what, read through a mapping, with the
 shipped template's columns as the default. A provider through the door
 gets the inventory, the authorization record, the delta, and campaigns
@@ -580,7 +755,7 @@ their sample tables are the tested half.
 | Google Cloud | Read natively (D-080): one document holding `gcloud projects describe`, `get-iam-policy`, `iam service-accounts list`, and `keys list` outputs verbatim, through `POST /imports/google-cloud` | `recipes/google-cloud.jq` remains for the table door | `observed-gcp.csv` and the three `google-cloud.json` months |
 | Azure and Entra | Read natively (D-081): one document holding Graph's users, groups, service principals, directory roles, and eligibilities with each subscription's `az role assignment list` output, through `POST /imports/azure-tenant` | `recipes/azure.jq` remains for the table door | `observed-azure.csv` and the three `azure-tenant.json` months |
 | Okta | Read natively (D-082): one document holding the management API's users, groups, role assignments, custom roles, and applications with their assignments, through `POST /imports/okta-org` | `recipes/okta.jq` remains for the table door | `observed-okta.csv` and the three `okta-org.json` months |
-| Active Directory | The directory cmdlets, run by the script | `recipes/active-directory.ps1 -Domain corp -Groups ...` | `observed-active-directory.csv` |
+| Active Directory | Read natively (D-083, D-084): one document of `Get-ADDomain`, `Get-ADUser`, `Get-ADGroup` with `Get-ADGroupMember`, `Get-ADComputer`, and `Get-ADTrust` outputs through `POST /imports/active-directory`, or the SharpHound collector's zip through `POST /imports/sharphound` | `recipes/active-directory.ps1` remains for the table door | `observed-active-directory.csv`, the three `active-directory.json` months, and the three `sharphound.json` months |
 | Database (PostgreSQL) | `pg_roles` and `pg_auth_members`, read by the script | `psql -v instance=NAME -f recipes/database.sql` | `observed-database.csv` |
 | SaaS, generic | Whatever table the system exports | A mapping of its own columns | the shipped template |
 
@@ -591,9 +766,10 @@ read; an Azure assignment at a resource group is filed under its
 subscription, and Entra directory roles and eligibilities are not in
 the command's output; an Okta role that arrives through a group
 records the hop without the group's name; a directory account's
-password age and last logon stay behind. Each of those is what the
-native parser for that provider is for, and the plan carries them in
-the order Kubernetes, Google Cloud, Azure and Entra, Okta.
+password age, last logon, service principal names, and control
+rights stay behind. Each of those is what the native parser for that
+provider carries, and every provider with a recipe except the
+database has one.
 
 -------------------------------------------------------------------------------
 
@@ -906,6 +1082,19 @@ audit_events
   privileged identity management, and Azure roles read from their
   actions or their names. An eligibility is what an identity can
   obtain and is never counted as privilege held.
+- **Active Directory is the seventh native provider, with two doors**
+  (D-083, D-084): a document of the directory cmdlets' objects or the
+  SharpHound collector's zip becomes the same rows, with the domain
+  as the scope node keyed by its identifier and every organizational
+  unit beneath it, a password per user active while the account is
+  enabled, a Kerberos key beside it for an account with a service
+  principal name, computers as workloads with their machine accounts,
+  groups flattened through every level of nesting with the holding
+  group named, the built-in groups that hold the domain read from a
+  table of what each may do, a member from another domain as an
+  external identity, a trust as a relationship, and, from the
+  collector alone, a control right on the domain or on a privileged
+  group or one of its members as access the principal can obtain.
 - **Okta is the sixth native provider** (D-082): one document of the
   management API's objects becomes the same rows, with the
   organization as the scope node, a password only for users whose
@@ -970,6 +1159,8 @@ POST /imports/kubernetes-rbac
 POST /imports/google-cloud
 POST /imports/azure-tenant
 POST /imports/okta-org
+POST /imports/active-directory
+POST /imports/sharphound
 POST /imports/observed/dry-run
 POST /imports/observed
 GET /imports
@@ -1015,7 +1206,7 @@ GET /api/v1/delta
 GET /api/v1/changes
 ```
 
-`GET /identities` is paged, because the sample estates' sixty-seven
+`GET /identities` is paged, because the sample estates' seventy-seven
 rows say nothing about an account with thousands: it takes `q` (a
 name substring), `type`, and `tier` as filters, applied on the server
 rather than in the browser, plus `sort` and `direction` over a named
@@ -1043,7 +1234,7 @@ holds the reviews and the alerts.
 | `manifest_identity/core/models.py` | Users, sessions, scope nodes, role bindings, settings, the audit chain |
 | `manifest_identity/core/audit.py` | The audit spine: the record commits with the action |
 | `manifest_identity/core/verify_chain.py` | The offline verifier: recompute the chain, compare to an anchor |
-| `manifest_identity/observe/providers/` | The seven parsers, AWS, GitHub, Kubernetes, Google Cloud, Azure, and Okta: bounded, in memory, distrusting their own preconditions |
+| `manifest_identity/observe/providers/` | The nine parsers, AWS, GitHub, Kubernetes, Google Cloud, Azure, Okta, and Active Directory through its cmdlets and through SharpHound: bounded, in memory, distrusting their own preconditions |
 | `manifest_identity/observe/importer.py` | AWS records become neutral rows; the vocabulary ends here |
 | `manifest_identity/observe/estate.py` | What every native importer does the same way, written once: the root node, the identities at it, one observation per import |
 | `manifest_identity/observe/github_importer.py` | GitHub records become the same neutral rows: teams as groups, permission levels as capability documents |
@@ -1051,6 +1242,7 @@ holds the reviews and the alerts.
 | `manifest_identity/observe/google_cloud_importer.py` | A project export becomes the same rows: user-managed keys as credentials, every member form a policy writes, roles read from permissions, a table, or a name |
 | `manifest_identity/observe/azure_importer.py` | A tenant export becomes the same rows: members with passwords and guests without, secrets and certificates as credentials, directory roles held or eligible, assignments at the subscription or resource group |
 | `manifest_identity/observe/okta_importer.py` | An organization export becomes the same rows: passwords only where Okta holds them, roles reaching members through their groups, every application assignment a grant |
+| `manifest_identity/observe/active_directory_importer.py` | A domain, from either door, becomes the same rows: the built-in groups as definitions reaching members through every nesting, a control right as access to obtain, a trust as a relationship |
 | `manifest_identity/observe/models.py` | Imports, identities, credentials, grants, role definitions, relationships |
 | `manifest_identity/observe/derive.py` | State from history at read time; the freshest value per field |
 | `manifest_identity/observe/principals.py` | Who a trust policy names, one principal per row, allow statements only |
@@ -1546,6 +1738,21 @@ subphase is proof, not retrofit.
     running system, the fresh-clone run on a machine with nothing but
     Docker, and the documents re-read and shortened.
 
+Those twelve built the observed half and were tagged v0.2.0 with
+Phase 2. The authorized half then followed the same discipline in
+fourteen more subphases, numbered 1.1 to 1.14, planned before the
+first was started and built in batches of two, each batch one pull
+request with its runtime proof: the scope tree and scoped
+administration (1.1), the authorization record (1.2), the form and
+the file door (1.3), authorize from observed (1.4), the delta (1.5),
+paths and relationships (1.6), role definitions as versioned
+observations (1.7), campaigns driven by the delta and by expiry (1.8),
+alerts and their records (1.9), the read API and the change feed
+(1.10), the table door with the source selector (1.11), GitHub as the
+second provider (1.12), the page (1.13), and every provider's file
+(1.14), and Active Directory natively through two doors (1.15).
+Their decisions run from D-071 onward.
+
 The order had reasons. Identity before data, because every later route
 needs the role checks. Parsers before the engine, because reading the
 data before designing against it is the deepest lesson this project
@@ -1594,8 +1801,9 @@ Beyond the phases, in order: expected-profile checks, where a known
 vendor integration holding exactly its documented permissions is
 furniture and the same integration holding more is a finding;
 temporary approved re-elevation, where someone else approves and the
-clock does the offboarding; and more providers, Okta and Entra, as
-adapters behind the same append-only ingestion rather than rewrites.
+clock does the offboarding; and the live pull for each provider, as adapters behind the same
+append-only ingestion, once the file door has proven the model for
+it.
 
 Each phase ends in a state that runs and demonstrates on its own, with
 the diagrams updated, the decisions recorded, and the documents
@@ -1653,7 +1861,7 @@ load-bearing ones:
 sits under the measured figure to catch erosion without inviting tests
 written to move a number.
 
-**Thirty-two mutations, thirty-two kills.** The mutation check breaks
+**Thirty-four mutations, thirty-four kills.** The mutation check breaks
 one control at a time and requires the tests that claim that control
 to fail. The table is generated from the check's own list by
 `scripts/check_mutation.py --table`, and a test fails the build when
@@ -1694,11 +1902,13 @@ the two differ, so the count here is the count the check runs:
 | A guest is recorded as a member of the directory | the azure_import tests |
 | A federated user is given an Okta password | the okta_import tests |
 | An inactive role assignment is recorded as held | the okta_import tests |
+| A disabled account's password is recorded as live | the active_directory_import tests |
+| An inherited control right is recorded as obtainable | the active_directory_import tests |
 ```
 
 On its first run the token-hashing mutation survived: every test
 presented a real token or none, so a constant hash matched any
-fabricated token and nothing noticed. The missing test exists now,
+fabricated token and nothing noticed. The missing test exists,
 which is the check doing exactly what it is for.
 
 The decisions, migrations, and required checks the opening table counts. Every

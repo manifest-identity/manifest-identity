@@ -2344,3 +2344,120 @@ and not a fault to report.
 The cost is that an organization with many applications produces many
 differences on the first import, one per assignment, which is the
 truth of an unreviewed estate and the reason the campaigns exist.
+
+## D-083: An Active Directory domain is the directory cmdlets' objects under one roof, and a service principal name is a key
+
+Active Directory is the seventh native provider and the one most
+estates still stand on: every other directory here federates to it or
+was migrated from it. It ships no export of who holds what, so the
+file is one document assembled from the ActiveDirectory module's own
+cmdlets in the pattern D-076 set: the domain from Get-ADDomain; users
+with enabled state, password last set, last logon, creation time, the
+adminCount attribute, service principal names, and whether the
+password expires; groups with their scope, category, and direct
+members as security identifiers; computers with their operating
+system; and trusts. The assembly is the operator's private act. Two
+serializations are accepted because two PowerShell generations write
+them differently: a security identifier as the string or as the
+object whose Value is the string, and a date in ISO 8601 or in the
+older milliseconds form.
+
+Four readings are stated. A user's password is a credential active
+while the account is enabled, rotated when the password was last set,
+and used at the last logon, so a disabled leaver is quiet and a live
+account with a password set six years ago is not. A user with a
+service principal name carries a Kerberos service key beside the
+password, because that is what the name is: the account presents a
+key to services as well as a password to people, and the page reads
+the pair as a mixed identity, which is the truth of the classic
+service account made from a user object. A computer is a workload
+whose machine account is a Kerberos key the directory rotates. And a
+group inside a group is flattened the way D-076 flattens teams, with
+the nesting kept as a relationship, so the page names the group that
+holds the privilege rather than the group the person joined.
+
+The built-in groups that hold the domain are provider-managed
+definitions read from a table of what each may do, because the
+directory writes no policy document for them and their power is
+documented history: the domain, enterprise, and built-in
+administrators administer; the account, backup, server, key, and DNS
+administrators and the policy creator owners change access, because
+each is a documented route to a domain administrator's key; the print
+operators write on the domain controllers; the remote desktop and
+remote management groups read. Each such group holds a grant of its
+definition at the domain, and the membership hop carries it to the
+members. A member the file does not list is a foreign security
+principal from another domain and is recorded as an external identity
+whose home is elsewhere, holding whatever the group holds, because a
+partner's account in the built-in administrators is the finding this
+provider is most often bought to surface.
+
+The domain is keyed by its security identifier, which a directory
+never reuses, and every organizational unit an object sits in is a
+scope node beneath it, so an operator can be bound to one unit and an
+authorization can be scoped to one.
+
+Rejected: reading Get-ADGroupMember recursively, which would lose the
+nesting the relationship records; a password credential for a
+disabled account, which would flag every leaver for a stale key;
+reading a group's power from its name, when the identifier is fixed
+by the directory and the name is not; and a finding for a password
+that never expires, which is left as data on the observation until
+the credential-age findings are widened to every key-like kind, the
+same open question D-081 left for client secrets.
+
+The cost is a document the operator assembles by script rather than a
+file the directory writes, which every provider after AWS has paid,
+and a table of judgments about built-in groups that a reader must be
+able to check against the directory's own documentation, which is why
+the table names each group and the reason beside it.
+
+## D-084: A SharpHound collection is a second door into the same domain, and a control right is access to obtain
+
+BloodHound's collector already runs in many estates, and what it
+carries that no cmdlet document does is the access control list on
+every object: who owns a group, who can write its membership, who can
+change a member's password, who can replicate the domain. Those are
+the can-obtain mode for a directory. A person who can add themselves
+to the domain administrators is not a member and never appears in a
+membership review, and the review is wrong for exactly that person.
+
+So the collector's zip is a second door into the same domain, read
+into the same parsed shape as the cmdlet document and imported by the
+same importer, so a domain reaches one estate whichever door it
+enters by; the same identifier is the same identity, and the newest
+import at the node is the one the page reads. The zip is read in
+memory with every member bounded before it is unpacked, and a loose
+single file is refused by name, because one file is one object type
+and an import of users alone would make every group vanish from the
+next view. The joined form, the files under one object, is accepted
+for anyone who unpacked the zip first. The well-known identifiers the
+collector prefixes with the domain's name are stripped, so the two
+doors name the built-in administrators the same way.
+
+A control right that is not inherited and is not read-only becomes a
+grant in the eligible mode: on the domain object, a definition that
+administers the domain; on a privileged group, that group's
+definition; on a direct member of a privileged group, the same,
+because owning the member is owning the membership. A principal that
+already holds the definition standing, or that administers the domain
+outright, is not written, because the directory grants its own
+administrators every right over every object by default and writing
+those would bury the one right that matters under hundreds that
+change nothing. What a group can obtain, its members can obtain, so
+the path engine now carries a group's eligible grant to its members
+as eligible whatever the membership's mode, a correction the first
+such grant exposed.
+
+Rejected: reading the ACL edges as findings rather than as eligible
+grants, because a right is access to authorize or revoke, not a fault
+to report, and the delta already names an eligibility nobody
+authorized; inherited rights, for the reason above; rights on
+ordinary users, which are real but two hops from anything privileged
+and would need the whole graph walk BloodHound exists to do; and
+importing the collector's sessions and local group files, which say
+where a person has been rather than what they hold.
+
+The cost is that a domain imported through both doors alternately
+reads from whichever import is newest, so an estate should choose one
+door per domain and keep to it, which the documentation states.

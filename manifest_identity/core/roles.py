@@ -56,6 +56,8 @@ ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "POST /imports/google-cloud": frozenset({Role.operator, Role.administrator}),
     "POST /imports/azure-tenant": frozenset({Role.operator, Role.administrator}),
     "POST /imports/okta-org": frozenset({Role.operator, Role.administrator}),
+    "POST /imports/active-directory": frozenset({Role.operator, Role.administrator}),
+    "POST /imports/sharphound": frozenset({Role.operator, Role.administrator}),
     # Any provider's table through a mapping (1.11): the observed side's
     # file door, the same actors as the parsers' routes.
     "POST /imports/observed/dry-run": frozenset({Role.operator, Role.administrator}),

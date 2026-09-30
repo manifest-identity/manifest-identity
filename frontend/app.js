@@ -92,6 +92,20 @@ function tile(label, value, kind) {
   return div;
 }
 
+// A loader started from a click is not awaited by anyone, so its
+// failure has nowhere to go but the console. This is where it goes
+// instead: one sentence on the page, cleared on the next view. A
+// session that ended has already signed the page out and says nothing.
+function run(promise) {
+  promise.catch((error) => {
+    const message = error && error.message ? error.message : String(error);
+    if (message === "session ended") return;
+    const box = $("page-error");
+    box.textContent = "Loading failed: " + message + ". The page can be reloaded.";
+    box.hidden = false;
+  });
+}
+
 async function api(path, options) {
   const opts = options || {};
   opts.headers = { ...opts.headers };
@@ -206,6 +220,7 @@ function closeDetail() {
 }
 
 function switchView(view) {
+  hide("page-error");
   // Reloading the list that is already showing (a filter, a sort, a
   // page) keeps the detail open beside it; only a change of list
   // closes it. The walk found the first version closing the panel on
@@ -495,7 +510,7 @@ async function renderAuthorizations(id) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reason }),
         });
-        if (response.ok) loadDetail(id);
+        if (response.ok) run(loadDetail(id));
       });
       li.append(" ", revoke);
     }
@@ -768,8 +783,8 @@ function enterApp(role) {
   // The scope tree is read through an administrative route, so the
   // button only appears for the role that may call it.
   $("nav-scopes").hidden = !currentRoles.includes("administrator");
-  refreshAsOf();
-  loadInventory();
+  run(refreshAsOf());
+  run(loadInventory());
 }
 
 $("signin-form").addEventListener("submit", async (e) => {
@@ -887,7 +902,7 @@ function itemCard(campaign, item) {
         });
       if (response.ok) {
         result.hidden = true;
-        loadCampaignDetail(campaign.id);
+        run(loadCampaignDetail(campaign.id));
       } else {
         const data = await response.json();
         result.textContent = "rejected: " + detailText(data.detail);
@@ -915,7 +930,7 @@ async function loadCampaignDetail(id) {
   close.onclick = async () => {
     const response = await api("/campaigns/" + c.id + "/close",
                                { method: "POST" });
-    if (response.ok) loadCampaignDetail(c.id);
+    if (response.ok) run(loadCampaignDetail(c.id));
     else {
       const data = await response.json();
       const result = $("campaign-detail-result");
@@ -955,7 +970,7 @@ $("campaign-form").addEventListener("submit", async (e) => {
   if (response.ok) {
     result.hidden = true;
     e.target.reset();
-    loadCampaigns();
+    run(loadCampaigns());
   } else {
     const data = await response.json();
     result.textContent = "rejected: " + detailText(data.detail);
@@ -977,12 +992,12 @@ $("nav").addEventListener("click", (e) => {
   const button = e.target.closest("button[data-view]");
   if (!button) return;
   const view = button.dataset.view;
-  if (view === "inventory") loadInventory();
-  else if (view === "groups") loadGroups();
-  else if (view === "campaigns") loadCampaigns();
-  else if (view === "imports") loadImports();
-  else if (view === "scopes") loadScopes();
-  else if (view === "delta") loadDelta();
+  if (view === "inventory") run(loadInventory());
+  else if (view === "groups") run(loadGroups());
+  else if (view === "campaigns") run(loadCampaigns());
+  else if (view === "imports") run(loadImports());
+  else if (view === "scopes") run(loadScopes());
+  else if (view === "delta") run(loadDelta());
 });
 $("signout").addEventListener("click", signOut);
 $("back").addEventListener("click", closeDetail);
@@ -998,7 +1013,7 @@ function filtersChanged(delayed) {
   pageOffset = 0;
   clearTimeout(filterTimer);
   if (delayed) filterTimer = setTimeout(loadInventory, 250);
-  else loadInventory();
+  else run(loadInventory());
 }
 $("inventory-head").addEventListener("click", (e) => {
   const th = e.target.closest("th[data-sort]");
@@ -1007,7 +1022,7 @@ $("inventory-head").addEventListener("click", (e) => {
   if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
   else { sortKey = key; sortDir = "asc"; }
   pageOffset = 0;  // a new order is a new question, so page one
-  loadInventory();
+  run(loadInventory());
 });
 $("filter-text").addEventListener("input", () => filtersChanged(true));
 $("filter-type").addEventListener("input", () => filtersChanged(false));
@@ -1015,11 +1030,11 @@ $("filter-tier").addEventListener("input", () => filtersChanged(false));
 $("filter-kind").addEventListener("input", () => filtersChanged(false));
 $("page-prev").addEventListener("click", () => {
   pageOffset = Math.max(0, pageOffset - PAGE_SIZE);
-  loadInventory();
+  run(loadInventory());
 });
 $("page-next").addEventListener("click", () => {
   pageOffset += PAGE_SIZE;
-  loadInventory();
+  run(loadInventory());
 });
 
 // The owner type only means something on an owner record; the routes
@@ -1085,7 +1100,7 @@ $("auth-form").addEventListener("submit", async (e) => {
     if (response.ok) {
       result.hidden = true;
       e.target.reset();
-      loadDetail(detailId);
+      run(loadDetail(detailId));
     } else {
       const data = await response.json();
       result.textContent = "refused: " + detailText(data.detail);
@@ -1170,8 +1185,8 @@ $("import-form").addEventListener("submit", async (e) => {
         : "imported " + data.observations + " observations, "
           + data.identities_new + " new, " + data.skipped_rows + " skipped";
       e.target.reset();
-      loadImports();
-      refreshAsOf();
+      run(loadImports());
+      run(refreshAsOf());
     } else {
       // The server's message states a rule; it never contains file text.
       result.textContent = "rejected: " + data.detail;

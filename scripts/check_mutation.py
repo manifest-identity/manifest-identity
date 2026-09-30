@@ -307,6 +307,28 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         "        if False:",
         ["tests/test_okta_import.py"],
     ),
+    (
+        # D-083: a disabled account's password is not a live credential;
+        # recording it as one would flag every leaver for a stale key
+        # and count every disabled administrator as one still held.
+        "a disabled account's password is recorded as live",
+        "manifest_identity/observe/active_directory_importer.py",
+        '            kind=CredentialKind.password, external_id="password", active=account.enabled,',
+        '            kind=CredentialKind.password, external_id="password", active=True,',
+        ["tests/test_active_directory_import.py"],
+    ),
+    (
+        # D-084: an inherited right is the directory's default flowing
+        # down the tree, not a grant someone made; writing it would put
+        # the built-in administrators on every object as able to obtain
+        # what they already hold, and bury the one right that matters.
+        "an inherited control right is recorded as obtainable",
+        "manifest_identity/observe/active_directory_importer.py",
+        "        if ace.inherited or ace.right in READ_ONLY_RIGHTS"
+        " or ace.principal_sid in administers:",
+        "        if ace.right in READ_ONLY_RIGHTS or ace.principal_sid in administers:",
+        ["tests/test_active_directory_import.py"],
+    ),
 ]
 
 

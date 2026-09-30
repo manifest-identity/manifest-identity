@@ -1,0 +1,679 @@
+{
+  "domains": {
+    "data": [
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "CORP.EXAMPLE.TEST",
+          "distinguishedname": "DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "functionallevel": "2016",
+          "whencreated": 1559347200
+        },
+        "Trusts": [
+          {
+            "TargetDomainSid": "S-1-5-21-4000-5000-6000",
+            "TargetDomainName": "PARTNER.EXAMPLE.TEST",
+            "IsTransitive": true,
+            "SidFilteringEnabled": true,
+            "TrustDirection": "Inbound",
+            "TrustType": "Forest"
+          }
+        ],
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          },
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-1106",
+            "PrincipalType": "User",
+            "RightName": "GetChanges",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-1106",
+            "PrincipalType": "User",
+            "RightName": "GetChangesAll",
+            "IsInherited": false
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      }
+    ],
+    "meta": {
+      "methods": 46067,
+      "type": "domains",
+      "count": 1,
+      "version": 6
+    }
+  },
+  "users": {
+    "data": [
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1100",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "SAM.OWNER@CORP.EXAMPLE.TEST",
+          "samaccountname": "sam.owner",
+          "distinguishedname": "CN=SAM.OWNER,OU=PEOPLE,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "description": "Platform lead",
+          "enabled": true,
+          "whencreated": 1583107200,
+          "pwdlastset": 1770681600,
+          "lastlogontimestamp": 1782691200,
+          "admincount": true,
+          "serviceprincipalnames": [],
+          "hasspn": false,
+          "pwdneverexpires": false,
+          "sensitive": false,
+          "dontreqpreauth": false
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-513",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1101",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "SVC-BACKUP@CORP.EXAMPLE.TEST",
+          "samaccountname": "svc-backup",
+          "distinguishedname": "CN=SVC-BACKUP,OU=SERVICE ACCOUNTS,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "description": "Nightly backup job",
+          "enabled": true,
+          "whencreated": 1565740800,
+          "pwdlastset": 1565740800,
+          "lastlogontimestamp": 1782691200,
+          "admincount": false,
+          "serviceprincipalnames": [
+            "MSSQLSvc/db.corp.example.test:1433"
+          ],
+          "hasspn": true,
+          "pwdneverexpires": true,
+          "sensitive": false,
+          "dontreqpreauth": false
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-513",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1102",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "LEGACY.MIKE@CORP.EXAMPLE.TEST",
+          "samaccountname": "legacy.mike",
+          "distinguishedname": "CN=LEGACY.MIKE,OU=PEOPLE,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "description": null,
+          "enabled": true,
+          "whencreated": 1515456000,
+          "pwdlastset": 1730592000,
+          "lastlogontimestamp": 1750377600,
+          "admincount": true,
+          "serviceprincipalnames": [],
+          "hasspn": false,
+          "pwdneverexpires": false,
+          "sensitive": false,
+          "dontreqpreauth": false
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-513",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1103",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "NADIA.DEV@CORP.EXAMPLE.TEST",
+          "samaccountname": "nadia.dev",
+          "distinguishedname": "CN=NADIA.DEV,OU=PEOPLE,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "description": null,
+          "enabled": true,
+          "whencreated": 1684108800,
+          "pwdlastset": 1775001600,
+          "lastlogontimestamp": 1782691200,
+          "admincount": false,
+          "serviceprincipalnames": [],
+          "hasspn": false,
+          "pwdneverexpires": false,
+          "sensitive": false,
+          "dontreqpreauth": false
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-513",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1104",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "FORMER.EMPLOYEE@CORP.EXAMPLE.TEST",
+          "samaccountname": "former.employee",
+          "distinguishedname": "CN=FORMER.EMPLOYEE,OU=DISABLED,OU=PEOPLE,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "description": "Left 2025-02",
+          "enabled": false,
+          "whencreated": 1559347200,
+          "pwdlastset": 1674172800,
+          "lastlogontimestamp": 1738281600,
+          "admincount": true,
+          "serviceprincipalnames": [],
+          "hasspn": false,
+          "pwdneverexpires": false,
+          "sensitive": false,
+          "dontreqpreauth": false
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-513",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1105",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "AUDIT.READER@CORP.EXAMPLE.TEST",
+          "samaccountname": "audit.reader",
+          "distinguishedname": "CN=AUDIT.READER,OU=PEOPLE,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "description": null,
+          "enabled": true,
+          "whencreated": 1725148800,
+          "pwdlastset": 1773273600,
+          "lastlogontimestamp": 1782691200,
+          "admincount": false,
+          "serviceprincipalnames": [],
+          "hasspn": false,
+          "pwdneverexpires": false,
+          "sensitive": false,
+          "dontreqpreauth": false
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-513",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1106",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "SYNC.SVC@CORP.EXAMPLE.TEST",
+          "samaccountname": "sync.svc",
+          "distinguishedname": "CN=SYNC.SVC,OU=SERVICE ACCOUNTS,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "description": "Directory synchronization",
+          "enabled": true,
+          "whencreated": 1644796800,
+          "pwdlastset": 1764547200,
+          "lastlogontimestamp": 1782691200,
+          "admincount": false,
+          "serviceprincipalnames": [],
+          "hasspn": false,
+          "pwdneverexpires": true,
+          "sensitive": false,
+          "dontreqpreauth": false
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-513",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      }
+    ],
+    "meta": {
+      "methods": 46067,
+      "type": "users",
+      "count": 7,
+      "version": 6
+    }
+  },
+  "groups": {
+    "data": [
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-512",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "DOMAIN ADMINS@CORP.EXAMPLE.TEST",
+          "samaccountname": "Domain Admins",
+          "distinguishedname": "CN=DOMAIN ADMINS,CN=USERS,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "admincount": true,
+          "whencreated": 1559347200
+        },
+        "Members": [
+          {
+            "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1100",
+            "ObjectType": "User"
+          }
+        ],
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          },
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-1200",
+            "PrincipalType": "Group",
+            "RightName": "AddMember",
+            "IsInherited": false
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "CORP.EXAMPLE.TEST-S-1-5-32-544",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "ADMINISTRATORS@CORP.EXAMPLE.TEST",
+          "samaccountname": "Administrators",
+          "distinguishedname": "CN=ADMINISTRATORS,CN=BUILTIN,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "admincount": true,
+          "whencreated": 1559347200
+        },
+        "Members": [
+          {
+            "ObjectIdentifier": "S-1-5-21-1000-2000-3000-512",
+            "ObjectType": "Group"
+          }
+        ],
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "CORP.EXAMPLE.TEST-S-1-5-32-551",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "BACKUP OPERATORS@CORP.EXAMPLE.TEST",
+          "samaccountname": "Backup Operators",
+          "distinguishedname": "CN=BACKUP OPERATORS,CN=BUILTIN,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "admincount": true,
+          "whencreated": 1559347200
+        },
+        "Members": [
+          {
+            "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1101",
+            "ObjectType": "User"
+          }
+        ],
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "ACCOUNT OPERATORS@CORP.EXAMPLE.TEST",
+          "samaccountname": "Account Operators",
+          "distinguishedname": "CN=ACCOUNT OPERATORS,CN=BUILTIN,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "admincount": true,
+          "whencreated": 1559347200
+        },
+        "Members": [
+          {
+            "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1200",
+            "ObjectType": "Group"
+          }
+        ],
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "CORP.EXAMPLE.TEST-S-1-5-32-580",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "REMOTE MANAGEMENT USERS@CORP.EXAMPLE.TEST",
+          "samaccountname": "Remote Management Users",
+          "distinguishedname": "CN=REMOTE MANAGEMENT USERS,CN=BUILTIN,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "admincount": false,
+          "whencreated": 1559347200
+        },
+        "Members": [
+          {
+            "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1105",
+            "ObjectType": "User"
+          }
+        ],
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1200",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "HELPDESK@CORP.EXAMPLE.TEST",
+          "samaccountname": "helpdesk",
+          "distinguishedname": "CN=HELPDESK,OU=GROUPS,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "admincount": true,
+          "whencreated": 1559347200
+        },
+        "Members": [
+          {
+            "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1102",
+            "ObjectType": "User"
+          }
+        ],
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1201",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "ENGINEERING@CORP.EXAMPLE.TEST",
+          "samaccountname": "engineering",
+          "distinguishedname": "CN=ENGINEERING,OU=GROUPS,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "admincount": false,
+          "whencreated": 1559347200
+        },
+        "Members": [
+          {
+            "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1103",
+            "ObjectType": "User"
+          },
+          {
+            "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1101",
+            "ObjectType": "User"
+          }
+        ],
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      }
+    ],
+    "meta": {
+      "methods": 46067,
+      "type": "groups",
+      "count": 7,
+      "version": 6
+    }
+  },
+  "computers": {
+    "data": [
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1300",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "DC01.CORP.EXAMPLE.TEST",
+          "samaccountname": "DC01$",
+          "distinguishedname": "CN=DC01,OU=DOMAIN CONTROLLERS,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "enabled": true,
+          "whencreated": 1559347200,
+          "pwdlastset": 1777593600,
+          "lastlogontimestamp": 1782777600,
+          "operatingsystem": "Windows Server 2022",
+          "haslaps": false,
+          "serviceprincipalnames": [
+            "HOST/DC01"
+          ]
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-515",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      },
+      {
+        "ObjectIdentifier": "S-1-5-21-1000-2000-3000-1301",
+        "Properties": {
+          "domain": "CORP.EXAMPLE.TEST",
+          "name": "APP01.CORP.EXAMPLE.TEST",
+          "samaccountname": "APP01$",
+          "distinguishedname": "CN=APP01,OU=SERVERS,DC=CORP,DC=EXAMPLE,DC=TEST",
+          "domainsid": "S-1-5-21-1000-2000-3000",
+          "enabled": true,
+          "whencreated": 1633996800,
+          "pwdlastset": 1776643200,
+          "lastlogontimestamp": 1782777600,
+          "operatingsystem": "Windows Server 2019",
+          "haslaps": false,
+          "serviceprincipalnames": [
+            "HOST/APP01"
+          ]
+        },
+        "PrimaryGroupSID": "S-1-5-21-1000-2000-3000-515",
+        "Aces": [
+          {
+            "PrincipalSID": "S-1-5-21-1000-2000-3000-512",
+            "PrincipalType": "Group",
+            "RightName": "Owns",
+            "IsInherited": false
+          },
+          {
+            "PrincipalSID": "CORP.EXAMPLE.TEST-S-1-5-32-548",
+            "PrincipalType": "Group",
+            "RightName": "WriteDacl",
+            "IsInherited": true
+          }
+        ],
+        "IsDeleted": false,
+        "IsACLProtected": false
+      }
+    ],
+    "meta": {
+      "methods": 46067,
+      "type": "computers",
+      "count": 2,
+      "version": 6
+    }
+  }
+}

@@ -14,10 +14,17 @@ import json
 
 import pytest
 
+from manifest_identity.observe.providers.active_directory import (
+    directory_export as directory,
+)
 from manifest_identity.observe.providers.azure import tenant_export as azure
 from manifest_identity.observe.providers.google_cloud import project_export as google
 from manifest_identity.observe.providers.kubernetes import rbac_dump as kubernetes
 from manifest_identity.observe.providers.okta import org_export as okta
+from tests.test_active_directory_import import GROUP as AD_GROUP
+from tests.test_active_directory_import import SID as AD_SID
+from tests.test_active_directory_import import USER as AD_USER
+from tests.test_active_directory_import import minimal as ad_minimal
 from tests.test_azure_import import GUID
 from tests.test_azure_import import minimal as azure_minimal
 from tests.test_google_cloud_import import minimal as google_minimal
@@ -222,6 +229,49 @@ def test_the_okta_parser_refuses_and_repeats_nothing(
 ) -> None:
     with pytest.raises(okta.ParseError) as caught:
         okta.parse_org_export(data)
+    assert rule in str(caught.value)
+    for value in leaked:
+        assert value not in str(caught.value)
+
+
+AD_USER_ROW = {"SID": AD_USER, "SamAccountName": "alice", "DistinguishedName": "CN=alice,DC=x"}
+AD_CASES = [
+    (ad_minimal(users=[{**AD_USER_ROW, "PasswordLastSet": 5}]), "must be a string", []),
+    (ad_minimal(users=[{**AD_USER_ROW, "PasswordLastSet": NOT_A_TIME}]), "not ISO 8601",
+     [NOT_A_TIME]),
+    (ad_minimal(users=[{**AD_USER_ROW, "SamAccountName": LONG}]), "longer than", [LONG]),
+    (ad_minimal(users=[{**AD_USER_ROW, "SamAccountName": CONTROL}]), "control character",
+     [CONTROL]),
+    (ad_minimal(users=[{**AD_USER_ROW, "Enabled": "yes"}]), "must be true or false", ["yes"]),
+    (ad_minimal(users=[{**AD_USER_ROW, "ServicePrincipalNames": [1]}]), "list of strings", []),
+    (ad_minimal(users=[{**AD_USER_ROW, "SID": "bogus"}]), "not a security identifier", ["bogus"]),
+    (ad_minimal(users={}), "must be a list", []),
+    (ad_minimal(users=TOO_MANY), "more than", []),
+    (ad_minimal(users=["not-an-object"]), "must be an object", ["not-an-object"]),
+    (ad_minimal(domain="x"), "must be an object", []),
+    (ad_minimal(domain={"DNSRoot": "Bad Name", "DomainSID": AD_SID}), "not a domain name",
+     ["Bad Name"]),
+    (ad_minimal(users=[AD_USER_ROW, AD_USER_ROW]), "identifier appears twice", []),
+    (ad_minimal(groups=[{"SID": AD_GROUP, "SamAccountName": "g", "DistinguishedName": "CN=g",
+                         "Members": ["nope"]}]), "not a security identifier", ["nope"]),
+    (ad_minimal(groups=[{"SID": AD_GROUP, "SamAccountName": "g", "DistinguishedName": "CN=g",
+                         "GroupCategory": "Social"}]), "GroupCategory is not one", ["Social"]),
+    (ad_minimal(trusts=[{"Name": "partner.test", "Direction": "Sideways"}]),
+     "Direction is not one", ["Sideways"]),
+    (ad_minimal(trusts=[{"Name": "bad name", "Direction": "Inbound"}]), "not a domain name",
+     ["bad name"]),
+    (b"x" * (directory.MAX_FILE_BYTES + 1), "exceeds", []),
+    (b"{not json", "not valid JSON", ["not json"]),
+    (b"[]", "must be a JSON object", []),
+]
+
+
+@pytest.mark.parametrize(("data", "rule", "leaked"), AD_CASES)
+def test_the_directory_parser_refuses_and_repeats_nothing(
+    data: bytes, rule: str, leaked: list[str]
+) -> None:
+    with pytest.raises(directory.ParseError) as caught:
+        directory.parse_domain_export(data)
     assert rule in str(caught.value)
     for value in leaked:
         assert value not in str(caught.value)

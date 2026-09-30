@@ -64,6 +64,7 @@
   </header>
 
   <main>
+    <p id="page-error" class="empty" role="alert" hidden></p>
     <section id="signin">
       <div class="page-head"><h2>Sign in</h2></div>
       <form id="signin-form">
@@ -394,6 +395,8 @@
             <option value="google-cloud">Google Cloud project export</option>
             <option value="azure-tenant">Azure and Entra tenant export</option>
             <option value="okta-org">Okta organization export</option>
+            <option value="active-directory">Active Directory domain export</option>
+            <option value="sharphound">SharpHound collection, the zip</option>
             <option value="observed">any provider's table, through a mapping</option>
           </select>
         </label>

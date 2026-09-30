@@ -29,6 +29,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 from urllib.parse import quote
 
 ACCOUNT = "555555555555"
@@ -952,6 +953,256 @@ def okta_org(generation: int) -> str:
     return json.dumps(document, indent=2) + "\n"
 
 
+DOMAIN_SID = "S-1-5-21-1000-2000-3000"
+DOMAIN = "corp.example.test"
+PARTNER_SID = "S-1-5-21-4000-5000-6000"
+
+
+def _ad_sid(rid: int) -> str:
+    return f"{DOMAIN_SID}-{rid}"
+
+
+def _ad_time(when: str | None) -> str | None:
+    return None if when is None else f"{when}T00:00:00Z"
+
+
+def _ad_epoch(when: str | None) -> int:
+    """The collector writes seconds since the epoch, and -1 for never."""
+    if when is None:
+        return -1
+    return int(datetime.fromisoformat(when + "T00:00:00+00:00").timestamp())
+
+
+def _ad_people(generation: int) -> list[dict[str, Any]]:
+    """The accounts at one generation, in the vocabulary both doors
+    share; each door writes them in its own shape."""
+    signed = (datetime(2026, 5, 30, tzinfo=UTC) + timedelta(days=30 * generation)).strftime(
+        "%Y-%m-%d"
+    )
+    return [
+        {"rid": 1100, "sam": "sam.owner", "ou": ["People"], "enabled": True,
+         "rotated": "2026-02-10", "logon": signed, "created": "2020-03-02", "admin": True,
+         "spn": [], "never": False, "desc": "Platform lead"},
+        {"rid": 1101, "sam": "svc-backup", "ou": ["Service Accounts"], "enabled": True,
+         "rotated": "2019-08-14", "logon": signed, "created": "2019-08-14", "admin": False,
+         "spn": ["MSSQLSvc/db.corp.example.test:1433"], "never": True,
+         "desc": "Nightly backup job"},
+        {"rid": 1102, "sam": "legacy.mike", "ou": ["People"], "enabled": True,
+         "rotated": "2024-11-03", "logon": "2025-06-20", "created": "2018-01-09",
+         "admin": True,
+         "spn": [], "never": False, "desc": None},
+        {"rid": 1103, "sam": "nadia.dev", "ou": ["People"], "enabled": True,
+         "rotated": "2026-04-01", "logon": signed, "created": "2023-05-15", "admin": False,
+         "spn": [], "never": False, "desc": None},
+        {"rid": 1104, "sam": "former.employee", "ou": ["People", "Disabled"], "enabled": False,
+         "rotated": "2023-01-20", "logon": "2025-01-31", "created": "2019-06-01",
+         "admin": True,
+         "spn": [], "never": False, "desc": "Left 2025-02"},
+        {"rid": 1105, "sam": "audit.reader", "ou": ["People"], "enabled": True,
+         "rotated": "2026-03-12", "logon": signed, "created": "2024-09-01", "admin": False,
+         "spn": [], "never": False, "desc": None},
+        {"rid": 1106, "sam": "sync.svc", "ou": ["Service Accounts"], "enabled": True,
+         "rotated": "2025-12-01", "logon": signed, "created": "2022-02-14", "admin": False,
+         "spn": [], "never": True, "desc": "Directory synchronization"},
+    ]
+
+
+def _ad_machines(generation: int) -> list[dict[str, Any]]:
+    signed = (datetime(2026, 5, 31, tzinfo=UTC) + timedelta(days=30 * generation)).strftime(
+        "%Y-%m-%d"
+    )
+    return [
+        {"rid": 1300, "sam": "DC01$", "ou": ["Domain Controllers"], "rotated": "2026-05-01",
+         "logon": signed, "created": "2019-06-01", "os": "Windows Server 2022"},
+        {"rid": 1301, "sam": "APP01$", "ou": ["Servers"], "rotated": "2026-04-20",
+         "logon": signed, "created": "2021-10-12", "os": "Windows Server 2019"},
+    ]
+
+
+def _ad_groups(generation: int) -> list[dict[str, Any]]:
+    """The groups at one generation. A former employee leaves the
+    domain administrators after the first month, the help desk group
+    is nested into the account operators from the second, and a
+    developer and a principal from the partner domain arrive in the
+    third."""
+    domain_admins = [1100, 1104] if generation == 0 else [1100]
+    if generation >= 2:
+        domain_admins.append(1103)
+    administrators: list[str] = [_ad_sid(512)]
+    if generation >= 2:
+        administrators.append(f"{PARTNER_SID}-1500")
+    account_operators = [_ad_sid(1200)] if generation >= 1 else []
+    return [
+        {"sid": _ad_sid(512), "sam": "Domain Admins", "ou": [], "container": "CN=Users",
+         "scope": "Global", "members": [_ad_sid(r) for r in domain_admins], "admin": True},
+        {"sid": "S-1-5-32-544", "sam": "Administrators", "ou": [], "container": "CN=Builtin",
+         "scope": "DomainLocal", "members": administrators, "admin": True},
+        {"sid": "S-1-5-32-551", "sam": "Backup Operators", "ou": [], "container": "CN=Builtin",
+         "scope": "DomainLocal", "members": [_ad_sid(1101)], "admin": True},
+        {"sid": "S-1-5-32-548", "sam": "Account Operators", "ou": [], "container": "CN=Builtin",
+         "scope": "DomainLocal", "members": account_operators, "admin": True},
+        {"sid": "S-1-5-32-580", "sam": "Remote Management Users", "ou": [],
+         "container": "CN=Builtin", "scope": "DomainLocal", "members": [_ad_sid(1105)],
+         "admin": False},
+        {"sid": _ad_sid(1200), "sam": "helpdesk", "ou": ["Groups"], "container": None,
+         "scope": "Global", "members": [_ad_sid(1102)], "admin": generation >= 1},
+        {"sid": _ad_sid(1201), "sam": "engineering", "ou": ["Groups"], "container": None,
+         "scope": "Global", "members": [_ad_sid(1103), _ad_sid(1101)], "admin": False},
+    ]
+
+
+def _ad_dn(name: str, ou: list[str], container: str | None = None) -> str:
+    parts = [f"CN={name}"]
+    if container:
+        parts.append(container)
+    parts += [f"OU={unit}" for unit in reversed(ou)]
+    parts += ["DC=corp", "DC=example", "DC=test"]
+    return ",".join(parts)
+
+
+def active_directory_domain(generation: int) -> str:
+    """The domain export as the cmdlets write it (D-083), the identifier
+    as the object PowerShell 7 serializes and every date in ISO 8601."""
+    users = [
+        {"SID": {"Value": _ad_sid(p["rid"])}, "SamAccountName": p["sam"],
+         "DistinguishedName": _ad_dn(p["sam"], p["ou"]), "Enabled": p["enabled"],
+         "PasswordLastSet": _ad_time(p["rotated"]), "LastLogonDate": _ad_time(p["logon"]),
+         "whenCreated": _ad_time(p["created"]), "adminCount": 1 if p["admin"] else None,
+         "ServicePrincipalNames": p["spn"], "PasswordNeverExpires": p["never"],
+         "UserPrincipalName": f"{p['sam']}@{DOMAIN}", "Description": p["desc"]}
+        for p in _ad_people(generation)
+    ]
+    groups = [
+        {"SID": {"Value": g["sid"]}, "SamAccountName": g["sam"],
+         "DistinguishedName": _ad_dn(g["sam"], g["ou"], g["container"]),
+         "GroupScope": g["scope"], "GroupCategory": "Security", "Members": g["members"],
+         "adminCount": 1 if g["admin"] else None}
+        for g in _ad_groups(generation)
+    ]
+    computers = [
+        {"SID": {"Value": _ad_sid(m["rid"])}, "SamAccountName": m["sam"],
+         "DistinguishedName": _ad_dn(m["sam"].rstrip("$"), m["ou"]), "Enabled": True,
+         "PasswordLastSet": _ad_time(m["rotated"]), "LastLogonDate": _ad_time(m["logon"]),
+         "whenCreated": _ad_time(m["created"]), "OperatingSystem": m["os"]}
+        for m in _ad_machines(generation)
+    ]
+    document = {
+        "domain": {"DNSRoot": DOMAIN, "NetBIOSName": "CORP", "DomainSID": {"Value": DOMAIN_SID}},
+        "users": users, "groups": groups, "computers": computers,
+        "trusts": [{"Name": "partner.example.test", "Direction": "Inbound",
+                    "TrustType": "Forest", "ForestTransitive": True}],
+    }
+    return json.dumps(document, indent=2) + "\n"
+
+
+def sharphound_collection(generation: int) -> str:
+    """The same domain as the collector writes it (D-084), joined under
+    one object, with the control rights the cmdlets cannot carry: the
+    help desk group can add members to the domain administrators from
+    the second month, and the synchronization account can replicate
+    the domain throughout."""
+    def meta(kind: str, count: int) -> dict[str, object]:
+        return {"methods": 46067, "type": kind, "count": count, "version": 6}
+
+    def owner_aces() -> list[dict[str, object]]:
+        return [
+            {"PrincipalSID": _ad_sid(512), "PrincipalType": "Group", "RightName": "Owns",
+             "IsInherited": False},
+            # An inherited right flowing down from the container, held by
+            # a group that does not administer: real, and not a grant.
+            {"PrincipalSID": f"{DOMAIN.upper()}-S-1-5-32-548", "PrincipalType": "Group",
+             "RightName": "WriteDacl", "IsInherited": True},
+        ]
+
+    users = []
+    for p in _ad_people(generation):
+        users.append({
+            "ObjectIdentifier": _ad_sid(p["rid"]),
+            "Properties": {
+                "domain": DOMAIN.upper(), "name": f"{p['sam'].upper()}@{DOMAIN.upper()}",
+                "samaccountname": p["sam"], "distinguishedname": _ad_dn(p["sam"], p["ou"]).upper(),
+                "domainsid": DOMAIN_SID, "description": p["desc"], "enabled": p["enabled"],
+                "whencreated": _ad_epoch(p["created"]), "pwdlastset": _ad_epoch(p["rotated"]),
+                "lastlogontimestamp": _ad_epoch(p["logon"]), "admincount": p["admin"],
+                "serviceprincipalnames": p["spn"], "hasspn": bool(p["spn"]),
+                "pwdneverexpires": p["never"], "sensitive": False, "dontreqpreauth": False,
+            },
+            "PrimaryGroupSID": _ad_sid(513), "Aces": owner_aces(), "IsDeleted": False,
+            "IsACLProtected": False,
+        })
+    groups = []
+    for g in _ad_groups(generation):
+        aces = owner_aces()
+        if g["sid"] == _ad_sid(512) and generation >= 1:
+            aces.append({"PrincipalSID": _ad_sid(1200), "PrincipalType": "Group",
+                         "RightName": "AddMember", "IsInherited": False})
+        identifier = g["sid"] if g["sid"].startswith(DOMAIN_SID) else (
+            f"{DOMAIN.upper()}-{g['sid']}"
+        )
+        groups.append({
+            "ObjectIdentifier": identifier,
+            "Properties": {
+                "domain": DOMAIN.upper(), "name": f"{g['sam'].upper()}@{DOMAIN.upper()}",
+                "samaccountname": g["sam"],
+                "distinguishedname": _ad_dn(g["sam"], g["ou"], g["container"]).upper(),
+                "domainsid": DOMAIN_SID, "admincount": g["admin"],
+                "whencreated": _ad_epoch("2019-06-01"),
+            },
+            "Members": [
+                {"ObjectIdentifier": (
+                    f"{DOMAIN.upper()}-{m}" if m.startswith("S-1-5-32-") else m),
+                 "ObjectType": "Group" if (
+                     m.startswith("S-1-5-32-") or m.endswith(("-512", "-1200", "-1201"))
+                 ) else "User"}
+                for m in g["members"]
+            ],
+            "Aces": aces, "IsDeleted": False, "IsACLProtected": False,
+        })
+    computers = [
+        {
+            "ObjectIdentifier": _ad_sid(m["rid"]),
+            "Properties": {
+                "domain": DOMAIN.upper(),
+                "name": f"{m['sam'].rstrip('$').upper()}.{DOMAIN.upper()}",
+                "samaccountname": m["sam"],
+                "distinguishedname": _ad_dn(m["sam"].rstrip("$"), m["ou"]).upper(),
+                "domainsid": DOMAIN_SID, "enabled": True, "whencreated": _ad_epoch(m["created"]),
+                "pwdlastset": _ad_epoch(m["rotated"]),
+                "lastlogontimestamp": _ad_epoch(m["logon"]),
+                "operatingsystem": m["os"], "haslaps": False,
+                "serviceprincipalnames": [f"HOST/{m['sam'].rstrip('$')}"],
+            },
+            "PrimaryGroupSID": _ad_sid(515), "Aces": owner_aces(), "IsDeleted": False,
+            "IsACLProtected": False,
+        }
+        for m in _ad_machines(generation)
+    ]
+    domains = [{
+        "ObjectIdentifier": DOMAIN_SID,
+        "Properties": {"domain": DOMAIN.upper(), "name": DOMAIN.upper(),
+                       "distinguishedname": "DC=CORP,DC=EXAMPLE,DC=TEST",
+                       "domainsid": DOMAIN_SID, "functionallevel": "2016",
+                       "whencreated": _ad_epoch("2019-06-01")},
+        "Trusts": [{"TargetDomainSid": PARTNER_SID, "TargetDomainName": "PARTNER.EXAMPLE.TEST",
+                    "IsTransitive": True, "SidFilteringEnabled": True,
+                    "TrustDirection": "Inbound", "TrustType": "Forest"}],
+        "Aces": owner_aces() + [
+            {"PrincipalSID": _ad_sid(1106), "PrincipalType": "User", "RightName": "GetChanges",
+             "IsInherited": False},
+            {"PrincipalSID": _ad_sid(1106), "PrincipalType": "User",
+             "RightName": "GetChangesAll", "IsInherited": False},
+        ],
+        "IsDeleted": False, "IsACLProtected": False,
+    }]
+    document = {
+        "domains": {"data": domains, "meta": meta("domains", len(domains))},
+        "users": {"data": users, "meta": meta("users", len(users))},
+        "groups": {"data": groups, "meta": meta("groups", len(groups))},
+        "computers": {"data": computers, "meta": meta("computers", len(computers))},
+    }
+    return json.dumps(document, indent=2) + "\n"
+
+
 # One sample table per provider the table door reads and no parser
 # reads yet (1.14a): what a recipe under recipes/ produces from that
 # provider's own export, so a person can import each provider the day
@@ -1265,6 +1516,8 @@ def file_set(scale: int = 0) -> dict[str, str]:
         out[f"{day}-google-cloud.json"] = google_cloud_project(generation)
         out[f"{day}-azure-tenant.json"] = azure_tenant(generation)
         out[f"{day}-okta-org.json"] = okta_org(generation)
+        out[f"{day}-active-directory.json"] = active_directory_domain(generation)
+        out[f"{day}-sharphound.json"] = sharphound_collection(generation)
     out["authorizations-template.csv"] = authorizations_template()
     out["observed-template.csv"] = observed_template()
     for provider in PROVIDER_TABLES:

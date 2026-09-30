@@ -1,47 +1,79 @@
-<svg viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="manifest-identity system context working sketch">
-  <!-- Working sketch under the diagram doctrine. Self-contained: system fonts, no external references. -->
+<svg viewBox="0 0 920 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="manifest-identity system context working sketch">
+  <!-- Working sketch under the diagram doctrine. Self-contained: system fonts, no external references.
+       Redrawn September 29, 2026 for the two records: what the providers say an identity holds and
+       what a person said it may hold, with the difference as the product. -->
   <defs>
     <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
       <polygon points="0 0, 8 3, 0 6" fill="#57606a"/>
     </marker>
   </defs>
 
-  <rect width="880" height="420" fill="#f6f5f2"/>
+  <rect width="920" height="520" fill="#f6f5f2"/>
   <text x="40" y="36" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" letter-spacing="1.5" fill="#57606a">MANIFEST-IDENTITY SYSTEM CONTEXT, WORKING SKETCH</text>
 
-  <!-- inputs -->
-  <rect x="60" y="90" width="170" height="58" rx="6" fill="rgba(87,96,106,0.08)" stroke="#8a939e"/>
-  <text x="145" y="114" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">Snapshot file</text>
-  <text x="145" y="130" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">credential report, export</text>
+  <!-- inputs: what the providers say -->
+  <rect x="40" y="70" width="190" height="72" rx="6" fill="rgba(87,96,106,0.08)" stroke="#8a939e"/>
+  <text x="135" y="94" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">Provider export files</text>
+  <text x="135" y="110" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">AWS, GitHub, Kubernetes, Google Cloud,</text>
+  <text x="135" y="124" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">Azure and Entra, Okta, Active Directory</text>
 
-  <rect x="60" y="250" width="170" height="58" rx="6" fill="rgba(87,96,106,0.08)" stroke="#8a939e"/>
-  <text x="145" y="274" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">Operator</text>
-  <text x="145" y="290" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">browser, three roles</text>
+  <rect x="40" y="160" width="190" height="58" rx="6" fill="rgba(87,96,106,0.08)" stroke="#8a939e"/>
+  <text x="135" y="184" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">Any other provider's table</text>
+  <text x="135" y="200" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">who holds what, through a mapping</text>
+
+  <!-- inputs: what a person says -->
+  <rect x="40" y="260" width="190" height="72" rx="6" fill="rgba(87,96,106,0.08)" stroke="#8a939e"/>
+  <text x="135" y="284" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">The people</text>
+  <text x="135" y="300" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">reviewer, operator, administrator;</text>
+  <text x="135" y="314" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">authorize, own, decide, by browser</text>
+
+  <rect x="40" y="350" width="190" height="58" rx="6" fill="rgba(87,96,106,0.08)" stroke="#8a939e"/>
+  <text x="135" y="374" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">Spreadsheet of approvals</text>
+  <text x="135" y="390" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">an organization's own, through a mapping</text>
 
   <!-- the system, focal -->
-  <rect x="360" y="160" width="200" height="80" rx="6" fill="rgba(176,79,46,0.06)" stroke="#b04f2e"/>
-  <text x="460" y="195" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#24292e">manifest-identity</text>
-  <text x="460" y="213" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">derive, govern, report</text>
+  <rect x="340" y="150" width="240" height="180" rx="6" fill="rgba(176,79,46,0.06)" stroke="#b04f2e"/>
+  <text x="460" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#24292e">manifest-identity</text>
+  <text x="460" y="204" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">the observed record: what each identity holds</text>
+  <text x="460" y="220" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">the authorized record: what a person said it may</text>
+  <text x="460" y="244" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#b04f2e">the delta between them, computed at every read</text>
+  <text x="460" y="268" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">findings, campaigns, alerts as records</text>
+  <text x="460" y="292" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">holds no provider credential, writes nothing back</text>
 
   <!-- stores and outputs -->
-  <rect x="680" y="100" width="150" height="60" rx="6" fill="rgba(36,41,46,0.05)" stroke="#57606a"/>
-  <text x="755" y="126" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">PostgreSQL</text>
-  <text x="755" y="142" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">observations, audit</text>
+  <rect x="700" y="80" width="180" height="60" rx="6" fill="rgba(36,41,46,0.05)" stroke="#57606a"/>
+  <text x="790" y="106" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">PostgreSQL</text>
+  <text x="790" y="122" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">both records, append only; the audit chain</text>
 
-  <rect x="680" y="260" width="150" height="58" rx="6" fill="rgba(36,41,46,0.03)" stroke="rgba(36,41,46,0.35)"/>
-  <text x="755" y="284" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">Exports</text>
-  <text x="755" y="300" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">report, CSV, JSON</text>
+  <rect x="700" y="200" width="180" height="58" rx="6" fill="rgba(36,41,46,0.03)" stroke="rgba(36,41,46,0.35)"/>
+  <text x="790" y="224" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">Reports and exports</text>
+  <text x="790" y="240" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">risk report, CSV, JSON, campaign evidence</text>
 
-  <!-- connectors -->
-  <path d="M230,119 H292 Q300,119 300,127 V172 Q300,180 308,180 H354" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="244" y="111" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">import</text>
+  <rect x="700" y="310" width="180" height="58" rx="6" fill="rgba(36,41,46,0.03)" stroke="rgba(36,41,46,0.35)"/>
+  <text x="790" y="334" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#24292e">Other systems</text>
+  <text x="790" y="350" text-anchor="middle" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="9" fill="#57606a">read API and change feed, alerts</text>
 
-  <path d="M230,279 H292 Q300,279 300,271 V228 Q300,220 308,220 H354" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="238" y="295" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">session token</text>
+  <!-- connectors, left -->
+  <path d="M230,106 H300 Q308,106 308,114 V176 Q308,184 316,184 H334" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="240" y="98" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">import, oldest first</text>
 
-  <path d="M560,180 H640 Q648,180 648,172 V148 Q648,140 656,140 H674" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="584" y="172" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">stores</text>
+  <path d="M230,189 H300 Q308,189 308,197 V204 Q308,212 316,212 H334" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <path d="M560,220 H640 Q648,220 648,228 V281 Q648,289 656,289 H674" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="584" y="240" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">produces</text>
+  <path d="M230,296 H300 Q308,296 308,288 V260 Q308,252 316,252 H334" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="240" y="288" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">session, never a form</text>
+
+  <path d="M230,379 H300 Q308,379 308,371 V296 Q308,288 316,288 H334" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="240" y="371" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">dry run first</text>
+
+  <!-- connectors, right -->
+  <path d="M580,190 H660 Q668,190 668,182 V118 Q668,110 676,110 H694" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="596" y="182" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">stores</text>
+
+  <path d="M580,229 H694" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="596" y="221" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">produces</text>
+
+  <path d="M580,270 H660 Q668,270 668,278 V331 Q668,339 676,339 H694" fill="none" stroke="#57606a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="596" y="262" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">answers, per token</text>
+
+  <text x="40" y="470" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="8" fill="#57606a">nothing here connects to a provider in version one: files come in, records and reports go out, and no provider is ever written to</text>
 </svg>
