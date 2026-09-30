@@ -1,10 +1,10 @@
 {
-  "taken": "2026-09-10",
+  "taken": "2026-09-30",
   "scorecard": {
-    "score": 8.7,
-    "date": "2026-09-10",
+    "score": 8.2,
+    "date": "2026-09-30",
     "version": "v5.5.0",
-    "commit": "4dcea54d45a2144da6b41ebe4b92d9a092224876",
+    "commit": "d4e4220ddf5412cc3019c8d1fd5e7b2b93bd3588",
     "checks": [
       {
         "name": "Binary-Artifacts",
@@ -14,17 +14,17 @@
       },
       {
         "name": "Branch-Protection",
-        "score": 8,
+        "score": 4,
         "reason": "branch protection is not maximal on development and all release branches",
         "details": [
           "Info: 'allow deletion' disabled on branch 'main'",
           "Info: 'force pushes' disabled on branch 'main'",
-          "Warn: 'branch protection settings apply to administrators' is disabled on branch 'main'",
+          "Info: 'branch protection settings apply to administrators' is required to merge on branch 'main'",
           "Info: 'stale review dismissal' is required to merge on branch 'main'",
           "Warn: required approving review count is 1 on branch 'main'",
           "Info: codeowner review is required on branch 'main'",
-          "Info: 'last push approval' is required to merge on branch 'main'",
-          "Info: 'up-to-date branches' is required to merge on branch 'main'",
+          "Warn: 'last push approval' is disabled on branch 'main'",
+          "Warn: 'up-to-date branches' is disabled on branch 'main'",
           "Info: status check found to merge onto on branch 'main'",
           "Info: PRs are required in order to make changes on branch 'main'"
         ]
@@ -32,7 +32,7 @@
       {
         "name": "CI-Tests",
         "score": 10,
-        "reason": "15 out of 15 merged PRs checked by a CI test -- score normalized to 10",
+        "reason": "12 out of 12 merged PRs checked by a CI test -- score normalized to 10",
         "details": []
       },
       {
@@ -44,14 +44,16 @@
       {
         "name": "Code-Review",
         "score": -1,
-        "reason": "Found no human activity in the last 15 changesets",
+        "reason": "Found no human activity in the last 12 changesets",
         "details": []
       },
       {
         "name": "Contributors",
-        "score": 0,
-        "reason": "project has 0 contributing companies or organizations -- score normalized to 0",
-        "details": []
+        "score": 3,
+        "reason": "project has 1 contributing companies or organizations -- score normalized to 3",
+        "details": [
+          "Info: found contributions from: manifest-identity"
+        ]
       },
       {
         "name": "Dangerous-Workflow",
@@ -83,7 +85,7 @@
         "reason": "license file detected",
         "details": [
           "Info: project has a license file: LICENSE:0",
-          "Info: FSF or OSI recognized license: Apache License 2.0: LICENSE:0"
+          "Info: FSF or OSI recognized license: GNU Affero General Public License v3.0: LICENSE:0"
         ]
       },
       {
@@ -107,10 +109,10 @@
         "score": 10,
         "reason": "all dependencies are pinned",
         "details": [
-          "Info:  22 out of  22 GitHub-owned GitHubAction dependencies pinned",
+          "Info:  24 out of  24 GitHub-owned GitHubAction dependencies pinned",
           "Info:   5 out of   5 third-party GitHubAction dependencies pinned",
           "Info:   2 out of   2 containerImage dependencies pinned",
-          "Info:   6 out of   6 pipCommand dependencies pinned"
+          "Info:   9 out of   9 pipCommand dependencies pinned"
         ]
       },
       {
@@ -147,7 +149,8 @@
         "reason": "GitHub workflow tokens follow principle of least privilege",
         "details": [
           "Warn: jobLevel 'contents' permission set to 'write': .github/workflows/attest-release.yml:26",
-          "Info: jobLevel 'contents' permission set to 'read': .github/workflows/ci.yml:174",
+          "Info: jobLevel 'contents' permission set to 'read': .github/workflows/ci.yml:202",
+          "Info: jobLevel 'contents' permission set to 'read': .github/workflows/ci.yml:221",
           "Info: jobLevel 'contents' permission set to 'read': .github/workflows/codeql.yml:21",
           "Warn: jobLevel 'contents' permission set to 'write': .github/workflows/release.yml:25",
           "Info: jobLevel 'contents' permission set to 'read': .github/workflows/scorecard.yml:20",
@@ -162,9 +165,13 @@
       },
       {
         "name": "Vulnerabilities",
-        "score": 10,
-        "reason": "0 existing vulnerabilities detected",
-        "details": []
+        "score": 7,
+        "reason": "3 existing vulnerabilities detected",
+        "details": [
+          "Warn: Project is vulnerable to: https://osv.dev/GHSA-8988-9cw3-xx77",
+          "Warn: Project is vulnerable to: https://osv.dev/GHSA-gh4c-6fx4-qh6g",
+          "Warn: Project is vulnerable to: https://osv.dev/GHSA-vxq7-64xx-v4gw"
+        ]
       }
     ]
   },
@@ -172,7 +179,7 @@
     "level": "passing",
     "percentage": 100,
     "achieved": "2026-09-10",
-    "updated": "2026-09-10",
+    "updated": "2026-09-30",
     "criteria": {
       "sites_https": {
         "status": "Met",
@@ -180,7 +187,7 @@
       },
       "description_good": {
         "status": "Met",
-        "justification": "The README at https://github.com/manifest-identity/manifest-identity#readme opens by stating what the software does (inventory and governance for non-human identities in AWS accounts) and the problem it addresses."
+        "justification": "The README at https://github.com/manifest-identity/manifest-identity#readme opens by stating what the software does, two records about every identity and the difference between them, and the problem it addresses."
       },
       "interact": {
         "status": "Met",
@@ -200,15 +207,15 @@
       },
       "floss_license": {
         "status": "Met",
-        "justification": "Apache-2.0."
+        "justification": "AGPL-3.0."
       },
       "floss_license_osi": {
         "status": "Met",
-        "justification": "Apache-2.0 is OSI approved."
+        "justification": "AGPL-3.0 is OSI approved."
       },
       "documentation_basics": {
         "status": "Met",
-        "justification": "The README (https://github.com/manifest-identity/manifest-identity#readme) documents installation by compose, SQLite, and Kubernetes, use under \"Using it\", and the full API surface under \"How it is put together\"."
+        "justification": "The README (https://github.com/manifest-identity/manifest-identity#readme) documents installation by compose, SQLite, and Kubernetes, use under \"Using it\", and the full API surface under \"How it is put together\"; the same documents render as a site at https://manifest-identity.github.io/manifest-identity/."
       },
       "documentation_interface": {
         "status": "Met",
@@ -296,7 +303,7 @@
       },
       "test": {
         "status": "Met",
-        "justification": "pytest suite of 146 tests, run in continuous integration on every change and on the oldest supported interpreter."
+        "justification": "The pytest suite holds 422 tests in 45 files, run in continuous integration on every change and on the oldest supported interpreter."
       },
       "test_invocation": {
         "status": "Met",
@@ -304,7 +311,7 @@
       },
       "test_most": {
         "status": "Met",
-        "justification": "Coverage 94 percent over a 90 percent floor enforced in CI, plus a mutation check: seven controls removed one at a time, the suite notices each."
+        "justification": "Coverage is 95 percent over a 90 percent floor enforced in CI, and a mutation check removes thirty-four controls one at a time and requires the suite to notice each."
       },
       "test_policy": {
         "status": "Met",
@@ -332,7 +339,7 @@
       },
       "know_secure_design": {
         "status": "Met",
-        "justification": "The README sections \"How a request is protected\" and \"What it defends against\", and the threat model in SECURITY.md."
+        "justification": "The README sections \"How a request is protected\" and \"What it defends against\", and the threat model in THREAT-MODEL.md."
       },
       "know_common_errors": {
         "status": "Met",
@@ -388,7 +395,7 @@
       },
       "static_analysis": {
         "status": "Met",
-        "justification": "CodeQL on every commit and weekly; ruff and mypy strict."
+        "justification": "CodeQL on every commit and weekly, SonarCloud on every pull request and on main, and ruff and mypy strict."
       },
       "static_analysis_common_vulnerabilities": {
         "status": "Met",
@@ -445,7 +452,7 @@
     }
   },
   "doctrine": {
-    "commit": "31a509add7335bc5448306164e369d97d04e5e35",
+    "commit": "a47b0cb94ca5993f686b1698c4e6c0584f8919ea",
     "kind": "application",
     "rules": [
       {
@@ -471,17 +478,17 @@
       {
         "rule": "decisions-record",
         "level": 4,
-        "reason": "54 numbered entries; a test recounts them"
+        "reason": "84 numbered entries; a test recounts them"
       },
       {
         "rule": "commit-subjects",
         "level": 4,
-        "reason": "all 15 recent subjects lead with an identifier; CI walks the messages"
+        "reason": "all 14 recent subjects lead with an identifier; CI walks the messages"
       },
       {
         "rule": "pinned-actions",
         "level": 5,
-        "reason": "all 27 uses pinned by commit; a workflow audit gates it; proven: https://github.com/manifest-identity/manifest-identity/actions/runs/33565119678"
+        "reason": "all 29 uses are pinned by commit; a workflow audit gates it; proven: https://github.com/manifest-identity/manifest-identity/actions/runs/33565119678"
       },
       {
         "rule": "ci-gate",
@@ -516,15 +523,15 @@
     ]
   },
   "codecov": {
-    "updated": "2026-09-10",
-    "coverage": 94.58,
-    "files": 31,
-    "lines": 2144,
-    "hits": 2028
+    "updated": "2026-09-30",
+    "coverage": 95.02,
+    "files": 72,
+    "lines": 7142,
+    "hits": 6787
   },
   "sonarcloud": {
     "status": "OK",
-    "since": "2026-09-10",
+    "since": "2026-09-23",
     "conditions": [
       {
         "metric": "new_reliability_rating",
@@ -548,10 +555,17 @@
         "status": "OK"
       },
       {
+        "metric": "new_coverage",
+        "comparator": "LT",
+        "threshold": "80",
+        "actual": "95.0",
+        "status": "OK"
+      },
+      {
         "metric": "new_duplicated_lines_density",
         "comparator": "GT",
         "threshold": "3",
-        "actual": "0.0",
+        "actual": "0.9",
         "status": "OK"
       },
       {
@@ -563,11 +577,11 @@
       }
     ],
     "measures": {
-      "coverage": "78.0",
-      "bugs": "4",
-      "code_smells": "79",
-      "duplicated_lines_density": "1.0",
-      "ncloc": "5569",
+      "coverage": "95.0",
+      "bugs": "0",
+      "code_smells": "3",
+      "duplicated_lines_density": "1.2",
+      "ncloc": "15501",
       "vulnerabilities": "2",
       "security_hotspots": "0"
     }
