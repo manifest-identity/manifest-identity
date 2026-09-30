@@ -1445,7 +1445,7 @@ what the coding agent got wrong along the way, because that record is
 the point.
 
 The program-level view across every repository is
-[PIPELINES](https://tltaylor1.github.io/control-plane/04-pipelines/) at the program's
+[PIPELINES](https://tltaylor1.github.io/build-doctrine/02-enforcement/#every-repositorys-pipeline) at the program's
 home; what follows is this repository's own.
 
 ### The pipeline, explained
