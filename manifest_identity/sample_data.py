@@ -981,26 +981,28 @@ def _ad_people(generation: int) -> list[dict[str, Any]]:
     )
     return [
         {"rid": 1100, "sam": "sam.owner", "ou": ["People"], "enabled": True,
-         "pwd": "2026-02-10", "logon": signed, "created": "2020-03-02", "admin": True,
+         "password_set": "2026-02-10", "logon": signed, "created": "2020-03-02", "admin": True,
          "spn": [], "never": False, "desc": "Platform lead"},
         {"rid": 1101, "sam": "svc-backup", "ou": ["Service Accounts"], "enabled": True,
-         "pwd": "2019-08-14", "logon": signed, "created": "2019-08-14", "admin": False,
+         "password_set": "2019-08-14", "logon": signed, "created": "2019-08-14", "admin": False,
          "spn": ["MSSQLSvc/db.corp.example.test:1433"], "never": True,
          "desc": "Nightly backup job"},
         {"rid": 1102, "sam": "legacy.mike", "ou": ["People"], "enabled": True,
-         "pwd": "2024-11-03", "logon": "2025-06-20", "created": "2018-01-09", "admin": True,
+         "password_set": "2024-11-03", "logon": "2025-06-20", "created": "2018-01-09",
+         "admin": True,
          "spn": [], "never": False, "desc": None},
         {"rid": 1103, "sam": "nadia.dev", "ou": ["People"], "enabled": True,
-         "pwd": "2026-04-01", "logon": signed, "created": "2023-05-15", "admin": False,
+         "password_set": "2026-04-01", "logon": signed, "created": "2023-05-15", "admin": False,
          "spn": [], "never": False, "desc": None},
         {"rid": 1104, "sam": "former.employee", "ou": ["People", "Disabled"], "enabled": False,
-         "pwd": "2023-01-20", "logon": "2025-01-31", "created": "2019-06-01", "admin": True,
+         "password_set": "2023-01-20", "logon": "2025-01-31", "created": "2019-06-01",
+         "admin": True,
          "spn": [], "never": False, "desc": "Left 2025-02"},
         {"rid": 1105, "sam": "audit.reader", "ou": ["People"], "enabled": True,
-         "pwd": "2026-03-12", "logon": signed, "created": "2024-09-01", "admin": False,
+         "password_set": "2026-03-12", "logon": signed, "created": "2024-09-01", "admin": False,
          "spn": [], "never": False, "desc": None},
         {"rid": 1106, "sam": "sync.svc", "ou": ["Service Accounts"], "enabled": True,
-         "pwd": "2025-12-01", "logon": signed, "created": "2022-02-14", "admin": False,
+         "password_set": "2025-12-01", "logon": signed, "created": "2022-02-14", "admin": False,
          "spn": [], "never": True, "desc": "Directory synchronization"},
     ]
 
@@ -1010,9 +1012,9 @@ def _ad_machines(generation: int) -> list[dict[str, Any]]:
         "%Y-%m-%d"
     )
     return [
-        {"rid": 1300, "sam": "DC01$", "ou": ["Domain Controllers"], "pwd": "2026-05-01",
+        {"rid": 1300, "sam": "DC01$", "ou": ["Domain Controllers"], "password_set": "2026-05-01",
          "logon": signed, "created": "2019-06-01", "os": "Windows Server 2022"},
-        {"rid": 1301, "sam": "APP01$", "ou": ["Servers"], "pwd": "2026-04-20",
+        {"rid": 1301, "sam": "APP01$", "ou": ["Servers"], "password_set": "2026-04-20",
          "logon": signed, "created": "2021-10-12", "os": "Windows Server 2019"},
     ]
 
@@ -1064,7 +1066,7 @@ def active_directory_domain(generation: int) -> str:
     users = [
         {"SID": {"Value": _ad_sid(p["rid"])}, "SamAccountName": p["sam"],
          "DistinguishedName": _ad_dn(p["sam"], p["ou"]), "Enabled": p["enabled"],
-         "PasswordLastSet": _ad_time(p["pwd"]), "LastLogonDate": _ad_time(p["logon"]),
+         "PasswordLastSet": _ad_time(p["password_set"]), "LastLogonDate": _ad_time(p["logon"]),
          "whenCreated": _ad_time(p["created"]), "adminCount": 1 if p["admin"] else None,
          "ServicePrincipalNames": p["spn"], "PasswordNeverExpires": p["never"],
          "UserPrincipalName": f"{p['sam']}@{DOMAIN}", "Description": p["desc"]}
@@ -1080,7 +1082,7 @@ def active_directory_domain(generation: int) -> str:
     computers = [
         {"SID": {"Value": _ad_sid(m["rid"])}, "SamAccountName": m["sam"],
          "DistinguishedName": _ad_dn(m["sam"].rstrip("$"), m["ou"]), "Enabled": True,
-         "PasswordLastSet": _ad_time(m["pwd"]), "LastLogonDate": _ad_time(m["logon"]),
+         "PasswordLastSet": _ad_time(m["password_set"]), "LastLogonDate": _ad_time(m["logon"]),
          "whenCreated": _ad_time(m["created"]), "OperatingSystem": m["os"]}
         for m in _ad_machines(generation)
     ]
@@ -1120,7 +1122,7 @@ def sharphound_collection(generation: int) -> str:
                 "domain": DOMAIN.upper(), "name": f"{p['sam'].upper()}@{DOMAIN.upper()}",
                 "samaccountname": p["sam"], "distinguishedname": _ad_dn(p["sam"], p["ou"]).upper(),
                 "domainsid": DOMAIN_SID, "description": p["desc"], "enabled": p["enabled"],
-                "whencreated": _ad_epoch(p["created"]), "pwdlastset": _ad_epoch(p["pwd"]),
+                "whencreated": _ad_epoch(p["created"]), "pwdlastset": _ad_epoch(p["password_set"]),
                 "lastlogontimestamp": _ad_epoch(p["logon"]), "admincount": p["admin"],
                 "serviceprincipalnames": p["spn"], "hasspn": bool(p["spn"]),
                 "pwdneverexpires": p["never"], "sensitive": False, "dontreqpreauth": False,
@@ -1165,7 +1167,8 @@ def sharphound_collection(generation: int) -> str:
                 "samaccountname": m["sam"],
                 "distinguishedname": _ad_dn(m["sam"].rstrip("$"), m["ou"]).upper(),
                 "domainsid": DOMAIN_SID, "enabled": True, "whencreated": _ad_epoch(m["created"]),
-                "pwdlastset": _ad_epoch(m["pwd"]), "lastlogontimestamp": _ad_epoch(m["logon"]),
+                "pwdlastset": _ad_epoch(m["password_set"]),
+                "lastlogontimestamp": _ad_epoch(m["logon"]),
                 "operatingsystem": m["os"], "haslaps": False,
                 "serviceprincipalnames": [f"HOST/{m['sam'].rstrip('$')}"],
             },
