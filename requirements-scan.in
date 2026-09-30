@@ -1,0 +1,7 @@
+# The scanner tree. Semgrep runs at commit time on the repository's own
+# rules (D-086) and is pinned apart from the development tree because
+# its dependency pins carry advisories the audit refuses; the recorded
+# exceptions in scripts/audit.sh are tied to the pin below.
+-c requirements.txt
+-c requirements-dev.txt
+semgrep==1.178.0

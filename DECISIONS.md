@@ -2505,3 +2505,53 @@ file per estate, for the drift reason above.
 The cost is a demo that takes a few seconds longer and a governance
 write that moved from the route into its module so two callers share
 it, which is the shape the other writes already had.
+
+## D-086: What a scanner teaches after a push becomes a rule before the commit, and the pipeline's analysis runs before the push
+
+In one day three findings reached the pull request page that the
+commit should have refused: a date under a key named like a
+credential, twice, and a trust's kind decided from a hostname
+substring, the same rule that had refused the cluster detection a
+week before. A fourth, nineteen loaders the page never awaited, had
+passed every gate for months until a scanner's rule set grew. None
+of these needed a new kind of scanner. They needed the scanners that
+already knew the rule to run before the push, and the lessons they
+taught to stop being paragraphs.
+
+Four things, each vetted under the doctrine, with the records in
+build-doctrine's VETTING.md:
+
+- The pipeline's CodeQL queries run locally before a push, through
+  `scripts/scan.sh`, from bundles pinned by version and checksum and
+  fetched once. The pipeline gains the page script as a third language.
+- Semgrep runs at commit time with rules this repository writes for
+  itself under `.semgrep/`, one per lesson: no decision from a
+  hostname substring, no credential-shaped key holding a literal, no
+  page loader started and not awaited. A test proves each rule fires
+  on the shape that taught it and passes on the repository.
+- The page gets its one lint rule, typescript-eslint's rule against
+  unawaited promises, at commit time and in a pipeline job that
+  installs from the lockfile with integrity hashes.
+- Ruff's security rules were already on and never fire on a
+  dictionary key, which is why the credential-shaped key passed; the
+  Semgrep rule covers what ruff does not, rather than a fourth tool.
+
+Rejected: waiting for the pipeline, which is what produced the day;
+disabling the scanner rules that fired, which would have made the
+badge green and the code the same; and a fourth tool for the
+dictionary-key case when a rule in the second covers it.
+
+The cost is a slower push, a few minutes for the local analysis,
+which is the point: the minutes move from after the push to before
+it, and the pull request page stops being where the author learns.
+
+Added the same day: Semgrep's newest release requires a PyJWT line
+that the audit refuses on twelve advisories, all in token
+verification paths Semgrep never runs here. Semgrep sits in its own
+hashed tree, `requirements-scan.txt`, so the development tree stays
+without exceptions, and the twelve are recorded in `scripts/audit.sh`
+tied to the Semgrep pin they were read against: a bump of the pin
+fails the audit until the list is re-read against the new release.
+Rejected: the exceptions on the development tree, which the tests
+install; and holding the scanners until Semgrep ships a fix, which
+would have left the lessons as paragraphs for as long as that took.

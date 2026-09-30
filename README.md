@@ -102,10 +102,10 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **423 tests in 45 files**, coverage 95 over a 90 percent floor |
+| Tests | **425 tests in 46 files**, coverage 95 over a 90 percent floor |
 | Mutation | 34 controls removed by the check, 34 noticed by the suite |
 | Surface | **70 routes**, every one in the role matrix the tests walk |
-| Record | **85 recorded decisions**, each with its rejected alternatives |
+| Record | **86 recorded decisions**, each with its rejected alternatives |
 | Gates | 11 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -1303,7 +1303,11 @@ holds the reviews and the alerts.
 | `requirements*.in` / `*.txt` | Chosen packages, and the hash-pinned trees that install |
 | `Dockerfile` / `docker-compose.yml` | Digest-pinned base, non-root user, the composed stack |
 | `.github/workflows/` | The pipeline: tests, types, scanners, the container jobs, and the software bill of materials each run delivers |
-| `.pre-commit-config.yaml` | Secret scan, writing rules, lint, types, and the truth gates at commit time |
+| `.pre-commit-config.yaml` | Secret scan, writing rules, lint, types, the repository's own scanner rules, the page lint, and the truth gates at commit time; CodeQL before the push |
+| `.semgrep/` | The repository's own scanner rules, each one a lesson a scanner taught after a push (D-086) |
+| `scripts/scan.sh` | The pipeline's CodeQL queries run locally before the push, bundles pinned by checksum |
+| `scripts/audit.sh` | Every pinned tree audited against known vulnerabilities; the scanner tree's exceptions recorded here, tied to the Semgrep pin |
+| `eslint.config.mjs` / `package.json` | The page's one lint rule and its pinned tools |
 | `.env.example` | Documents required configuration without containing it |
 
 -------------------------------------------------------------------------------
@@ -1509,7 +1513,17 @@ before any advisory exists (D-052). Every tool the pipeline downloads is fetched
 canonical release and checksum-verified before it runs, so the
 pipeline's own supply chain meets the same bar as the application's.
 
-**codeql** runs deep static analysis over the Python and the workflow
+**page** runs the page's one lint rule, the one a scanner's rule set
+change turned main red on after months of green: a promise nobody
+awaits. typescript-eslint reads the plain script through the
+TypeScript checker, and the tools install from the lockfile with
+integrity hashes and no scripts run. The same rule runs at commit
+time, and three more rules of this repository's own, written from
+the lessons scanners taught after a push, run with the lint at commit
+time and in the application job (D-086); the pipeline's CodeQL
+queries also run locally before a push through `scripts/scan.sh`.
+
+**codeql** runs deep static analysis over the Python, the page script, and the workflow
 files, on every pull request, on main, and weekly; its findings land
 in the repository's code scanning view.
 
@@ -1598,6 +1612,7 @@ does not name.
 
 | Action | Where it runs | What it does |
 |---|---|---|
+| `actions/setup-node` | page | Installs the pinned Node the page lint runs on; the lint itself installs from the lockfile with integrity hashes |
 | `actions/checkout` | every job of six workflows; the fuzz workflow's actions fetch for themselves | Fetches the repository; credentials are not persisted, so no token outlives the step |
 | `actions/upload-artifact` | checks, the application job | Carries the software bill of materials out of the run |
 | `github/codeql-action/init` | codeql | Sets up the analysis engine for the Python and the workflow files |
@@ -1642,7 +1657,11 @@ instead of running.
 
 The development tree (pytest, Hypothesis, ruff, mypy, pip-audit,
 pytest-cov, pip-tools) is verified the same way and isolated in its
-own hash-pinned file.
+own hash-pinned file. Semgrep sits in a third tree of its own,
+because its dependency pins carry advisories the audit refuses; the
+exceptions are recorded in `scripts/audit.sh`, tied to the Semgrep
+pin they were read against, so a bump of the pin fails the audit
+until the list is re-read (D-086).
 
 ### How the agent is governed
 

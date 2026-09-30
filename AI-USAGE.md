@@ -365,3 +365,18 @@ and only an outside check settles it.
   drove the changed page before it went out. The lesson recorded: a
   badge on the public README is checked after every merge, not
   noticed by the reader.
+
+- **Three findings reached the pull request page in one day that the
+  commit should have refused, and one was a repeat.** A date under a
+  key named "pwd" and then "password_set" read as a credential to
+  SonarCloud twice; a trust's kind decided from a hostname substring
+  was refused by CodeQL under the same rule that had refused the
+  cluster detection a week before; and nineteen page loaders nobody
+  awaited had passed every gate for months until the scanner's rule
+  set grew. The agent had the cluster lesson written down and
+  repeated it. The reading is that a lesson recorded as prose does
+  not stop the next occurrence, and a rule the commit runs does. The
+  fix is D-086: the pipeline's CodeQL queries run before the push,
+  Semgrep runs at commit time with a rule per lesson, and the page
+  gets its one lint rule. The maintainer's words: "I wonder what
+  other scans I can get to check you. Apparently you need them."

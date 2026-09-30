@@ -1,0 +1,56 @@
+# The lessons this repository's scanners taught after a push, written
+# as rules that run before the commit (D-086). Each rule names the
+# incident that produced it. Run: python -m semgrep --config .semgrep
+rules:
+  - id: no-decision-from-a-hostname-substring
+    message: >-
+      A hostname fragment is not evidence of what a string names; CodeQL
+      refuses this as incomplete URL sanitization, and it refused it twice
+      here (PR 143, PR 161). Carry the kind as data or match a structural
+      key instead.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $S.endswith("$HOST")
+          - pattern: $S.startswith("$HOST")
+          - pattern: '"$HOST" in $S'
+          - pattern: 'b"$HOST" in $S'
+      - metavariable-regex:
+          metavariable: $HOST
+          regex: '^[A-Za-z0-9.-]+\.(com|io|net|org|dev|test|local)(/.*)?$'
+  - id: no-credential-shaped-key-with-a-literal
+    message: >-
+      A key named like a credential holding a string literal reads as a
+      hard-coded credential to SonarCloud whatever the value is; a date
+      under "pwd" and then under "password_set" cost two pushes (PR 152).
+      Name the key for what the value is.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: '{..., "$KEY": "...", ...}'
+          - pattern: '$KEY = "..."'
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: '(?i)^"?.*(password|passwd|pwd|passphrase).*"?$'
+    paths:
+      exclude:
+        - tests/
+  - id: no-unawaited-page-loader
+    message: >-
+      A loader started from a click and not awaited has nowhere to report
+      a failure but the console; SonarCloud turned main red on nineteen of
+      these (PR 152). Await it, or run it through run(), which puts the
+      failure on the page.
+    languages: [javascript]
+    severity: ERROR
+    patterns:
+      - pattern: $LOADER(...);
+      - metavariable-regex:
+          metavariable: $LOADER
+          regex: '^(load|reload|refresh)[A-Z][A-Za-z]*$'
+      - pattern-not: await $LOADER(...);
+      - pattern-not: run($LOADER(...));
+      - pattern-not: void $LOADER(...);
+      - pattern-not: return $LOADER(...);
