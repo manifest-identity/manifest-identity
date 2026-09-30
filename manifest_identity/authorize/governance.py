@@ -21,6 +21,8 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.core import audit
+from manifest_identity.core.models import User
 from manifest_identity.models import GovernanceRecord, utcnow
 from manifest_identity.observe.findings import Finding
 
@@ -95,6 +97,47 @@ def active_owners_by_target(
     for row in rows:
         out[row.target_id] = row
     return out
+
+
+def set_record(
+    db: Session,
+    *,
+    target_type: str,
+    target_id: int,
+    kind: str,
+    value: str,
+    owner_type: str | None,
+    actor: User,
+) -> GovernanceRecord:
+    """Write one governance record, closing the active one of a
+    single-answer kind, with its audit row, and commit. The route calls
+    this after its scope check; the demo calls it as the operator it
+    made, so both write the same rows."""
+    if kind in SINGLE_ACTIVE_KINDS:
+        supersede(
+            db, target_type=target_type, target_id=target_id, kind=kind,
+            actor_username=actor.username,
+        )
+    record = GovernanceRecord(
+        target_type=target_type,
+        target_id=target_id,
+        kind=kind,
+        value=value,
+        owner_type=owner_type,
+        actor_user_id=actor.id,
+        actor_username=actor.username,
+    )
+    db.add(record)
+    audit.record(
+        db,
+        actor_user_id=actor.id,
+        actor_username=actor.username,
+        action="governance_set",
+        target=f"{target_type}:{target_id}",
+        detail=f"{kind}: {value}" + (f" ({owner_type})" if owner_type else ""),
+    )
+    db.commit()
+    return record
 
 
 def supersede(

@@ -2461,3 +2461,47 @@ where a person has been rather than what they hold.
 The cost is that a domain imported through both doors alternately
 reads from whichever import is newest, so an estate should choose one
 door per domain and keep to it, which the documentation states.
+
+## D-085: The demo writes the second record, derived from the first, through the doors
+
+Every demonstration since the delta arrived showed an estate on day
+one: every held grant unauthorized, every other class of difference
+at zero, and a review campaign that recommended the same thing for
+everyone. That is the shape of an estate nobody has worked on, and
+the product exists for the day after.
+
+So the demo now writes the authorized record the way an administrator
+would. It creates an operator, the named person the record is
+attributed to, with a password nobody is given, because the account
+is an author and not a sign-in. It takes the observed grants export,
+the file shaped for the import (1.4), fills the owner, the
+justification, the reference, the control, and the window for about
+four fifths of what is held, plants the expired cases on the legacy
+accounts and two rows for access nobody holds any more, and imports
+the result through the file door with the dry run first. It authorizes
+one grant by hand at the June version of a definition the July file
+changed, three trusts and not the wildcard one, four custom
+definitions with one at its older version, and then owners, purposes,
+a flag, and an attestation through the governance function the route
+calls. Every class of difference shows at least once, and a test holds
+that.
+
+The rows are derived at run time rather than shipped as a file,
+because an authorization is keyed to the exact path the observed side
+derived, and a file written by hand against a generated estate drifts
+the first time the estate does. The shipped template stays as the
+hand-try file for the door.
+
+Every write goes through the functions the routes call, so it is
+attributed and audited as it would be in use, and every step converges:
+a second run finds each record present and writes nothing, which the
+demo test holds.
+
+Rejected: direct writes to the tables from the demo, which would prove
+nothing about the doors; authorizing everything held, which hides the
+day-one case the product is bought for; and a committed authorization
+file per estate, for the drift reason above.
+
+The cost is a demo that takes a few seconds longer and a governance
+write that moved from the route into its module so two callers share
+it, which is the shape the other writes already had.
