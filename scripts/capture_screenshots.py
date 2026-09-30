@@ -22,7 +22,9 @@ def main() -> int:
     base, user, password, outdir = sys.argv[1:5]
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1280, "height": 860})
+        # Wide enough for the split view, so the detail capture shows
+        # the identity beside the list it came from.
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
         page.goto(base)
         page.fill('#signin-form input[name="username"]', user)
         page.fill('#signin-form input[name="password"]', password)

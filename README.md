@@ -73,7 +73,7 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **405 tests in 44 files**, coverage 94 over a 90 percent floor |
+| Tests | **406 tests in 44 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **68 routes**, every one in the role matrix the tests walk |
 | Record | **82 recorded decisions**, each with its rejected alternatives |
@@ -83,7 +83,7 @@ The commands behind every figure are in
 [The numbers, proven](#the-numbers-proven); a figure that drifts from
 its count fails the build.
 
-![The inventory: twenty identities, their findings counted by tier, filters and exports above the table](docs/screenshots/inventory.png)
+![The inventory: sixty-seven identities across six estates, their findings counted by tier, the views in a sidebar and the exports in the page head](docs/screenshots/inventory.png)
 
 **Quick start**, with Docker as the only requirement:
 
@@ -395,9 +395,9 @@ The pages, from a running instance with the sample account imported
 (captured by [scripts/capture_screenshots.py](scripts/capture_screenshots.py),
 so these images are reproducible rather than asserted):
 
-![An identity's detail: the derived facts, one critical finding explaining itself, and the governance forms](docs/screenshots/identity-detail.png)
+![An identity's detail open beside the list: the derived facts, what it holds now and through which group, and the authorization form](docs/screenshots/identity-detail.png)
 
-![A review campaign open over the whole inventory, twenty one items awaiting decisions](docs/screenshots/campaigns.png)
+![A review campaign open over the whole inventory, eighty-two items awaiting decisions](docs/screenshots/campaigns.png)
 
 ![The risk report: identities ranked by the engine, every finding naming its reason](docs/screenshots/report.png)
 
@@ -1015,7 +1015,7 @@ GET /api/v1/delta
 GET /api/v1/changes
 ```
 
-`GET /identities` is paged, because the sample account's nineteen
+`GET /identities` is paged, because the sample estates' sixty-seven
 rows say nothing about an account with thousands: it takes `q` (a
 name substring), `type`, and `tier` as filters, applied on the server
 rather than in the browser, plus `sort` and `direction` over a named
@@ -1351,8 +1351,8 @@ attests those bytes, and attaches the bundle beside them. The
 provenance says what it is, an attestation of the published files
 dated the day it ran, not a claim about the original build.
 
-**fuzz** runs ClusterFuzzLite against the two parsers that read files
-from other systems, on every pull request touching them and weekly.
+**fuzz** runs ClusterFuzzLite against the two AWS parsers, the first
+that read files from other systems, on every pull request touching them and weekly.
 The harnesses under `fuzz/` swallow the named refusal each parser
 promises for bad input and let anything else escape, so a crash it
 finds is an input that reached an exception nobody wrote.
@@ -1653,24 +1653,53 @@ load-bearing ones:
 sits under the measured figure to catch erosion without inviting tests
 written to move a number.
 
-**Seven mutations, seven kills.** The mutation check breaks one
-control at a time and requires the tests that claim that control to
-fail:
+**Thirty-two mutations, thirty-two kills.** The mutation check breaks
+one control at a time and requires the tests that claim that control
+to fail. The table is generated from the check's own list by
+`scripts/check_mutation.py --table`, and a test fails the build when
+the two differ, so the count here is the count the check runs:
 
-| Mutation | Result |
+```mutations
+| Mutation | Killed by |
 |---|---|
-| Authorization check removed | killed by the matrix tests |
-| Audit rows silently dropped | killed by the governance tests |
-| Token hashing broken to a constant | killed, by a test this check forced into existence |
-| Rate limiter always allows | killed by the limiter tests |
-| Formula escaping removed from the CSV exit | killed by the report tests |
-| Assigned owners no longer answer the unowned finding | killed by the governance tests |
-| Campaigns close with undecided items | killed by the campaign tests |
+| Assumable access is reported as if it were held | the paths, delta tests |
+| The doors an identity may cross are not reported | the delta tests |
+| The actions a changed definition gained go unnamed | the role_definitions tests |
+| A custom definition nobody authorized goes unreported | the role_definitions tests |
+| A delta-driven campaign ignores the delta | the campaigns tests |
+| A failed delivery is recorded as delivered | the alerts tests |
+| A revoked integration token still reads | the api tests |
+| The source check accepts a mismatched file | the generic_import tests |
+| Authorization check removed | the matrix tests |
+| The scope check answers yes for every node | the scope tests |
+| The organization's required fields stop being enforced | the authorizations tests |
+| An expired authorization still reads as live | the authorizations tests |
+| A file import stops naming the mapping that read it | the csv_import tests |
+| A date is guessed when the mapping declares no format | the csv_import tests |
+| The delta stops noticing access nobody authorized | the delta tests |
+| An expired authorization still covers the access it granted | the delta tests |
+| Audit rows silently dropped | the governance tests |
+| Session tokens no longer hashed uniquely | the auth tests |
+| Rate limiter always allows | the ratelimit tests |
+| Formula escaping removed from the CSV exit | the reports tests |
+| Assigned owners no longer answer the unowned finding | the governance tests |
+| Campaigns close with undecided items | the campaigns tests |
+| A capability document that administers reads as nothing | the github_import tests |
+| A child team's members are not the parent's members | the github_import tests |
+| The verbs that hand out roles do not change access | the kubernetes_import tests |
+| A namespace binding is recorded at the cluster | the kubernetes_import tests |
+| A provider-managed key is recorded as a credential | the google_cloud_import tests |
+| A permission that sets policy does not change access | the google_cloud_import tests |
+| An eligibility is recorded as standing access | the azure_import tests |
+| A guest is recorded as a member of the directory | the azure_import tests |
+| A federated user is given an Okta password | the okta_import tests |
+| An inactive role assignment is recorded as held | the okta_import tests |
+```
 
-On its first run the third mutation survived: every test presented a
-real token or none, so a constant hash matched any fabricated token
-and nothing noticed. The missing test exists now, which is the check
-doing exactly what it is for.
+On its first run the token-hashing mutation survived: every test
+presented a real token or none, so a constant hash matched any
+fabricated token and nothing noticed. The missing test exists now,
+which is the check doing exactly what it is for.
 
 The decisions, migrations, and required checks the opening table counts. Every
 merge to main passes secret scanning, writing rules and status-truth
