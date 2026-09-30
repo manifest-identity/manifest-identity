@@ -20,6 +20,7 @@ from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, ThrottledWrite, require_roles, require_scope
 from manifest_identity.core.models import Provider, ScopeNode
 from manifest_identity.observe import (
+    active_directory_importer,
     azure_importer,
     generic_import,
     github_importer,
@@ -30,6 +31,7 @@ from manifest_identity.observe import (
 from manifest_identity.observe import mapping as tabular
 from manifest_identity.observe.estate import root_node_id
 from manifest_identity.observe.importer import (
+    SHAPE_ACTIVE_DIRECTORY,
     SHAPE_AUTHORIZATION,
     SHAPE_AZURE,
     SHAPE_CREDENTIAL,
@@ -37,6 +39,7 @@ from manifest_identity.observe.importer import (
     SHAPE_GOOGLE,
     SHAPE_KUBERNETES,
     SHAPE_OKTA,
+    SHAPE_SHARPHOUND,
     SHAPE_TABLE,
     CaptureTimeInvalid,
     DuplicateSnapshot,
@@ -46,6 +49,12 @@ from manifest_identity.observe.importer import (
     import_credential_report,
 )
 from manifest_identity.observe.models import Import, ImportMapping
+from manifest_identity.observe.providers.active_directory import (
+    directory_export as directory_export,
+)
+from manifest_identity.observe.providers.active_directory import (
+    sharphound_collection as sharphound,
+)
 from manifest_identity.observe.providers.aws import authorization_details as authz
 from manifest_identity.observe.providers.aws.credential_report import (
     MAX_FILE_BYTES,
@@ -101,6 +110,8 @@ SHAPE_NAMES = {
     SHAPE_GOOGLE: "a Google Cloud project export",
     SHAPE_AZURE: "an Azure and Entra tenant export",
     SHAPE_OKTA: "an Okta organization export",
+    SHAPE_ACTIVE_DIRECTORY: "an Active Directory domain export",
+    SHAPE_SHARPHOUND: "a SharpHound collection",
     SHAPE_TABLE: "a table for a mapping",
 }
 
@@ -460,6 +471,54 @@ def import_okta(
         node_id=lambda export: root_node_id(db, Provider.okta, "organization", export.id),
         run=lambda export, when: okta_importer.import_org_export(
             db, export=export, captured_at=when, source_filename=file.filename,
+            actor_user_id=auth.user.id, actor_username=auth.user.username,
+        ),
+    )
+
+
+@router.post("/active-directory", status_code=201)
+def import_active_directory(
+    file: UploadFile,
+    captured_at: Annotated[datetime, Form()],
+    db: Annotated[Session, Depends(get_session)],
+    auth: Annotated[AuthContext, require_roles("POST /imports/active-directory")],
+    _budget: ThrottledWrite,
+) -> ImportResponse:
+    """The seventh provider's first door (D-083): the domain export
+    assembled from the directory module's own cmdlets."""
+    return _document_import(
+        file=file, captured_at=captured_at, db=db, auth=auth,
+        key="POST /imports/active-directory",
+        shape=SHAPE_ACTIVE_DIRECTORY, max_bytes=directory_export.MAX_FILE_BYTES,
+        parse=directory_export.parse_domain_export, error=directory_export.ParseError,
+        node_id=lambda export: root_node_id(db, Provider.active_directory, "domain", export.sid),
+        run=lambda export, when: active_directory_importer.import_domain(
+            db, domain=export, source_kind=active_directory_importer.SOURCE_DOMAIN,
+            captured_at=when, source_filename=file.filename,
+            actor_user_id=auth.user.id, actor_username=auth.user.username,
+        ),
+    )
+
+
+@router.post("/sharphound", status_code=201)
+def import_sharphound(
+    file: UploadFile,
+    captured_at: Annotated[datetime, Form()],
+    db: Annotated[Session, Depends(get_session)],
+    auth: Annotated[AuthContext, require_roles("POST /imports/sharphound")],
+    _budget: ThrottledWrite,
+) -> ImportResponse:
+    """The seventh provider's second door (D-084): the collector's zip,
+    which carries the control rights the cmdlets do not."""
+    return _document_import(
+        file=file, captured_at=captured_at, db=db, auth=auth,
+        key="POST /imports/sharphound",
+        shape=SHAPE_SHARPHOUND, max_bytes=directory_export.MAX_FILE_BYTES,
+        parse=sharphound.parse_collection, error=directory_export.ParseError,
+        node_id=lambda export: root_node_id(db, Provider.active_directory, "domain", export.sid),
+        run=lambda export, when: active_directory_importer.import_domain(
+            db, domain=export, source_kind=active_directory_importer.SOURCE_SHARPHOUND,
+            captured_at=when, source_filename=file.filename,
             actor_user_id=auth.user.id, actor_username=auth.user.username,
         ),
     )

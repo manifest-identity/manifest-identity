@@ -9,8 +9,9 @@
 # The identity is the security identifier, which the directory never
 # reuses, and the kind is a person unless the account is disabled for
 # interactive sign-in, which is the closest the directory comes to
-# saying "service". Password age and last logon are not in this table;
-# a native parser would carry them.
+# saying "service". Password age, last logon, service principal names,
+# nesting, and control rights are not in this table; the native doors
+# carry them (D-083, D-084), and this recipe remains for the table door.
 param(
     [Parameter(Mandatory = $true)] [string] $Domain,
     [Parameter(Mandatory = $true)] [string[]] $Groups

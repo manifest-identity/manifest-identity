@@ -29,6 +29,11 @@ from manifest_identity.core.config import get_settings
 from manifest_identity.core.db import get_engine
 from manifest_identity.decide.routes_campaigns import build_campaign
 from manifest_identity.models import Campaign, CampaignItem, Identity, User
+from manifest_identity.observe.active_directory_importer import (
+    SOURCE_DOMAIN,
+    SOURCE_SHARPHOUND,
+    import_domain,
+)
 from manifest_identity.observe.azure_importer import import_tenant_export
 from manifest_identity.observe.github_importer import import_github_organization
 from manifest_identity.observe.google_cloud_importer import import_project_export
@@ -39,6 +44,12 @@ from manifest_identity.observe.importer import (
 )
 from manifest_identity.observe.kubernetes_importer import import_rbac_dump
 from manifest_identity.observe.okta_importer import import_org_export
+from manifest_identity.observe.providers.active_directory.directory_export import (
+    parse_domain_export,
+)
+from manifest_identity.observe.providers.active_directory.sharphound_collection import (
+    parse_collection,
+)
 from manifest_identity.observe.providers.aws.authorization_details import (
     parse_authorization_details,
 )
@@ -100,6 +111,7 @@ def main() -> int:
             for kind in (
                 "credential-report", "authorization-details", "github-organization",
                 "kubernetes-rbac", "google-cloud", "azure-tenant", "okta-org",
+                "active-directory", "sharphound",
             ):
                 suffix = "csv" if kind == "credential-report" else "json"
                 name = f"{day}-{kind}.{suffix}"
@@ -137,6 +149,26 @@ def main() -> int:
                         import_tenant_export(
                             db,
                             export=parse_tenant_export(data),
+                            captured_at=captured,
+                            source_filename=name,
+                            actor_user_id=admin.id,
+                            actor_username=admin.username,
+                        )
+                    elif kind == "active-directory":
+                        import_domain(
+                            db,
+                            domain=parse_domain_export(data),
+                            source_kind=SOURCE_DOMAIN,
+                            captured_at=captured,
+                            source_filename=name,
+                            actor_user_id=admin.id,
+                            actor_username=admin.username,
+                        )
+                    elif kind == "sharphound":
+                        import_domain(
+                            db,
+                            domain=parse_collection(data),
+                            source_kind=SOURCE_SHARPHOUND,
                             captured_at=captured,
                             source_filename=name,
                             actor_user_id=admin.id,

@@ -1,0 +1,252 @@
+{
+  "domain": {
+    "DNSRoot": "corp.example.test",
+    "NetBIOSName": "CORP",
+    "DomainSID": {
+      "Value": "S-1-5-21-1000-2000-3000"
+    }
+  },
+  "users": [
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1100"
+      },
+      "SamAccountName": "sam.owner",
+      "DistinguishedName": "CN=sam.owner,OU=People,DC=corp,DC=example,DC=test",
+      "Enabled": true,
+      "PasswordLastSet": "2026-02-10T00:00:00Z",
+      "LastLogonDate": "2026-05-30T00:00:00Z",
+      "whenCreated": "2020-03-02T00:00:00Z",
+      "adminCount": 1,
+      "ServicePrincipalNames": [],
+      "PasswordNeverExpires": false,
+      "UserPrincipalName": "sam.owner@corp.example.test",
+      "Description": "Platform lead"
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1101"
+      },
+      "SamAccountName": "svc-backup",
+      "DistinguishedName": "CN=svc-backup,OU=Service Accounts,DC=corp,DC=example,DC=test",
+      "Enabled": true,
+      "PasswordLastSet": "2019-08-14T00:00:00Z",
+      "LastLogonDate": "2026-05-30T00:00:00Z",
+      "whenCreated": "2019-08-14T00:00:00Z",
+      "adminCount": null,
+      "ServicePrincipalNames": [
+        "MSSQLSvc/db.corp.example.test:1433"
+      ],
+      "PasswordNeverExpires": true,
+      "UserPrincipalName": "svc-backup@corp.example.test",
+      "Description": "Nightly backup job"
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1102"
+      },
+      "SamAccountName": "legacy.mike",
+      "DistinguishedName": "CN=legacy.mike,OU=People,DC=corp,DC=example,DC=test",
+      "Enabled": true,
+      "PasswordLastSet": "2024-11-03T00:00:00Z",
+      "LastLogonDate": "2025-06-20T00:00:00Z",
+      "whenCreated": "2018-01-09T00:00:00Z",
+      "adminCount": 1,
+      "ServicePrincipalNames": [],
+      "PasswordNeverExpires": false,
+      "UserPrincipalName": "legacy.mike@corp.example.test",
+      "Description": null
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1103"
+      },
+      "SamAccountName": "nadia.dev",
+      "DistinguishedName": "CN=nadia.dev,OU=People,DC=corp,DC=example,DC=test",
+      "Enabled": true,
+      "PasswordLastSet": "2026-04-01T00:00:00Z",
+      "LastLogonDate": "2026-05-30T00:00:00Z",
+      "whenCreated": "2023-05-15T00:00:00Z",
+      "adminCount": null,
+      "ServicePrincipalNames": [],
+      "PasswordNeverExpires": false,
+      "UserPrincipalName": "nadia.dev@corp.example.test",
+      "Description": null
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1104"
+      },
+      "SamAccountName": "former.employee",
+      "DistinguishedName": "CN=former.employee,OU=Disabled,OU=People,DC=corp,DC=example,DC=test",
+      "Enabled": false,
+      "PasswordLastSet": "2023-01-20T00:00:00Z",
+      "LastLogonDate": "2025-01-31T00:00:00Z",
+      "whenCreated": "2019-06-01T00:00:00Z",
+      "adminCount": 1,
+      "ServicePrincipalNames": [],
+      "PasswordNeverExpires": false,
+      "UserPrincipalName": "former.employee@corp.example.test",
+      "Description": "Left 2025-02"
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1105"
+      },
+      "SamAccountName": "audit.reader",
+      "DistinguishedName": "CN=audit.reader,OU=People,DC=corp,DC=example,DC=test",
+      "Enabled": true,
+      "PasswordLastSet": "2026-03-12T00:00:00Z",
+      "LastLogonDate": "2026-05-30T00:00:00Z",
+      "whenCreated": "2024-09-01T00:00:00Z",
+      "adminCount": null,
+      "ServicePrincipalNames": [],
+      "PasswordNeverExpires": false,
+      "UserPrincipalName": "audit.reader@corp.example.test",
+      "Description": null
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1106"
+      },
+      "SamAccountName": "sync.svc",
+      "DistinguishedName": "CN=sync.svc,OU=Service Accounts,DC=corp,DC=example,DC=test",
+      "Enabled": true,
+      "PasswordLastSet": "2025-12-01T00:00:00Z",
+      "LastLogonDate": "2026-05-30T00:00:00Z",
+      "whenCreated": "2022-02-14T00:00:00Z",
+      "adminCount": null,
+      "ServicePrincipalNames": [],
+      "PasswordNeverExpires": true,
+      "UserPrincipalName": "sync.svc@corp.example.test",
+      "Description": "Directory synchronization"
+    }
+  ],
+  "groups": [
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-512"
+      },
+      "SamAccountName": "Domain Admins",
+      "DistinguishedName": "CN=Domain Admins,CN=Users,DC=corp,DC=example,DC=test",
+      "GroupScope": "Global",
+      "GroupCategory": "Security",
+      "Members": [
+        "S-1-5-21-1000-2000-3000-1100",
+        "S-1-5-21-1000-2000-3000-1104"
+      ],
+      "adminCount": 1
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-32-544"
+      },
+      "SamAccountName": "Administrators",
+      "DistinguishedName": "CN=Administrators,CN=Builtin,DC=corp,DC=example,DC=test",
+      "GroupScope": "DomainLocal",
+      "GroupCategory": "Security",
+      "Members": [
+        "S-1-5-21-1000-2000-3000-512"
+      ],
+      "adminCount": 1
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-32-551"
+      },
+      "SamAccountName": "Backup Operators",
+      "DistinguishedName": "CN=Backup Operators,CN=Builtin,DC=corp,DC=example,DC=test",
+      "GroupScope": "DomainLocal",
+      "GroupCategory": "Security",
+      "Members": [
+        "S-1-5-21-1000-2000-3000-1101"
+      ],
+      "adminCount": 1
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-32-548"
+      },
+      "SamAccountName": "Account Operators",
+      "DistinguishedName": "CN=Account Operators,CN=Builtin,DC=corp,DC=example,DC=test",
+      "GroupScope": "DomainLocal",
+      "GroupCategory": "Security",
+      "Members": [],
+      "adminCount": 1
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-32-580"
+      },
+      "SamAccountName": "Remote Management Users",
+      "DistinguishedName": "CN=Remote Management Users,CN=Builtin,DC=corp,DC=example,DC=test",
+      "GroupScope": "DomainLocal",
+      "GroupCategory": "Security",
+      "Members": [
+        "S-1-5-21-1000-2000-3000-1105"
+      ],
+      "adminCount": null
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1200"
+      },
+      "SamAccountName": "helpdesk",
+      "DistinguishedName": "CN=helpdesk,OU=Groups,DC=corp,DC=example,DC=test",
+      "GroupScope": "Global",
+      "GroupCategory": "Security",
+      "Members": [
+        "S-1-5-21-1000-2000-3000-1102"
+      ],
+      "adminCount": null
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1201"
+      },
+      "SamAccountName": "engineering",
+      "DistinguishedName": "CN=engineering,OU=Groups,DC=corp,DC=example,DC=test",
+      "GroupScope": "Global",
+      "GroupCategory": "Security",
+      "Members": [
+        "S-1-5-21-1000-2000-3000-1103",
+        "S-1-5-21-1000-2000-3000-1101"
+      ],
+      "adminCount": null
+    }
+  ],
+  "computers": [
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1300"
+      },
+      "SamAccountName": "DC01$",
+      "DistinguishedName": "CN=DC01,OU=Domain Controllers,DC=corp,DC=example,DC=test",
+      "Enabled": true,
+      "PasswordLastSet": "2026-05-01T00:00:00Z",
+      "LastLogonDate": "2026-05-31T00:00:00Z",
+      "whenCreated": "2019-06-01T00:00:00Z",
+      "OperatingSystem": "Windows Server 2022"
+    },
+    {
+      "SID": {
+        "Value": "S-1-5-21-1000-2000-3000-1301"
+      },
+      "SamAccountName": "APP01$",
+      "DistinguishedName": "CN=APP01,OU=Servers,DC=corp,DC=example,DC=test",
+      "Enabled": true,
+      "PasswordLastSet": "2026-04-20T00:00:00Z",
+      "LastLogonDate": "2026-05-31T00:00:00Z",
+      "whenCreated": "2021-10-12T00:00:00Z",
+      "OperatingSystem": "Windows Server 2019"
+    }
+  ],
+  "trusts": [
+    {
+      "Name": "partner.example.test",
+      "Direction": "Inbound",
+      "TrustType": "Forest",
+      "ForestTransitive": true
+    }
+  ]
+}

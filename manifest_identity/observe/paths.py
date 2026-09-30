@@ -115,7 +115,8 @@ class AccessPath:
 # (1.11), so it is.
 GRANT_SOURCES = (
     "aws_authorization_details", "generic_observed", "github_organization", "kubernetes_rbac",
-    "google_cloud_project", "azure_tenant", "okta_org",
+    "google_cloud_project", "azure_tenant", "okta_org", "active_directory_domain",
+    "active_directory_sharphound",
 )
 
 
@@ -351,8 +352,14 @@ def for_identity(
         # An eligible membership is access the member activates, so
         # everything reached through it is eligible however the group
         # holds it.
-        mode = GrantMode.standing if row.mode == "active" else GrantMode.eligible
         for grant in [g for g in through_groups if g.identity_id == group.id]:
+            # What the group itself can only obtain, a member can only
+            # obtain, whatever the membership's mode.
+            mode = (
+                GrantMode.standing
+                if row.mode == "active" and grant.mode == GrantMode.standing
+                else GrantMode.eligible
+            )
             add(grant, [Hop(VIA_MEMBERSHIP, group.first_display_name, row.mode)], mode)
 
     for role, chain, _ in reachable:

@@ -60,6 +60,8 @@ SHAPE_KUBERNETES = "kubernetes-rbac"
 SHAPE_GOOGLE = "google-cloud"
 SHAPE_AZURE = "azure-tenant"
 SHAPE_OKTA = "okta-org"
+SHAPE_ACTIVE_DIRECTORY = "active-directory"
+SHAPE_SHARPHOUND = "sharphound"
 SHAPE_TABLE = "table"
 
 
@@ -72,8 +74,15 @@ def detect_source(data: bytes) -> str | None:
     file named as one source and shaped as another is refused with this
     answer rather than parsed into nonsense (1.11)."""
     head = data[:4096].lstrip()
+    # The SharpHound collector writes a zip; nothing else here does.
+    if data[:2] == b"PK":
+        return SHAPE_SHARPHOUND
     if head.startswith(b"{"):
         window = data[:65536]
+        if b'"DNSRoot"' in window:
+            return SHAPE_ACTIVE_DIRECTORY
+        if b'"ObjectIdentifier"' in window:
+            return SHAPE_SHARPHOUND
         if b"UserDetailList" in window:
             return SHAPE_AUTHORIZATION
         # A kubectl dump is a List of objects; the two spellings are

@@ -118,6 +118,46 @@ CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
             "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
         },
     ),
+    "POST /imports/active-directory": (
+        "post",
+        "/imports/active-directory",
+        {
+            "files": {
+                "file": (
+                    "domain.json",
+                    json.dumps({
+                        "domain": {"DNSRoot": "matrix.test", "DomainSID": "S-1-5-21-7-8-9"},
+                        "users": [{"SID": "S-1-5-21-7-8-9-1100", "SamAccountName": "matrix",
+                                   "DistinguishedName": "CN=matrix,DC=matrix,DC=test"}],
+                    }).encode(),
+                    "application/json",
+                )
+            },
+            "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
+        },
+    ),
+    "POST /imports/sharphound": (
+        "post",
+        "/imports/sharphound",
+        {
+            "files": {
+                "file": (
+                    "collection.json",
+                    json.dumps({
+                        "users": {"meta": {"type": "users", "version": 6}, "data": [{
+                            "ObjectIdentifier": "S-1-5-21-7-8-9-1100",
+                            "Properties": {"name": "MATRIX@MATRIX.TEST", "domain": "MATRIX.TEST",
+                                           "domainsid": "S-1-5-21-7-8-9",
+                                           "distinguishedname": "CN=MATRIX,DC=MATRIX,DC=TEST"},
+                        }]},
+                        "groups": {"meta": {"type": "groups", "version": 6}, "data": []},
+                    }).encode(),
+                    "application/json",
+                )
+            },
+            "data": {"captured_at": "2026-08-01T00:00:00+00:00"},
+        },
+    ),
     "POST /imports/azure-tenant": (
         "post",
         "/imports/azure-tenant",
@@ -493,7 +533,7 @@ def test_the_mutation_table_is_the_mutation_set() -> None:
     )
     # The sentence above the table states the count in words; the map
     # grows by one entry each time the set does, which is the point.
-    words = {32: "Thirty-two"}
+    words = {32: "Thirty-two", 34: "Thirty-four"}
     word = words.get(len(MUTATIONS))
     assert word, f"add the word for {len(MUTATIONS)} mutations to this test"
     assert f"**{word} mutations, {word.lower()} kills.**" in text
