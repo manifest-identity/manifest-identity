@@ -292,17 +292,20 @@ def authorize_relationships(db: Session, operator: User) -> int:
     the vendor's audit role are documented, the partner forest trust is
     documented, and the wildcard trust and the partner's open role are
     the findings."""
+    # Each door with the kind of principal it is from, stated here
+    # rather than read off the string: a name is not evidence of what
+    # it names.
     wanted = [
-        ("trust", "app-runtime", "ec2.amazonaws.com", "platform-team",
+        ("trust", "app-runtime", "ec2.amazonaws.com", "service", "platform-team",
          "the compute service assumes the runtime role"),
-        ("trust", "vendor-audit", "arn:aws:iam::999999999999:root", "security",
+        ("trust", "vendor-audit", "arn:aws:iam::999999999999:root", "aws", "security",
          "the auditor's account, under contract until the audit closes"),
-        ("trust", None, "partner.example.test", "directory-ops",
+        ("trust", None, "partner.example.test", "domain", "directory-ops",
          "the partner forest, one way, for the shared application"),
     ]
     written = 0
     now = datetime.now(UTC)
-    for kind, to_name, from_ref, team, why in wanted:
+    for kind, to_name, from_ref, from_kind, team, why in wanted:
         to_identity = None
         to_node = None
         if to_name is not None:
@@ -326,9 +329,7 @@ def authorize_relationships(db: Session, operator: User) -> int:
             continue
         relationships.authorize(db, relationships.Request(
             kind=kind, to_identity_id=to_identity.id if to_identity else None,
-            to_scope_node_id=to_node, from_ref=from_ref,
-            from_kind="service" if from_ref.endswith("amazonaws.com") else "aws"
-            if from_ref.startswith("arn:") else "domain",
+            to_scope_node_id=to_node, from_ref=from_ref, from_kind=from_kind,
             owner_kind="team", owner_ref=team, justification=why,
             valid_from=VALID_FROM, valid_until=None,
         ), operator, now=now)
