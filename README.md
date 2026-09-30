@@ -12,19 +12,25 @@ measures and every item it scored: [SCORING.md](SCORING.md).
 
 **Inventory and governance for non-human identities.**
 
-manifest-identity keeps two records about every identity in your
-estate and shows you the difference between them. The first is what the
-identity holds, read from the exports your providers already produce
-and never edited. The second is what a named person said it may hold,
-for how long, and who owns it. The difference is the product: access
-nobody authorized, authorizations nobody honors, eligibility nobody
-approved, and definitions that changed after the decision was made.
+manifest-identity is an application for reviewing who has access to
+what across an organization's cloud accounts and directories.
+
+- It provides a single source of truth, written by a named person, of
+  what access each identity is allowed to have, with an owner and an
+  expiry.
+- It can import the records those systems already have and builds an
+  inventory of every identity, the access each one holds, and
+  enumerates the problems that follow, such as unused accounts, stale
+  keys, and administrators nobody owns.
+- It shows every difference between the two records and runs review
+  campaigns that put each difference in front of the person
+  responsible for it, one decision at a time.
+- It never changes anything in the systems it reads.
 
 It reads seven providers natively (Amazon Web Services, GitHub,
 Kubernetes, Google Cloud, Azure and Entra, Okta, Active Directory)
-and any other
-provider's table through a mapping, holds no provider credential, and
-never changes anything in any of them.
+and any other provider's table through a mapping, and it holds no
+provider credential.
 
 **If you run a cloud account, this happens to you.** Service accounts
 get created for one integration, roles get broad policies so something
