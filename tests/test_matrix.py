@@ -475,6 +475,30 @@ def test_routes_match_the_documented_enumeration() -> None:
     )
 
 
+def test_the_mutation_table_is_the_mutation_set() -> None:
+    """The README's mutation table read "seven mutations, seven kills"
+    through twenty-five more; a stated table is now a generated one,
+    and this test holds the two together the way the route block is."""
+    import re
+    from pathlib import Path
+
+    from scripts.check_mutation import MUTATIONS, table
+
+    text = Path(__file__).parent.parent.joinpath("README.md").read_text()
+    match = re.search(r"```mutations\n(.*?)```", text, re.DOTALL)
+    assert match, "README.md no longer carries the ```mutations block"
+    assert match.group(1) == table(), (
+        "the README's mutation table is stale; regenerate it with "
+        "python3 scripts/check_mutation.py --table"
+    )
+    # The sentence above the table states the count in words; the map
+    # grows by one entry each time the set does, which is the point.
+    words = {32: "Thirty-two"}
+    word = words.get(len(MUTATIONS))
+    assert word, f"add the word for {len(MUTATIONS)} mutations to this test"
+    assert f"**{word} mutations, {word.lower()} kills.**" in text
+
+
 def test_the_stated_figures_are_the_counted_figures() -> None:
     """The README's bold figures drifted twice in one day, once past a
     new route and once past a new test file, because the enumeration

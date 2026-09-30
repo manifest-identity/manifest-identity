@@ -320,7 +320,21 @@ def run_tests(paths: list[str]) -> int:
     ).returncode
 
 
+def table() -> str:
+    """The mutation set as the README's table, generated so the count
+    the document states is the count the check runs; a test holds the
+    two together the way the route enumeration is held."""
+    lines = ["| Mutation | Killed by |", "|---|---|"]
+    for name, _filename, _original, _mutated, tests in MUTATIONS:
+        suites = ", ".join(t.removeprefix("tests/test_").removesuffix(".py") for t in tests)
+        lines.append(f"| {name[0].upper() + name[1:]} | the {suites} tests |")
+    return "\n".join(lines) + "\n"
+
+
 def main() -> int:
+    if "--table" in sys.argv:
+        print(table(), end="")
+        return 0
     survived: list[str] = []
     for name, filename, original, mutated, tests in MUTATIONS:
         path = Path(filename)
