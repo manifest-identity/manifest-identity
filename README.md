@@ -1306,6 +1306,7 @@ holds the reviews and the alerts.
 | `.pre-commit-config.yaml` | Secret scan, writing rules, lint, types, the repository's own scanner rules, the page lint, and the truth gates at commit time; CodeQL before the push |
 | `.semgrep/` | The repository's own scanner rules, each one a lesson a scanner taught after a push (D-086) |
 | `scripts/scan.sh` | The pipeline's CodeQL queries run locally before the push, bundles pinned by checksum |
+| `scripts/audit.sh` | Every pinned tree audited against known vulnerabilities; the scanner tree's exceptions recorded here, tied to the Semgrep pin |
 | `eslint.config.mjs` / `package.json` | The page's one lint rule and its pinned tools |
 | `.env.example` | Documents required configuration without containing it |
 
@@ -1656,7 +1657,11 @@ instead of running.
 
 The development tree (pytest, Hypothesis, ruff, mypy, pip-audit,
 pytest-cov, pip-tools) is verified the same way and isolated in its
-own hash-pinned file.
+own hash-pinned file. Semgrep sits in a third tree of its own,
+because its dependency pins carry advisories the audit refuses; the
+exceptions are recorded in `scripts/audit.sh`, tied to the Semgrep
+pin they were read against, so a bump of the pin fails the audit
+until the list is re-read (D-086).
 
 ### How the agent is governed
 

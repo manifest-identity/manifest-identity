@@ -8,4 +8,3 @@ pip-audit
 mypy
 hypothesis
 pytest-cov
-semgrep==1.178.0
