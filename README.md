@@ -106,7 +106,7 @@ platform phases, and the program's own documents live there.
 | Mutation | 34 controls removed by the check, 34 noticed by the suite |
 | Surface | **70 routes**, every one in the role matrix the tests walk |
 | Record | **84 recorded decisions**, each with its rejected alternatives |
-| Gates | 10 required checks on every merge; releases carry provenance attestations |
+| Gates | 11 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
 [The numbers, proven](#the-numbers-proven); a figure that drifts from
@@ -1637,7 +1637,7 @@ here: mechanisms, not intentions.
 - **The agent cannot land anything alone.** Main refuses direct
   pushes; every change travels a branch and a pull request opened
   under the agent's own identity (D-045), so the author of record and
-  the human who approves are different parties; ten required checks
+  the human who approves are different parties; eleven required checks
   and a required approving review must pass; and the merge is a human
   act. Phase and subphase transitions are likewise human declarations,
   never the agent's.
