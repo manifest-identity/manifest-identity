@@ -88,7 +88,7 @@ prove they asked. It is not a provisioning tool and it does not change
 anything in any provider.
 
 manifest-identity is one application inside
-[control-plane](https://tltaylor1.github.io), a security engineering
+[control-plane](https://tltaylor1.github.io/control-plane/), a security engineering
 program built in public; the roadmap around this application, the
 platform phases, and the program's own documents live there.
 
@@ -177,7 +177,7 @@ refusing unpinned images, and workload identities with nothing to
 steal; every claim has its probe in
 [Running it on Kubernetes](#running-it-on-kubernetes). Phase
 transitions are human declarations, recorded when made. The platform
-journey continues in the [program](https://tltaylor1.github.io).
+journey continues in the [program](https://tltaylor1.github.io/control-plane/).
 
 This is a learning project, built in public, by one person. The
 software is provided as is under the
@@ -1445,7 +1445,7 @@ what the coding agent got wrong along the way, because that record is
 the point.
 
 The program-level view across every repository is
-[PIPELINES](https://tltaylor1.github.io/PIPELINES.md) at the program's
+[PIPELINES](https://tltaylor1.github.io/control-plane/04-pipelines/) at the program's
 home; what follows is this repository's own.
 
 ### The pipeline, explained
