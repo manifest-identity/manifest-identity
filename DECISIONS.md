@@ -2562,3 +2562,34 @@ hour it merged, since that check reads the lockfile and not the
 reasons; the exceptions on the development tree, which the tests
 install; and holding the scanners until Semgrep ships a fix, which
 would have left the lessons as paragraphs for as long as that took.
+
+## D-087: Versions follow the application's own roadmap, and provenance comes from the reviewed merge, the signed tag, and the attestation
+
+D-050 read the version number from the program's phases: v0.N meant
+the work through phase N was complete. The application stands alone
+from the program since the September 30 split, and its roadmap
+already carries its own definitions of done: v0.3 authorize and
+compare, v0.4 decide, v0.5 read, v0.6 connect. The number reads
+against those from here. No release was cut between v0.2.0 and the
+sixteenth subphase, so v0.3, v0.4, and v0.5 ship together under one
+tag, v0.5.0; after it, a version ships when its roadmap section is
+complete, fixes between take the third number, and v1.0.0 stays
+reserved for the day the version one scope deploys somewhere real.
+The package index publication that v0.3 listed is held until the
+platform in control-plane is built, by the maintainer's decision.
+
+D-044 recorded that commits are signed with a dedicated key. Since
+D-045 the agent proposes under its own identity, and its pushes over
+git carry no signature: the platform signs only the commits it
+creates itself through its API, which the agent's workflow does not
+use. The history since then is the agent's unsigned commits and the
+maintainer's merge commits, which the platform signs. The claim that
+commits are signed is therefore withdrawn rather than left standing,
+and provenance rests on three things that hold: the reviewed merge,
+twelve required checks and a human approval; the maintainer's signed
+tag that starts every release; and the build provenance attestation
+on every artifact (D-050). Rejected: signing the agent's commits with
+the maintainer's key, which would put his signature on work he had
+not yet read; and holding releases until the agent's commits can be
+signed under a key of their own, which the platform does not offer an
+app installation.

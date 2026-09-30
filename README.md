@@ -105,7 +105,7 @@ platform phases, and the program's own documents live there.
 | Tests | **425 tests in 46 files**, coverage 95 over a 90 percent floor |
 | Mutation | 34 controls removed by the check, 34 noticed by the suite |
 | Surface | **70 routes**, every one in the role matrix the tests walk |
-| Record | **86 recorded decisions**, each with its rejected alternatives |
+| Record | **87 recorded decisions**, each with its rejected alternatives |
 | Gates | 11 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -164,27 +164,30 @@ The design lives in three files beside this one: [ARCHITECTURE.md](ARCHITECTURE.
 
 ## Status
 
-**Phases 1 and 2 of 8 are complete.** Phase 1 built the observed half
-in twelve review-gated subphases whose order was fixed before any code
-([the plan](#the-plan-fixed-before-code)), tagged v0.2.0 together with
-Phase 2 and carrying build provenance attestations on every release
-artifact, and then the authorized half in fourteen more subphases,
-merged after that tag and not yet released: the scope tree, the
-authorization record and its two doors, paths and relationships,
-versioned definitions, the delta, campaigns rewired, alerts, the read
-API, the table door, six more providers, and the page. A fresh clone
-with Docker starts the stack, migrates the schema, serves sign-in with
-three roles behind a tested role matrix, imports identity exports
-append-only, derives the inventory with its findings, keeps the
-authorized record beside it, and produces the delta, the campaigns,
-the risk report, and the escaped exports. Phase 2 put the same digest-built image on a hardened local
+**Version 0.5.0 is the whole application as planned, and the first
+release since the repository stood alone.** The observed half was
+built in twelve review-gated subphases whose order was fixed before
+any code ([the plan](#the-plan-fixed-before-code)) and tagged v0.2.0
+in August, with build provenance attestations on every release
+artifact. The authorized half followed in sixteen more: the scope
+tree, the authorization record and its two doors, paths and
+relationships, versioned definitions, the delta, campaigns rewired,
+alerts, the read API, the table door, six more providers, the page,
+Active Directory through two doors, and the populated record a fresh
+clone gets from one script. A fresh clone with Docker starts the
+stack, migrates the schema, serves sign-in with three roles behind a
+tested role matrix, imports identity exports append-only, derives the
+inventory with its findings, keeps the authorized record beside it,
+and produces the delta, the campaigns, the risk report, and the
+escaped exports. The same digest-built image runs on a hardened local
 Kubernetes cluster: default-deny network policies with three named
 flows, the restricted pod security standard, an admission policy
 refusing unpinned images, and workload identities with nothing to
 steal; every claim has its probe in
-[Running it on Kubernetes](#running-it-on-kubernetes). Phase
-transitions are human declarations, recorded when made. The platform
-journey continues in the [program](https://tltaylor1.github.io/control-plane/).
+[Running it on Kubernetes](#running-it-on-kubernetes). Next is v0.6,
+the read-only provider connection, in the [roadmap](ROADMAP.md); the
+platform this deploys to is built as code in
+[control-plane](https://tltaylor1.github.io/control-plane/).
 
 This is a learning project, built in public, by one person. The
 software is provided as is under the
@@ -1688,9 +1691,9 @@ here: mechanisms, not intentions.
   shared attribution account. The exact model behind any single
   commit is not knowable from inside the session, so no trailer
   claims one; [AI-USAGE.md](AI-USAGE.md) records the incident that
-  taught this. Commits are signed (D-044), so authorship of the
-  record itself is cryptographic even where generation provenance is
-  coarse.
+  taught this. The agent's commits are unsigned; what carries
+  provenance is the reviewed merge, the maintainer's signed tag that
+  starts a release, and the attestation on every artifact (D-087).
 - **The failures are the record.** [AI-USAGE.md](AI-USAGE.md) keeps
   what the agent got wrong, what caught it, and what each catch
   changed, because the interesting output of an AI-assisted build is
@@ -1787,7 +1790,7 @@ subphase is proof, not retrofit.
 
 Those twelve built the observed half and were tagged v0.2.0 with
 Phase 2. The authorized half then followed the same discipline in
-fourteen more subphases, numbered 1.1 to 1.14, planned before the
+sixteen more subphases, numbered 1.1 to 1.16, planned before the
 first was started and built in batches of two, each batch one pull
 request with its runtime proof: the scope tree and scoped
 administration (1.1), the authorization record (1.2), the form and
@@ -1797,8 +1800,10 @@ observations (1.7), campaigns driven by the delta and by expiry (1.8),
 alerts and their records (1.9), the read API and the change feed
 (1.10), the table door with the source selector (1.11), GitHub as the
 second provider (1.12), the page (1.13), and every provider's file
-(1.14), and Active Directory natively through two doors (1.15).
-Their decisions run from D-071 onward.
+(1.14), Active Directory natively through two doors (1.15), and the
+populated record a fresh clone gets from one script (1.16). Their
+decisions run from D-071 onward, and the sixteen shipped together as
+v0.5.0 (D-087).
 
 The order had reasons. Identity before data, because every later route
 needs the role checks. Parsers before the engine, because reading the
