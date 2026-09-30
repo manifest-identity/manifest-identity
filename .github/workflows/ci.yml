@@ -186,13 +186,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tltaylor1/build-doctrine
-          ref: a3c8658fd0e57a38b71caf354c631fa262132a4c
+          ref: 110a64984ad306f4c502b571a6d359afb5cd4c81
           path: doctrine
           persist-credentials: false
       - name: score against the doctrine
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 doctrine/scripts/score.py . --repo "$GITHUB_REPOSITORY" --min-level 1
+      - name: no retired project name in active text
+        run: python3 doctrine/scripts/check_names.py .
 
   resolve:
     runs-on: ubuntu-latest

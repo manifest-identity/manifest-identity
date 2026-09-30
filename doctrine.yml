@@ -5,3 +5,10 @@ invites_contributions: true
 proven:
   # The actions inventory refused a half-bumped CodeQL action pin.
   pinned-actions: https://github.com/manifest-identity/manifest-identity/actions/runs/33565119678
+# Files that carry the old name as history, by name or by the phrase on
+# the lines that may keep it (build-doctrine's check_names.py, D-035).
+name_allowlist:
+  - DECISIONS.md
+  - README.md: Coming from a role-call checkout
+  - manifest_identity/authorize/models.py
+  - migrations/versions/0001_greenfield_on_the_neutral_model.py
