@@ -205,10 +205,17 @@ def parse_project_export(data: bytes) -> ParsedProject:
         ]
         parsed.bindings.append(ParsedBinding(role=role, members=members, condition_title=title))
 
-    keys_by_email = document.get("keys") or {}
+    # Absent is fine; present and not an object is not, and an empty
+    # list is not an object: the test that found this read one as "no
+    # keys" and the parser said nothing.
+    keys_by_email = document.get("keys")
+    if keys_by_email is None:
+        keys_by_email = {}
     if not isinstance(keys_by_email, dict):
         raise ParseError("keys: must be an object keyed by account address")
-    activity = document.get("activity") or {}
+    activity = document.get("activity")
+    if activity is None:
+        activity = {}
     if not isinstance(activity, dict):
         raise ParseError("activity: must be an object keyed by account address")
     for index, raw in enumerate(_list(document.get("service_accounts"), "service_accounts")):

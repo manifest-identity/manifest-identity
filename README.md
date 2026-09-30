@@ -73,7 +73,7 @@ platform phases, and the program's own documents live there.
 
 | Measured | Standing |
 |---|---|
-| Tests | **399 tests in 43 files**, coverage 94 over a 90 percent floor |
+| Tests | **405 tests in 44 files**, coverage 94 over a 90 percent floor |
 | Mutation | 7 controls removed by the check, 7 noticed by the suite |
 | Surface | **68 routes**, every one in the role matrix the tests walk |
 | Record | **82 recorded decisions**, each with its rejected alternatives |
