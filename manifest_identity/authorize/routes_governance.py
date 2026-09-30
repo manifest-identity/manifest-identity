@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.authorize.governance import SINGLE_ACTIVE_KINDS, supersede
+from manifest_identity.authorize.governance import set_record
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, require_roles, require_scope
@@ -107,33 +107,10 @@ def _set_record(
 ) -> RecordView:
     node_id = _require_target(db, target_type, target_id)
     require_scope(db, auth, route_key, node_id)
-    if kind in SINGLE_ACTIVE_KINDS:
-        supersede(
-            db,
-            target_type=target_type,
-            target_id=target_id,
-            kind=kind,
-            actor_username=auth.user.username,
-        )
-    record = GovernanceRecord(
-        target_type=target_type,
-        target_id=target_id,
-        kind=kind,
-        value=value,
-        owner_type=owner_type,
-        actor_user_id=auth.user.id,
-        actor_username=auth.user.username,
+    record = set_record(
+        db, target_type=target_type, target_id=target_id, kind=kind, value=value,
+        owner_type=owner_type, actor=auth.user,
     )
-    db.add(record)
-    audit.record(
-        db,
-        actor_user_id=auth.user.id,
-        actor_username=auth.user.username,
-        action="governance_set",
-        target=f"{target_type}:{target_id}",
-        detail=f"{kind}: {value}" + (f" ({owner_type})" if owner_type else ""),
-    )
-    db.commit()
     return record_view(record)
 
 

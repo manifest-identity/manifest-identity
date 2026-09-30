@@ -23,6 +23,7 @@ from pathlib import Path
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from manifest_identity import demo_record
 from manifest_identity.core import audit
 from manifest_identity.core.bootstrap import bootstrap_admin
 from manifest_identity.core.config import get_settings
@@ -206,6 +207,17 @@ def main() -> int:
                 except DuplicateSnapshot:
                     db.rollback()
                     print(f"already imported {name}, kept")
+
+        # The second record: what an administrator's work looks like
+        # (1.16, D-085). Written before the campaign so the campaign
+        # reads a governed estate.
+        record = demo_record.populate(db, admin)
+        print(
+            f"record: {record['authorizations']} authorizations through the file door, "
+            f"{record['refusals']} refused, {record['versioned']} at an older version, "
+            f"{record['relationships']} relationships, {record['definitions']} definitions, "
+            f"{record['governance']} governance records"
+        )
 
         existing = db.execute(
             select(Campaign).where(Campaign.name == DEMO_CAMPAIGN)
