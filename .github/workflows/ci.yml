@@ -260,7 +260,7 @@ jobs:
         run: |
           pip install --no-cache-dir --require-hashes -r requirements.txt
           pip install --no-cache-dir --require-hashes -r requirements-dev.txt
-          pip install --no-cache-dir --require-hashes -r requirements-scan.txt
+          pip install --no-cache-dir --require-hashes --no-deps -r requirements-scan.txt
       - name: the repository's own scanner rules
         run: semgrep --config .semgrep --error --metrics=off --quiet manifest_identity frontend scripts
       # The slim image ships no git, curl, gpg, dirmngr, or unzip, and the
@@ -328,8 +328,8 @@ jobs:
                       print("schema change: refused, as decided")
           PROBE
       - name: audit the pinned trees against known vulnerabilities
-        # The scanner tree's recorded exceptions live in the script,
-        # tied to the Semgrep pin they were read against (D-086).
+        # Three trees, no exceptions; the scanner tree's one override
+        # is made at compile time by scripts/compile_scan.py (D-086).
         run: scripts/audit.sh
       - name: software bill of materials
         run: pip-audit --require-hashes -r requirements.txt --format cyclonedx-json --output "$RUNNER_TEMP/sbom.json"

@@ -2545,13 +2545,20 @@ The cost is a slower push, a few minutes for the local analysis,
 which is the point: the minutes move from after the push to before
 it, and the pull request page stops being where the author learns.
 
-Added the same day: Semgrep's newest release requires a PyJWT line
-that the audit refuses on twelve advisories, all in token
-verification paths Semgrep never runs here. Semgrep sits in its own
-hashed tree, `requirements-scan.txt`, so the development tree stays
-without exceptions, and the twelve are recorded in `scripts/audit.sh`
-tied to the Semgrep pin they were read against: a bump of the pin
-fails the audit until the list is re-read against the new release.
-Rejected: the exceptions on the development tree, which the tests
+Added the same day: Semgrep's newest release declares a PyJWT line
+that carries twelve published advisories, all in token verification
+paths Semgrep never runs here, and the resolver honors the
+declaration. Semgrep sits in its own hashed tree,
+`requirements-scan.txt`, compiled by `scripts/compile_scan.py`, which
+runs the compiler and then overrides that one pin to the fixed
+release with every hash the index lists for it; the tree installs
+complete with no resolver (`--no-deps`), which is what lets the
+override hold. Semgrep was run against this repository with the
+override in place before it was recorded, and a test refuses the
+tree if a recompile puts the declared line back. Rejected: recording
+the twelve as audit exceptions, which was the first version of this
+paragraph and which cost the Scorecard its vulnerabilities check the
+hour it merged, since that check reads the lockfile and not the
+reasons; the exceptions on the development tree, which the tests
 install; and holding the scanners until Semgrep ships a fix, which
 would have left the lessons as paragraphs for as long as that took.

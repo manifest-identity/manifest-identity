@@ -3,6 +3,7 @@ a scanner taught after a push, and each must fire on the shape that
 taught it and pass on the repository as it stands."""
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -45,3 +46,12 @@ def test_each_rule_fires_on_the_shape_that_taught_it(tmp_path: Path) -> None:
 
 def test_the_repository_passes_its_own_rules() -> None:
     assert run(ROOT / "manifest_identity", ROOT / "frontend", ROOT / "scripts") == []
+
+
+def test_the_scanner_tree_carries_the_override() -> None:
+    """A recompile without scripts/compile_scan.py puts Semgrep's
+    declared PyJWT line back, and that line carries twelve advisories."""
+    tree = (ROOT / "requirements-scan.txt").read_text()
+    pinned = re.search(r"^pyjwt==(\d+)\.(\d+)\.(\d+)", tree, re.M)
+    assert pinned is not None, "the scanner tree pins pyjwt"
+    assert tuple(map(int, pinned.groups())) >= (2, 15, 0), "compile with scripts/compile_scan.py"
