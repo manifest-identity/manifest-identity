@@ -1303,7 +1303,7 @@ def authorizations_template() -> str:
     the two cannot drift. Its rows name identities from the sample
     account above, so a reader can import it after the observed files
     and watch the record fill."""
-    from manifest_identity.authorize.csv_import import DEFAULT_FIELDS
+    from manifest_identity.authorize.fields import DEFAULT_FIELDS
 
     columns = [
         column

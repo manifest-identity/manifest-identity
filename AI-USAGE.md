@@ -380,3 +380,20 @@ and only an outside check settles it.
   Semgrep runs at commit time with a rule per lesson, and the page
   gets its one lint rule. The maintainer's words: "I wonder what
   other scans I can get to check you. Apparently you need them."
+- **Two mechanisms were satisfied while the thing they stood for was
+  not.** The agent recorded twelve PyJWT advisories as audit
+  exceptions with their reasons, and the audit passed; the Scorecard
+  reads the lockfile and not the reasons, and its vulnerabilities
+  check fell from 10 to 0 the hour the merge landed. The maintainer
+  saw the score before the agent did. The exceptions became a
+  compile-time override of the one pin (D-086), the audit now reads
+  every tree in the repository rather than the three the application
+  installs, and three urllib3 advisories that had sat unread in the
+  docs tree came out with the same change. The same night the first
+  release in six weeks failed on its tag: the sample generator had
+  gained an import of the file importer during the authorized half,
+  and the release workflow runs the generator with the bare
+  interpreter on the written understanding that it imports nothing
+  outside the standard library, an understanding no test held. The
+  mapping moved to a module with no imports, and a test now runs the
+  generator with site packages disabled.

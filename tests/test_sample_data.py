@@ -7,6 +7,8 @@ the engine can produce.
 """
 
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -204,3 +206,17 @@ def test_a_scaled_import_works_end_to_end(
     names = {row["display_name"] for row in listing.json()["rows"]}
     assert "person-00000" in names and "svc-00001" in names
     assert len(names) > 120
+
+
+def test_the_generator_runs_on_the_standard_library_alone(tmp_path: Path) -> None:
+    """The release workflow generates the scaled sample with the bare
+    interpreter before any tree installs, so the generator may import
+    nothing outside the standard library; -S disables site packages,
+    which is where every dependency lives."""
+    command = [sys.executable, "-S", "-m", "manifest_identity.sample_data",
+               str(tmp_path), "--scale", "1"]
+    completed = subprocess.run(  # noqa: S603
+        command, capture_output=True, text=True, timeout=300, cwd=SAMPLE_DIR.parent,
+    )
+    assert completed.returncode == 0, completed.stderr[-800:]
+    assert (tmp_path / "authorizations-template.csv").exists()
