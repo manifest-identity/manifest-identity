@@ -20,7 +20,7 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.authorize import authorizations
+from manifest_identity.authorize import authorizations, fields
 from manifest_identity.authorize.models import EntryPath
 from manifest_identity.core import audit
 from manifest_identity.core.models import User
@@ -62,25 +62,10 @@ REQUIRED_FIELDS = frozenset({
 
 DATE_FIELDS = frozenset({"valid_from", "valid_until"})
 
-# The shipped default: the template's own column names, so the easy
-# path stays easy and the documented template imports clean through a
-# mapping like any other file.
-DEFAULT_MAPPING_NAME = "the shipped template"
-DEFAULT_FIELDS: dict[str, dict[str, str | None]] = {
-    "identity_external_id": {"column": "identity_id"},
-    "role_definition_external_id": {"column": "role"},
-    "mode": {"column": "mode"},
-    "path": {"column": "path"},
-    "owner_kind": {"column": "owner_kind"},
-    "owner_ref": {"column": "owner"},
-    "secondary_owner_kind": {"column": "secondary_owner_kind"},
-    "secondary_owner_ref": {"column": "secondary_owner"},
-    "justification": {"column": "justification"},
-    "reference": {"column": "reference"},
-    "control_reference": {"column": "control"},
-    "valid_from": {"column": "valid_from", "format": "%Y-%m-%d"},
-    "valid_until": {"column": "valid_until", "format": "%Y-%m-%d"},
-}
+# The shipped default lives in fields.py, a module with no imports,
+# so the sample generator can read it without the database layer.
+DEFAULT_MAPPING_NAME = fields.DEFAULT_MAPPING_NAME
+DEFAULT_FIELDS = fields.DEFAULT_FIELDS
 
 
 @dataclass
