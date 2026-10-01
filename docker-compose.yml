@@ -8,7 +8,7 @@
 # claim is verifiable by command, and the commands are in the README.
 services:
   db:
-    image: postgres:17@sha256:f4c66b820c6f974249089d3d16d86a3698eae11e8746eb6644b2271031e91232
+    image: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
     environment:
       POSTGRES_USER: manifest_identity
       POSTGRES_DB: manifest_identity
