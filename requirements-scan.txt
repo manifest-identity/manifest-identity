@@ -705,11 +705,9 @@ pygments==2.21.0 \
     # via
     #   -c requirements-dev.txt
     #   rich
-# Overridden by scripts/compile_scan.py: semgrep declares ~=2.13.0,
-# which carries twelve advisories; the tree installs with --no-deps.
-pyjwt==2.15.1 \
-    --hash=sha256:42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193 \
-    --hash=sha256:4f259e80cdfb6b3fc18a7de51fd1ef9ec79652f25019bae68975ca2468a34df8
+pyjwt==2.13.0 \
+    --hash=sha256:41571c89ca91598c79e8ef18a2d07367d4810fbbd6f637794879baf1b7703423 \
+    --hash=sha256:66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728
     # via
     #   mcp
     #   semgrep
@@ -1037,9 +1035,9 @@ urllib3==2.8.0 \
     #   -c requirements-dev.txt
     #   requests
     #   semgrep
-uvicorn==0.53.0 \
-    --hash=sha256:a9356f0cb89b3b8621529c5d5eebd69bfe154f4c3f68b4cf2de47e45fa855c2e \
-    --hash=sha256:e8dca71ec86dce5f04e333f0d56cdedf942446e6643b9cea1af0d6d3a02cb03e
+uvicorn==0.54.0 \
+    --hash=sha256:505bdb0f318731d45f1f712071fc781a8981f6847a31c902c9f5e652d4f67faf \
+    --hash=sha256:a2e33cbfaa0306f8e6b0c13e0cb89d7d7a2da3e62b90c66e18c33d9807b28620
     # via
     #   -c requirements.txt
     #   mcp
