@@ -17,8 +17,13 @@ else
   PYTHON="python3"
 fi
 
+# Every tree, not only the ones the application installs: the Scorecard
+# reads each lockfile in the repository, and three urllib3 advisories
+# in the docs tree went unaudited for the day it took to learn that.
 "$PYTHON" -m pip_audit --require-hashes -r requirements.txt
 "$PYTHON" -m pip_audit --require-hashes -r requirements-dev.txt
+"$PYTHON" -m pip_audit --require-hashes -r requirements-docs.txt
+"$PYTHON" -m pip_audit --require-hashes -r requirements-browser.txt
 # The scanner tree is complete and installs without a resolver, so the
 # audit reads its pins as written rather than handing them to pip,
 # where Semgrep's declared line would reassert itself and refuse.
