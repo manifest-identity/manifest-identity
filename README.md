@@ -1,4 +1,4 @@
-![manifest-identity: inventory and governance for non-human identities](docs/brand/banner.jpg)
+![manifest-identity: an application for reviewing who has access to what across an organization's cloud accounts and directories](docs/brand/banner.jpg)
 
 [![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/manifest-identity/manifest-identity?label=OpenSSF%20Scorecard&style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/manifest-identity/manifest-identity)
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/14563?label=OpenSSF%20Best%20Practices&style=for-the-badge)](https://www.bestpractices.dev/projects/14563)
@@ -9,8 +9,6 @@
 **Documentation site**, this document with side navigation and search:
 <https://manifest-identity.github.io/manifest-identity/>. What each badge above
 measures and every item it scored: [SCORING.md](SCORING.md).
-
-**Inventory and governance for non-human identities.**
 
 manifest-identity is an application for reviewing who has access to
 what across an organization's cloud accounts and directories.
@@ -31,6 +29,52 @@ It reads seven providers natively (Amazon Web Services, GitHub,
 Kubernetes, Google Cloud, Azure and Entra, Okta, Active Directory)
 and any other provider's table through a mapping, and it holds no
 provider credential.
+
+**Design boundaries**
+
+- It reads every provider and changes none of them, and it holds no
+  provider credential.
+- Every identity's state, and every difference between the two records,
+  is computed from the stored history at read time and never kept as a
+  status that could drift. The computed difference is called the delta.
+- The application finds and presents; a person makes every review
+  decision, and the approver is taken from the session, never from a
+  form.
+- When the owner a provider tags and the owner a person authorized
+  disagree, the disagreement is shown as a finding rather than resolved.
+
+**Start here**
+
+1. [What this is](#what-this-is), in this document.
+2. [ARCHITECTURE.md](ARCHITECTURE.md): components, data flow, trust boundaries.
+3. [How it is put together](#how-it-is-put-together): the data model, in this document.
+4. [SECURITY.md](SECURITY.md): the controls, each mapped to the threat it answers.
+5. [DECISIONS.md](DECISIONS.md): every choice with the alternatives it rejected.
+6. [How it was built and gated](#how-it-was-built-and-gated), in this document.
+
+**Current scope**
+
+This document describes what is built. [ROADMAP.md](ROADMAP.md) lists
+what is planned and marks each item built or not, and v0.5.0 is the
+current release.
+
+**How this is checked**
+
+- Authorization: the role matrix every route is in, walked by
+  [tests/test_matrix.py](tests/test_matrix.py), and the scope check by
+  [tests/test_scope.py](tests/test_scope.py).
+- Audit integrity: the chain in [tests/test_audit_chain.py](tests/test_audit_chain.py).
+- Database privileges: the runtime role cannot change the schema
+  (D-051), held by a probe in [the pipeline](.github/workflows/ci.yml)
+  that connects as that role and tries.
+- Runtime controls: every claim in
+  [Running it on Kubernetes](#running-it-on-kubernetes) names its probe.
+- Release integrity: every release artifact carries a build provenance
+  attestation from [the release workflow](.github/workflows/release.yml),
+  verifiable against the platform's log.
+- Published counts: the figures in the table above are recounted by
+  [tests/test_matrix.py](tests/test_matrix.py), and a stated figure that
+  drifts from the counted one fails the build.
 
 **If you run a cloud account, this happens to you.** Service accounts
 get created for one integration, roles get broad policies so something
@@ -57,7 +101,8 @@ day it is abused.
    owner, an expiry, a reason, with the approver taken from the session
    and never from a form. The same door reads a spreadsheet of existing
    approvals through a mapping.
-4. The delta is computed every time you ask and stored nowhere. Review
+4. The delta, the set of differences between what is held and what
+   is authorized, is computed every time you ask and stored nowhere. Review
    campaigns, driven by the calendar, by the delta, or by expiry, put
    each difference in front of the person who can answer it, one
    decision per item, with an export that proves how the review was
