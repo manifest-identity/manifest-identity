@@ -304,7 +304,7 @@ def identity_detail(
         db.execute(
             select(Import.id, Import.source_kind)
             .where(Import.scope_node_id == identity.scope_node_id)
-        ).tuples().all()
+        ).all()
     )
     credential_counts: dict[int, int] = {}
     for cred, _ in credential_pairs(db, [identity.id]).get(identity.id, []):
