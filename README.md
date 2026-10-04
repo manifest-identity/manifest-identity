@@ -553,6 +553,8 @@ so these images are reproducible rather than asserted):
 
 ![An identity's detail open beside the list: the derived facts, what it holds now and through which group, and the authorization form](docs/screenshots/identity-detail.png)
 
+![An identity's authorization section: what a named person authorized it to hold, with the owner, the expiry, and the authorizer, above the form that records a new authorization](docs/screenshots/authorization.png)
+
 ![A review campaign open over the whole inventory, ninety-nine items awaiting decisions](docs/screenshots/campaigns.png)
 
 ![The risk report: identities ranked by the engine, every finding naming its reason](docs/screenshots/report.png)
