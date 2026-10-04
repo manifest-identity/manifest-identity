@@ -20,7 +20,7 @@ package the tree no longer holds (build-doctrine D-039).
 | httptools | github.com/MagicStack/httptools | A collection of framework independent HTTP protocol utils | uvicorn |
 | idna | github.com/kjd/idna | Internationalized Domain Names in Applications (IDNA) | anyio |
 | jinja2 | github.com/pallets/jinja | the report engine, escaping by default (D-040) | chosen directly |
-| mako | docs.makotemplates.org | A super-fast templating language that borrows the best ideas from the existing templating languages | alembic |
+| mako | github.com/sqlalchemy/mako | A super-fast templating language that borrows the best ideas from the existing templating languages | alembic |
 | markupsafe | github.com/pallets/markupsafe | Safely add untrusted strings to HTML/XML markup | jinja2, mako |
 | opentelemetry-api | github.com/open-telemetry/opentelemetry-python | OpenTelemetry Python API | fastapi |
 | psycopg | github.com/psycopg/psycopg | PostgreSQL driver | chosen directly |
@@ -38,7 +38,7 @@ package the tree no longer holds (build-doctrine D-039).
 | uvicorn | github.com/Kludex/uvicorn | application server | chosen directly |
 | uvloop | github.com/MagicStack/uvloop | Fast implementation of asyncio event loop on top of libuv | uvicorn |
 | watchfiles | github.com/samuelcolvin/watchfiles | Simple, modern and high performance file watching and code reload in python | uvicorn |
-| websockets | websockets.readthedocs.io/en/stable/project/changelog.html | An implementation of the WebSocket Protocol (RFC 6455 & 7692) | uvicorn |
+| websockets | github.com/python-websockets/websockets | An implementation of the WebSocket Protocol (RFC 6455 & 7692) | uvicorn |
 
 ## Adoption records
 
