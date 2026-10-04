@@ -77,6 +77,13 @@ jobs:
         run: |
           git fetch --no-tags --depth=100 origin "$BASE_REF"
           for sha in $(git rev-list --no-merges "origin/$BASE_REF..HEAD"); do
+            # Dependabot's messages are machine-written: the subject carries
+            # the DEPS identifier its configuration sets, and the body is
+            # upstream release notes, not a person's writing, so the rules
+            # for people and the agent do not apply to it.
+            if git log -1 --format=%an "$sha" | grep -q '^dependabot\[bot\]$'; then
+              continue
+            fi
             git log -1 --format=%B "$sha" > "$RUNNER_TEMP/commit-message"
             bash scripts/check_commit_message.sh "$RUNNER_TEMP/commit-message"
           done
@@ -294,7 +301,7 @@ jobs:
         # clone without the secret still passes every other gate; the
         # quality gate itself is read on the SonarCloud side.
         if: env.SONARQUBE_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           SONAR_TOKEN: ${{ env.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io

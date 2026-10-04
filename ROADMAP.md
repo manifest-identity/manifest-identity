@@ -1,8 +1,8 @@
 # Roadmap
 
 
-The destination is a tool where every non-human identity is governed
-the way human accounts already are: a named owner, a stated purpose, a
+The destination is a tool where every identity, the service accounts
+and keys as much as the people, is governed the same way: a named owner, a stated purpose, a
 privilege picture beside its actual usage, a next review date, and
 evidence behind every one of those claims, so the identity nobody can
 explain becomes visible the day it appears rather than the day it is

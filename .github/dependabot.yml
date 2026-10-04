@@ -3,7 +3,9 @@
 # digests. It cannot see container images embedded in workflow files or
 # checksummed tool downloads; those pins are listed with their watchers
 # in the digest-parity check and the close ritual. It only opens pull
-# requests; nothing updates without review.
+# requests; nothing updates without review. Its commit subjects carry
+# the DEPS identifier so they read like every other subject here; the
+# bodies are upstream release notes, which the message check skips.
 #
 # Bumps are grouped so a month's updates arrive as a few pull requests
 # instead of one per package, and the cadence is monthly because these
@@ -20,6 +22,8 @@ updates:
   - package-ecosystem: pip
     open-pull-requests-limit: 2
     directory: /
+    commit-message:
+      prefix: DEPS
     schedule:
       interval: monthly
     groups:
@@ -28,6 +32,8 @@ updates:
   - package-ecosystem: github-actions
     open-pull-requests-limit: 2
     directory: /
+    commit-message:
+      prefix: DEPS
     schedule:
       interval: monthly
     groups:
@@ -39,9 +45,13 @@ updates:
         patterns: ["*"]
   - package-ecosystem: docker
     directory: /
+    commit-message:
+      prefix: DEPS
     schedule:
       interval: monthly
   - package-ecosystem: docker-compose
     directory: /
+    commit-message:
+      prefix: DEPS
     schedule:
       interval: monthly
