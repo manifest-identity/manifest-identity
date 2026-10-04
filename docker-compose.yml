@@ -8,7 +8,7 @@
 # claim is verifiable by command, and the commands are in the README.
 services:
   db:
-    image: postgres:17@sha256:f4c66b820c6f974249089d3d16d86a3698eae11e8746eb6644b2271031e91232
+    image: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
     environment:
       POSTGRES_USER: manifest_identity
       POSTGRES_DB: manifest_identity
@@ -22,8 +22,13 @@ services:
     # Migration authoring from the host attaches with
     # `docker compose exec db psql` or a temporary override; a standing
     # listener is a standing surface.
+    # The 18 image moved its volume from /var/lib/postgresql/data to
+    # /var/lib/postgresql and keeps the data directory under a
+    # version-named subdirectory, so a major upgrade can pg_upgrade in
+    # place; a volume written by 17 does not start under 18 (README,
+    # Operating it).
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - dbdata:/var/lib/postgresql
     # The postgres entrypoint drops to its own user but needs these
     # five to take ownership of a fresh data volume and get there;
     # everything else is dropped.
