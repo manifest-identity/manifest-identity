@@ -8,6 +8,9 @@ proven:
 # Files that carry the old name as history, by name or by the phrase on
 # the lines that may keep it (build-doctrine's check_names.py, D-035).
 name_allowlist:
+  - .vale/styles/Proselint/Cliches.yml
+  - LICENSE
+  - AGENTS.md
   - DECISIONS.md
   - README.md: Coming from a role-call checkout
   - manifest_identity/authorize/models.py

@@ -2,7 +2,7 @@
 
 [![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/manifest-identity/manifest-identity?label=OpenSSF%20Scorecard&style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/manifest-identity/manifest-identity)
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/14563?label=OpenSSF%20Best%20Practices&style=for-the-badge)](https://www.bestpractices.dev/projects/14563)
-[![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Ftltaylor1%2Fbuild-doctrine%2Fmain%2Fbadges%2Fmanifest-identity.json&style=for-the-badge)](https://github.com/tltaylor1/build-doctrine/blob/main/SCORES.md)
+[![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmanifest-identity%2Fmanifest-identity%2Fmain%2Fbadges%2Fbuild-doctrine-score.json&style=for-the-badge)](https://github.com/tltaylor1/build-doctrine/blob/main/SCORES.md)
 [![Coverage](https://img.shields.io/codecov/c/github/manifest-identity/manifest-identity?label=Coverage&style=for-the-badge)](https://codecov.io/gh/manifest-identity/manifest-identity)
 [![Quality gate](https://img.shields.io/sonar/quality_gate/manifest-identity_manifest-identity?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=manifest-identity_manifest-identity)
 
@@ -1084,6 +1084,7 @@ holds the reviews and the alerts.
 | `.semgrep/` | The repository's own scanner rules, each one a lesson a scanner taught after a push (D-086) |
 | `scripts/scan.sh` | The pipeline's CodeQL queries run locally before the push, bundles pinned by checksum |
 | `scripts/sonar_scan.py` | SonarCloud's scanner fetched and verified against a pinned checksum, then run; no keyserver at run time |
+| `badges/` | The score badge the README shows, written by the doctrine's scorer and compared against a fresh one in the pipeline |
 | `scripts/audit.sh` | Every pinned tree audited against known vulnerabilities, with no exceptions |
 | `scripts/compile_scan.py` | Compiles the scanner tree and overrides the one pin Semgrep declares too low, hashes from the index |
 | `eslint.config.mjs` / `package.json` | The page's one lint rule and its pinned tools |
