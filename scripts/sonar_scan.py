@@ -63,7 +63,12 @@ def unpack(archive: Path, into: Path) -> Path:
 
 
 def main(argv: list[str]) -> int:
-    cache = Path(os.environ.get("RUNNER_TEMP") or (ROOT / ".tools")) / "sonar-scanner"
+    # In the pipeline the workspace and the runner temp directory are
+    # mounted into the job container from the host and refuse to execute
+    # a binary unpacked there (error 13 on the bundled java), so the
+    # scanner lives in the container's own /tmp; locally it is cached
+    # beside the CodeQL bundles.
+    cache = Path("/tmp" if os.environ.get("GITHUB_ACTIONS") else ROOT / ".tools") / "sonar-scanner"  # noqa: S108
     cache.mkdir(parents=True, exist_ok=True)
     home = unpack(fetch(cache), cache)
     # The archive bundles its own runtime; without these the scanner
