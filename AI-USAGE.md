@@ -378,8 +378,7 @@ and only an outside check settles it.
   not stop the next occurrence, and a rule the commit runs does. The
   fix is D-086: the pipeline's CodeQL queries run before the push,
   Semgrep runs at commit time with a rule per lesson, and the page
-  gets its one lint rule. The maintainer's words: "I wonder what
-  other scans I can get to check you. Apparently you need them."
+  gets its one lint rule. The maintainer asked what other scanners could check the agent, and these are the answer.
 - **Two mechanisms were satisfied while the thing they stood for was
   not.** The agent recorded twelve PyJWT advisories as audit
   exceptions with their reasons, and the audit passed; the Scorecard
@@ -397,3 +396,24 @@ and only an outside check settles it.
   outside the standard library, an understanding no test held. The
   mapping moved to a module with no imports, and a test now runs the
   generator with site packages disabled.
+- **A week of fixes that guessed before they reproduced.** A scanner
+  step failed on a keyserver the vendor's action reaches at run time.
+  The agent pinned the action back a release on the belief that the
+  older one did not, and it did. The replacement, a checksum-pinned
+  download, then failed on a permission error that the agent attributed
+  to the pipeline's mounts and pushed around, twice, before running the
+  pipeline's own image on the author's machine, where the cause took
+  minutes to find: zip extraction drops every file mode, and the
+  runtime's spawn helper had lost its execute bit. The commit messages
+  along the way assert each wrong cause as fact. The same week the agent
+  left the mounts theory in the script after the real fix, kept
+  twenty-five permission rules that a hook had made pointless, wrote a
+  containment check as a string prefix, a handler that caught everything
+  and said nothing, a step that trusted a commit author name, two
+  pipeline scripts with no tests, and a README section beside the one
+  that already said it, and was working from a copy of the standards
+  358 lines behind their source. The reading is the one D-086 already
+  recorded: a rule in prose did not hold under pressure, and a check
+  that runs does. build-doctrine's D-037 writes the rules and the four
+  checks; this repository adopts them in this change and the next.
+

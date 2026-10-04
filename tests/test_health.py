@@ -26,3 +26,18 @@ def test_readiness_reports_unavailable(
     assert response.status_code == 503
     # No failure detail in the body, only availability.
     assert response.json() == {"status": "unavailable"}
+
+
+def test_readiness_reports_unavailable_on_a_database_error(monkeypatch) -> None:
+    """The handler names the database layer's errors and nothing else:
+    an operational error reads as unavailable, with no detail leaking."""
+    from sqlalchemy.exc import OperationalError
+
+    from manifest_identity.core import db
+
+    def broken_engine():
+        raise OperationalError("SELECT 1", {}, Exception("refused"))
+
+    monkeypatch.setattr(db, "get_engine", broken_engine)
+    assert db.database_reachable() is False
+
