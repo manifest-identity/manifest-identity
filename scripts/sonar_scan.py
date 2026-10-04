@@ -55,10 +55,15 @@ def unpack(archive: Path, into: Path) -> Path:
                 if not str(target).startswith(str(into.resolve())):
                     raise SystemExit(f"{ARCHIVE}: member {member.filename} escapes the directory")
             z.extractall(into)
-        # Zip extraction drops the execute bits.
-        for name in ("bin/sonar-scanner", "jre/bin/java"):
-            path = home / name
-            path.chmod(path.stat().st_mode | 0o111)
+            # Zip extraction drops every Unix mode. The runtime needs
+            # more than its java binary executable: it spawns processes
+            # through lib/jspawnhelper, and a helper without its execute
+            # bit fails every spawn with error 13. Restore the modes the
+            # archive recorded for each member.
+            for member in z.infolist():
+                mode = (member.external_attr >> 16) & 0o777
+                if mode and not member.is_dir():
+                    (into / member.filename).chmod(mode)
     return home
 
 
