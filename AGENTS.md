@@ -5,8 +5,8 @@ rule. This file is a point-in-time copy adopted at project start.
 
 # Standards
 
-The doctrine. Each rule states what to do; [ENFORCEMENT.md](ENFORCEMENT.md)
-states what checks it, and [DECISIONS.md](DECISIONS.md) states which failure
+The doctrine. Each rule states what to do; [ENFORCEMENT.md](https://github.com/tltaylor1/build-doctrine/blob/main/ENFORCEMENT.md)
+states what checks it, and [DECISIONS.md](https://github.com/tltaylor1/build-doctrine/blob/main/DECISIONS.md) states which failure
 produced it.
 
 **Contents:** [The fundamentals](#the-fundamentals) · [Principles](#principles) · [The layers](#the-layers) · [Planning](#planning) · [Writing](#writing) · [The code](#the-code) · [The containers](#the-containers) · [The pipelines](#the-pipelines) · [The platforms](#the-platforms) · [Git practice](#git-practice) · [Working with an AI agent](#working-with-an-ai-agent) · [Definition of done](#definition-of-done) · [Not yet covered, and why](#not-yet-covered-and-why)
@@ -18,7 +18,7 @@ produced it.
 The handful of things that make code secure, in plain words, before the
 rules state them precisely. Each one says what the danger actually is,
 then points at the rule that answers it below, at the tier in
-[ENFORCEMENT.md](ENFORCEMENT.md) that checks it, and at the repository
+[ENFORCEMENT.md](https://github.com/tltaylor1/build-doctrine/blob/main/ENFORCEMENT.md) that checks it, and at the repository
 where the check runs.
 
 Only the plain words live here. The rule is stated once, in its own
@@ -128,7 +128,7 @@ without a date is a risk forgotten.
 
 Stated in [Planning](#planning) and [Git practice](#git-practice). Proven in
 manifest-identity's decisions record and this repository's
-[DECISIONS.md](DECISIONS.md).
+[DECISIONS.md](https://github.com/tltaylor1/build-doctrine/blob/main/DECISIONS.md).
 
 ### What is not here
 
@@ -161,8 +161,8 @@ against these.
 6. **The standards are not fixed.** Every incident that review catches becomes a
    rule, and every rule records the incident that produced it. A standard that
    never changes is not stable, it is unmaintained. The mechanism is
-   [DECISIONS.md](DECISIONS.md), where each entry names its cause, and the
-   promotion path in [ENFORCEMENT.md](ENFORCEMENT.md), where a human check that
+   [DECISIONS.md](https://github.com/tltaylor1/build-doctrine/blob/main/DECISIONS.md), where each entry names its cause, and the
+   promotion path in [ENFORCEMENT.md](https://github.com/tltaylor1/build-doctrine/blob/main/ENFORCEMENT.md), where a human check that
    catches the same problem twice becomes an automated one. Treating the
    standards as final is the failure this baseline is built to avoid.
 
@@ -351,7 +351,7 @@ data, how data changes, that the service stays usable, and that
 actions carry their actor.
 **Enforced by:** the commit hooks, linters, type checks, tests with
 mutation proof, and secret scanners in
-[ENFORCEMENT.md](ENFORCEMENT.md) tiers one and two.
+[ENFORCEMENT.md](https://github.com/tltaylor1/build-doctrine/blob/main/ENFORCEMENT.md) tiers one and two.
 **Only a human can attest:** that decision records and intent comments
 are honest, and that generated code was understood before it was
 accepted.
@@ -689,7 +689,7 @@ adopting an outside application.
   Best Practices level, the license, the date of the last push and the
   latest release, whether the repository is archived, and its published
   advisories. `scripts/vet.py` produces the record from public interfaces,
-  and [VETTING.md](VETTING.md) says what each reading means;
+  and [VETTING.md](https://github.com/tltaylor1/build-doctrine/blob/main/VETTING.md) says what each reading means;
   the record is pasted into the adopting repository's decisions record
   with the acceptance block filled in.
 - What runs at install time is inspected before anything is installed:
@@ -741,7 +741,7 @@ adopting an outside application.
 **Protects:** the boundary around the process: what the workload can
 reach and change when the code inside it fails.
 **Enforced by:** digest pins, build-file lint, image scans, and the
-verify-by-command checks in [ENFORCEMENT.md](ENFORCEMENT.md) tier
+verify-by-command checks in [ENFORCEMENT.md](https://github.com/tltaylor1/build-doctrine/blob/main/ENFORCEMENT.md) tier
 three.
 **Only a human can attest:** that the runtime flags match the
 documents, by running the printed verification commands at each
@@ -775,7 +775,7 @@ checksum-verified tool downloads, workflow lint and audit, and the
 required checks in the repository ruleset.
 **Only a human can attest:** that the ruleset and its required checks
 are actually configured, because settings have no diff; the
-attestation lives in [PLATFORM-BASELINE.md](PLATFORM-BASELINE.md).
+attestation lives in [PLATFORM-BASELINE.md](https://github.com/tltaylor1/build-doctrine/blob/main/PLATFORM-BASELINE.md).
 
 - Every third-party action is pinned to a full commit hash with the
   version kept as a comment for the reader. A tag can be moved to
@@ -825,7 +825,7 @@ attestation lives in [PLATFORM-BASELINE.md](PLATFORM-BASELINE.md).
 **Protects:** the ground under everything: the accounts, identities,
 and settings that no repository file can see and no diff ever shows.
 **Enforced by:** nothing automatic yet; the mechanism is
-[PLATFORM-BASELINE.md](PLATFORM-BASELINE.md), where every platform
+[PLATFORM-BASELINE.md](https://github.com/tltaylor1/build-doctrine/blob/main/PLATFORM-BASELINE.md), where every platform
 item is checked by a gate, attested with an expiry, or accepted with a
 reason.
 **Only a human can attest:** each attested row, dated and re-attested
@@ -891,9 +891,9 @@ Two working sketches carry this section's shape: how the agent's work
 is checked on its way to a mainline, and which identity holds which
 credential.
 
-![How the agent's work is checked](diagrams/agent-gates-sketch.svg)
+![How the agent's work is checked](https://github.com/tltaylor1/build-doctrine/blob/main/diagrams/agent-gates-sketch.svg)
 
-![The identities that govern a build](diagrams/build-identities-sketch.svg)
+![The identities that govern a build](https://github.com/tltaylor1/build-doctrine/blob/main/diagrams/build-identities-sketch.svg)
 
 - The agent works against these standards, which are copied into the project as
   `AGENTS.md`, with a one-line `CLAUDE.md` pointing to it, so they are in force
@@ -986,7 +986,9 @@ credential.
   assert causes the next commit disproved.
 - The copy of these standards inside a repository is compared with the
   source at session start, and a copy behind the source is brought up to
-  date before work begins. From the application repository (October
+  date before work begins. The copy is written by the doctrine's own
+  script, which points the source's relative links at this repository,
+  and never pasted. From the application repository (October
   2026), whose copy was 358 lines against a 995-line source, so the rules
   the agent broke that week were not in the file it was reading.
 
@@ -1049,4 +1051,4 @@ identical from outside; only this section distinguishes them.
   standard here. Triggered by anything reachable from the public internet.
 
 Adding a rule here without a project that exercises it would produce exactly the
-unenforceable doctrine [ENFORCEMENT.md](ENFORCEMENT.md) exists to expose.
+unenforceable doctrine [ENFORCEMENT.md](https://github.com/tltaylor1/build-doctrine/blob/main/ENFORCEMENT.md) exists to expose.
