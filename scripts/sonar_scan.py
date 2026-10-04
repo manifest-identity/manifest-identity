@@ -66,7 +66,14 @@ def main(argv: list[str]) -> int:
     cache = Path(os.environ.get("RUNNER_TEMP") or (ROOT / ".tools")) / "sonar-scanner"
     cache.mkdir(parents=True, exist_ok=True)
     home = unpack(fetch(cache), cache)
-    command = [str(home / "bin" / "sonar-scanner")]
+    # The archive bundles its own runtime; without these the scanner
+    # downloads a second one into the home directory at run time and,
+    # in the pipeline container, cannot execute what it unpacked.
+    command = [
+        str(home / "bin" / "sonar-scanner"),
+        "-Dsonar.scanner.skipJreProvisioning=true",
+        f"-Dsonar.scanner.javaExePath={home / 'jre' / 'bin' / 'java'}",
+    ]
     if "--version" in argv:
         command.append("--version")
     elif not os.environ.get("SONAR_TOKEN"):
