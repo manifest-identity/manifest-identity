@@ -119,5 +119,5 @@ remains is the live pull for each, behind v0.6's first connection,
 and the providers that still enter through the table door: Ping,
 OneLogin, JumpCloud, Auth0, Google Workspace, and databases. Then
 email intake as a proposal channel if it is ever built, scope comparison in
-the delta, single sign-on at the cloud phases, and the items the
+the delta, single sign-on once control-plane's identity provider exists, and the items the
 version one roadmap above still holds.

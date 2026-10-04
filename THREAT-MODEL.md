@@ -5,7 +5,7 @@ The method: STRIDE per component (Spoofing, Tampering, Repudiation,
 Information disclosure, Denial of service, Elevation of privilege),
 ranked by likelihood and impact, each threat mapped to the control
 that answers it. The version one model is the observed half. The authorized half adds
-its own rows below (D-066), and Phase 7 changes what the tool is
+its own rows below (D-066), and the remediation work after v0.6 changes what the tool is
 allowed to do and requires a revision before any of its code is
 written.
 
@@ -54,7 +54,7 @@ Recorded so each is a decision with a reason, not a surprise.
   rather than relying on a reader finding this paragraph.
 - **Creator attribution does not exist in version one.** It arrives
   with the live provider connection, and until the organization trail
-  exists in Phase 3 it will reach back 90 days and no further.
+  exists in control-plane it will reach back 90 days and no further.
   Recorded now so the absence reads as scheduled rather than
   overlooked.
 - **Version one observes and records; it does not enforce.** An identity
@@ -115,7 +115,7 @@ builds it.
 | 15 | A stale side making the delta lie: the observed side behind reality, or the authorized side behind a revocation, so a difference is missed or invented | I | Medium | Medium | Every finding shows the last observation time of each side beside it; the authorized record's expiry is a clock the delta reads, not a field a person remembers (1.5) |
 | 16 | Alert flooding or alert loss: an automation downstream drowns in notices, or a revocation is never heard | D, R | Medium | Medium | Every alert that fires is a record with recipients, channel, and delivery result, in the chain; alerts are rate-limited per recipient; a failed delivery is recorded as failed and shown (1.9) |
 | 17 | The read API token: a per-integration credential that, stolen, hands over both records | S, I | Medium | High | Per-integration tokens, read-only, revocable, rate-limited, stored as hashes like sessions; a change feed rather than a full dump as the normal path (1.10) |
-| 18 | Email intake as a channel: a forged message becomes an authorization | S, T | Medium | High | Not built in Phase 1; when built, a message yields a proposal only, from an allowlisted and signature-checked sender, routed to an authorizer who must act on it in the page, attachments ignored, size-bounded (roadmap) |
+| 18 | Email intake as a channel: a forged message becomes an authorization | S, T | Medium | High | Not built; when built, a message yields a proposal only, from an allowlisted and signature-checked sender, routed to an authorizer who must act on it in the page, attachments ignored, size-bounded (roadmap) |
 | 19 | A relationship or eligibility the authorization never mentioned: access arriving through a trust, a delegation, or a group nobody authorized | E | Medium | High | Relationships are first-class authorizable objects; grant paths carry a mode on each hop; the delta reports access through a relationship nobody authorized, and eligibility outside any authorization (1.6) |
 | 20 | A role definition that grows after the fact: the provider adds actions to a built-in role, or an owner edits a custom one, so the authorized grant now holds more | T, E | Medium | Medium | Role definitions are versioned observations; an authorization binds to the definition hash when it is written; the changed-since finding lists the added actions and asks for a new decision (1.7) |
 
