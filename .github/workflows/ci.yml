@@ -193,15 +193,22 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tltaylor1/build-doctrine
-          ref: 110a64984ad306f4c502b571a6d359afb5cd4c81
+          ref: 3a9e72d874aae4244836e3f877458c639f4faf6e
           path: doctrine
           persist-credentials: false
       - name: score against the doctrine
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 doctrine/scripts/score.py . --repo "$GITHUB_REPOSITORY" --min-level 1
+        run: |
+          python3 doctrine/scripts/score.py . --repo "$GITHUB_REPOSITORY" --min-level 1 --badge "$RUNNER_TEMP/score.json"
+          # The badge this README shows is committed here; a fresh one must
+          # match it, so a score the repository no longer holds fails the
+          # build (build-doctrine D-038).
+          diff "$RUNNER_TEMP/score.json" badges/build-doctrine-score.json
       - name: no retired project name in active text
         run: python3 doctrine/scripts/check_names.py .
+      - name: the standards copy matches the source
+        run: python3 doctrine/scripts/check_doctrine_copy.py .
 
   resolve:
     runs-on: ubuntu-latest
