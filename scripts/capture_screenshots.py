@@ -9,8 +9,9 @@ is deliberately not in the pinned trees; install it ad hoc in a
 scratch environment (pip install playwright; playwright install
 chromium). Credentials arrive as arguments and are never written here.
 
-Six captures: the inventory, an identity's detail beside the list,
-the delta, the imports view, the campaigns, and, by hand, the report.
+Seven captures: the inventory, an identity's detail beside the list,
+its authorization section with the form, the delta, the imports view,
+the campaigns, and, by hand, the report.
 
 Usage:
   capture_screenshots.py BASE_URL USERNAME PASSWORD OUTPUT_DIR
@@ -27,7 +28,7 @@ def main() -> int:
         browser = p.chromium.launch()
         # Wide enough for the split view, so the detail capture shows
         # the identity beside the list it came from.
-        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page = browser.new_page(viewport={"width": 1440, "height": 1200})
         page.goto(base)
         page.fill('#signin-form input[name="username"]', user)
         page.fill('#signin-form input[name="password"]', password)
@@ -40,6 +41,22 @@ def main() -> int:
         page.wait_for_selector("#detail-name")
         time.sleep(0.5)
         page.screenshot(path=f"{outdir}/identity-detail.png")
+
+        # The authorization section: scrolled to the top of the panel so
+        # the whole form is on screen, then clipped to the section.
+        page.wait_for_selector("#auth-active li")
+        box = page.evaluate("""() => {
+            const h = [...document.querySelectorAll("h3")]
+                .find(e => e.textContent.trim().startsWith("Authorized to hold"));
+            const f = document.getElementById("auth-form");
+            h.scrollIntoView({block: "start"});
+            const a = h.getBoundingClientRect(), b = f.getBoundingClientRect();
+            const panel = f.parentElement.getBoundingClientRect();
+            return {x: panel.left, y: Math.max(0, a.top - 12),
+                    width: panel.width, height: b.bottom - a.top + 24};
+        }""")
+        time.sleep(0.3)
+        page.screenshot(path=f"{outdir}/authorization.png", clip=box)
         page.click("#back")
         page.wait_for_selector("#identity-rows tr")
 
