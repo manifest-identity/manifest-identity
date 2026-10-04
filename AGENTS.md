@@ -646,11 +646,19 @@ below follows from that.
   enforcement. Nothing is installed directly into a project environment, because
   a package installed by hand is absent from the lockfile and therefore absent
   from the next build.
-- Every package is verified against the public registry before adoption: the
-  name resolves to the canonical project, not a lookalike. Record it with
-  version, source, and role.
-- After any dependency change: recompile, regenerate the software bill of
-  materials, and run the audit.
+- Every package in a runtime tree, chosen directly or brought in by another,
+  is verified against the public registry before it is used: the name
+  resolves to the canonical project, not a lookalike. It is recorded in
+  DEPENDENCIES.md with its canonical source, its role, and what brought it
+  in, and without a version, which the lockfile holds. A check fails the
+  build when a tree holds a package with no record or a record names a
+  package no tree holds. From a framework update (October 2026) that
+  brought a new runtime package into two applications with nobody looking,
+  past records whose versions had gone stale in both.
+- After any dependency change: recompile and run the audit. The software
+  bill of materials is generated from the tree on every pipeline run and
+  never committed, because a committed one drifted from its tree across
+  several updates (October 2026).
 - Updates arrive as pull requests tested by the same gates as code. A
   vulnerability finding forces an update immediately rather than waiting for the
   schedule. Bumps are grouped: actions from one repository move together,

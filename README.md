@@ -1077,6 +1077,7 @@ holds the reviews and the alerts.
 | `tests/` | The attack checklist; the matrix walked row by row |
 | `scripts/` | The gates: docs-truth, digest parity, the mutation check |
 | `diagrams/` | Working sketches under the drawing doctrine |
+| `DEPENDENCIES.md` | Every runtime package with its canonical source, its role, and what brought it in, checked against the tree |
 | `requirements*.in` / `*.txt` | Chosen packages, and the hash-pinned trees that install |
 | `Dockerfile` / `docker-compose.yml` | Digest-pinned base, non-root user, the composed stack |
 | `.github/workflows/` | The pipeline: tests, types, scanners, the container jobs, and the software bill of materials each run delivers |
@@ -1430,17 +1431,7 @@ one was checked against its canonical source before adoption, and
 installs are hash-pinned: a substituted artifact fails to install
 instead of running.
 
-| Package | Canonical source | Role |
-|---|---|---|
-| fastapi | github.com/fastapi/fastapi | web framework; typed validation as the default path |
-| uvicorn | github.com/Kludex/uvicorn | application server |
-| SQLAlchemy | sqlalchemy.org | the ORM; parameterization removes injection as a class |
-| psycopg | github.com/psycopg/psycopg | PostgreSQL driver |
-| alembic | github.com/sqlalchemy/alembic | schema migrations from the first table |
-| bcrypt | github.com/pyca/bcrypt | password hashing, used directly, maintained by the Python Cryptographic Authority |
-| pydantic-settings | github.com/pydantic/pydantic-settings | fail-fast configuration |
-| python-multipart | github.com/Kludex/python-multipart | upload parsing for the two import routes |
-| jinja2 | github.com/pallets/jinja | the report engine, escaping by default (D-040) |
+Every package in the runtime tree, chosen directly or brought in by another, is recorded in [DEPENDENCIES.md](DEPENDENCIES.md) with its canonical source, its role, and what brought it in, and the doctrine job fails when the tree holds a package with no record (build-doctrine D-039).
 
 The development tree (pytest, Hypothesis, ruff, mypy, pip-audit,
 pytest-cov, pip-tools) is verified the same way and isolated in its
