@@ -9,6 +9,7 @@ from functools import lru_cache
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from manifest_identity.core.config import get_settings
@@ -41,7 +42,9 @@ def database_reachable() -> bool:
         with get_engine().connect() as connection:
             connection.execute(text("SELECT 1"))
         return True
-    except Exception:  # noqa: BLE001
+    except SQLAlchemyError:
         # Readiness reports availability, never the failure detail; the
-        # detail goes nowhere near a response body.
+        # detail goes nowhere near a response body. Only the database
+        # layer's own errors mean unavailable; anything else is a defect
+        # and surfaces.
         return False

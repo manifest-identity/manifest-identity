@@ -48,6 +48,12 @@ fi
 if printf '%s' "$message" | grep -qiE '\b(employer|employment)\b|\bits author\b'; then
   refuse "a reference to the author's situation; describe the work instead"
 fi
+# A message that names a cause names the reproduction that showed it
+# (D-037 in build-doctrine): a guess cannot write the line honestly.
+if printf '%s' "$message" | grep -qiE '\b(root cause|the cause was|the cause is|caused by)\b' \
+   && ! printf '%s' "$message" | grep -qE '^Reproduced with: '; then
+  refuse "a named cause without a 'Reproduced with: <command>' line"
+fi
 
 private_patterns="$HOME/.config/claude-guards/private-frames.txt"
 if [ -f "$private_patterns" ]; then
