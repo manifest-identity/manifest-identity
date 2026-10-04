@@ -38,10 +38,21 @@ def test_each_rule_fires_on_the_shape_that_taught_it(tmp_path: Path) -> None:
         '    return row\n'
     )
     (tmp_path / "bad.js").write_text("function go() { loadInventory(); run(loadDelta()); }\n")
+    (tmp_path / "worse.py").write_text(
+        "def inside(target, root):\n"
+        "    return str(target).startswith(str(root))\n"
+        "def quiet():\n"
+        "    try:\n"
+        "        open('x')\n"
+        "    except Exception:\n"
+        "        return None\n"
+    )
     fired = run(tmp_path)
     assert fired.count("no-decision-from-a-hostname-substring") == 1
     assert fired.count("no-credential-shaped-key-with-a-literal") == 1
     assert fired.count("no-unawaited-page-loader") == 1, "run() is the accepted form"
+    assert fired.count("no-path-containment-by-string-prefix") == 1
+    assert fired.count("no-silenced-exception") == 1
 
 
 def test_the_repository_passes_its_own_rules() -> None:

@@ -37,6 +37,43 @@ rules:
     paths:
       exclude:
         - tests/
+  - id: no-path-containment-by-string-prefix
+    languages: [python]
+    severity: ERROR
+    message: >
+      A path containment check as a string prefix accepts a sibling whose
+      name begins the same way; use Path.is_relative_to. The hostname rule
+      above exists for the same shape, and the path form was written anyway
+      in an archive extraction guard (October 2026).
+    patterns:
+      - pattern-either:
+          - pattern: str($A).startswith(str($B))
+          - pattern: str($A.resolve()).startswith(str($B.resolve()))
+          - pattern: os.path.abspath($A).startswith($B)
+  - id: no-silenced-exception
+    languages: [python]
+    severity: ERROR
+    message: >
+      A handler that catches everything and says nothing hides the failure
+      of the thing it guards. Catch the exception the code can name, and
+      state the reason in the handler (October 2026).
+    patterns:
+      - pattern-either:
+          - pattern: |
+              try:
+                ...
+              except Exception:
+                pass
+          - pattern: |
+              try:
+                ...
+              except Exception:
+                return $X
+          - pattern: |
+              try:
+                ...
+              except:
+                ...
   - id: no-unawaited-page-loader
     message: >-
       A loader started from a click and not awaited has nowhere to report

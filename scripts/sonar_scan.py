@@ -52,7 +52,7 @@ def unpack(archive: Path, into: Path) -> Path:
         with zipfile.ZipFile(archive) as z:
             for member in z.infolist():
                 target = (into / member.filename).resolve()
-                if not str(target).startswith(str(into.resolve())):
+                if not target.is_relative_to(into.resolve()):
                     raise SystemExit(f"{ARCHIVE}: member {member.filename} escapes the directory")
             z.extractall(into)
             # Zip extraction drops every Unix mode. The runtime needs
@@ -68,17 +68,14 @@ def unpack(archive: Path, into: Path) -> Path:
 
 
 def main(argv: list[str]) -> int:
-    # In the pipeline the workspace and the runner temp directory are
-    # mounted into the job container from the host and refuse to execute
-    # a binary unpacked there (error 13 on the bundled java), so the
-    # scanner lives in the container's own /tmp; locally it is cached
-    # beside the CodeQL bundles.
-    cache = Path("/tmp" if os.environ.get("GITHUB_ACTIONS") else ROOT / ".tools") / "sonar-scanner"  # noqa: S108
+    # The runner's temp directory in the pipeline, the local tool cache
+    # beside the CodeQL bundles otherwise.
+    cache = Path(os.environ.get("RUNNER_TEMP") or (ROOT / ".tools")) / "sonar-scanner"
     cache.mkdir(parents=True, exist_ok=True)
     home = unpack(fetch(cache), cache)
-    # The archive bundles its own runtime; without these the scanner
-    # downloads a second one into the home directory at run time and,
-    # in the pipeline container, cannot execute what it unpacked.
+    # The archive bundles its own runtime, verified above with the rest
+    # of it; without these the scanner downloads a second one at run
+    # time that nothing here has verified.
     command = [
         str(home / "bin" / "sonar-scanner"),
         "-Dsonar.scanner.skipJreProvisioning=true",
