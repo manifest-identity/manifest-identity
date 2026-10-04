@@ -1415,6 +1415,14 @@ while preserving the ability to answer how any decision looked at the
 time it was made. An instance holding a real organization's data
 follows that organization's records schedule where it is stricter.
 
+**Major version upgrades.** The database image is pinned by major
+version and digest, and a data volume written by one major version
+does not start under the next. The 18 image also moved its volume to
+`/var/lib/postgresql` and keeps the data directory under a
+version-named subdirectory. The path is the one above: dump under the
+old version, bring the stack up on the new one with a fresh volume,
+restore, and count the rows, in that order.
+
 **Verify the audit trail.** Every audit row carries the hash of its
 own content and the row before it, so a row altered or removed by an
 actor with owner access breaks every hash after it, and each campaign
