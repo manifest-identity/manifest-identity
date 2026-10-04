@@ -150,7 +150,7 @@ platform phases, and the program's own documents live there.
 | Tests | **427 tests in 46 files**, coverage 95 over a 90 percent floor |
 | Mutation | 34 controls removed by the check, 34 noticed by the suite |
 | Surface | **70 routes**, every one in the role matrix the tests walk |
-| Record | **87 recorded decisions**, each with its rejected alternatives |
+| Record | **88 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -1354,6 +1354,7 @@ holds the reviews and the alerts.
 | `.pre-commit-config.yaml` | Secret scan, writing rules, lint, types, the repository's own scanner rules, the page lint, and the truth gates at commit time; CodeQL before the push |
 | `.semgrep/` | The repository's own scanner rules, each one a lesson a scanner taught after a push (D-086) |
 | `scripts/scan.sh` | The pipeline's CodeQL queries run locally before the push, bundles pinned by checksum |
+| `scripts/sonar_scan.py` | SonarCloud's scanner fetched and verified against a pinned checksum, then run; no keyserver at run time |
 | `scripts/audit.sh` | Every pinned tree audited against known vulnerabilities, with no exceptions |
 | `scripts/compile_scan.py` | Compiles the scanner tree and overrides the one pin Semgrep declares too low, hashes from the index |
 | `eslint.config.mjs` / `package.json` | The page's one lint rule and its pinned tools |
@@ -1679,7 +1680,6 @@ does not name.
 | `google/clusterfuzzlite/actions/build_fuzzers` | fuzz | Builds the harnesses under fuzz/ with AddressSanitizer from the digest-pinned fuzzing base image |
 | `google/clusterfuzzlite/actions/run_fuzzers` | fuzz | Runs each harness for a bounded time against inputs derived from the change; a crash fails the check |
 | `codecov/codecov-action` | checks, the application job | Publishes the coverage report through the workflow's identity token, no stored secret, so the coverage figure is measured and shown by an outside service |
-| `SonarSource/sonarqube-scan-action` | checks, the application job, when the token is present | Runs SonarCloud's analysis on the same commit the other gates judged, importing the coverage report |
 | `actions/upload-pages-artifact` | docs | Packages the rendered site for Pages |
 | `actions/deploy-pages` | docs | Publishes the packaged site through the workflow's identity token |
 

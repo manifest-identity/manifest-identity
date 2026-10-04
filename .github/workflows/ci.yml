@@ -300,11 +300,15 @@ jobs:
         # Runs only when the token is present, so a fork or a fresh
         # clone without the secret still passes every other gate; the
         # quality gate itself is read on the SonarCloud side.
+        # The vendor's action verifies its download through a public
+        # keyserver at run time and fails when the keyserver does not
+        # answer; the script verifies the same archive against a pinned
+        # checksum, like every other tool this pipeline downloads (D-088).
         if: env.SONARQUBE_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
         env:
           SONAR_TOKEN: ${{ env.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
+        run: python3 scripts/sonar_scan.py
       - name: mutation check
         # Break one control at a time; the tests that claim it must
         # fail. Seven reviewed mutations, minutes not hours (D-041).

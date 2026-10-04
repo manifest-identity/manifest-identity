@@ -2593,3 +2593,29 @@ the maintainer's key, which would put his signature on work he had
 not yet read; and holding releases until the agent's commits can be
 signed under a key of their own, which the platform does not offer an
 app installation.
+
+## D-088: A tool the pipeline downloads is verified against a pinned checksum, never through a keyserver at run time
+
+SonarCloud's scanner action downloads the scanner and then verifies
+it by importing the vendor's signing key from public keyservers, and
+on October 4 the keyservers did not answer three times in two hours.
+Every run that reached the step failed, on changes that had nothing
+to do with the scanner, and the first response, pinning the action
+back a release, failed the same way because that release does the
+same thing. The step depended on a third party's availability at run
+time, which no pin can fix.
+
+The scanner now arrives the way kubeconform, kube-linter, Trivy, and
+the CodeQL bundles already do: `scripts/sonar_scan.py` fetches the
+vendor's archive, compares it to the SHA-256 the vendor publishes and
+this repository pins, unpacks it, and runs it. The only network call
+before the scan is the download itself, and a wrong byte fails the
+build with the two digests named. A version bump is a change to two
+pinned strings in one file, reviewed like any other.
+
+Rejected: the action's switch that skips signature verification,
+which keeps the dependency and drops the check; and treating the
+failures as weather to re-run through, which cost an afternoon and
+would cost the next one. The rule generalizes: a pipeline step that
+reaches a service other than the one it exists to use is a dependency,
+and it is pinned or it is removed.
