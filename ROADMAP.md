@@ -101,7 +101,7 @@ the first tag since the repository stood alone (D-087).
 - The generic observed importer with a source selector on the Imports
   page. **Built.**
 - GitHub as the second provider (D-067), proven against a generated
-  organization rather than the program's own estate, which is never
+  organization rather than the maintainer's own estate, which is never
   published (D-076). **Built.**
 
 ### v0.6: connect

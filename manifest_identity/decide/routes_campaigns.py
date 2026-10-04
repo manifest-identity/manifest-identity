@@ -472,7 +472,7 @@ def insufficient_evidence_rollup(
 ) -> list[RollupEntry]:
     """Every insufficient-evidence answer across every campaign, with
     what was missing. One recurring line here is a reviewer's problem;
-    the same line across a column is the program's problem."""
+    the same line across a column is the application's problem."""
     rows = db.execute(
         select(CampaignItem, Campaign)
         .join(Campaign, CampaignItem.campaign_id == Campaign.id)

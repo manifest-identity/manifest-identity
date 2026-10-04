@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""The docs-truth gate (D-031, narrowed at the program split).
+"""The docs-truth gate (D-031, narrowed at the control-plane split).
 
-The phase-status machinery moved to the program repository with the
+The phase-status machinery moved to control-plane with the
 journey diagram; what remains here is the ban on the specific stale
 claims that once sat in public documents for weeks. Scoped to the
 status-bearing documents on purpose, so history-keeping files can

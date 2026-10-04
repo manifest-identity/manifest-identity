@@ -710,7 +710,7 @@ Insufficient evidence must name what was missing and delegation must
 name who holds it now, because those answers are meaningless without
 their notes; the rollup collects the missing-evidence notes across
 campaigns, since one recurring note is a reviewer's problem and the
-same note across a column is the program's problem. A decision is
+same note across a column is the application's problem. A decision is
 final within its campaign, a changed mind being the next campaign's
 decision, and close refuses while any item is unanswered, because an
 access review with gaps is a false population statement. The evidence
