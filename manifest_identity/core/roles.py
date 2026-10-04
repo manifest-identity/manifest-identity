@@ -22,6 +22,7 @@ ALL_ROLES: frozenset[Role] = frozenset(Role)
 ROUTE_ROLES: dict[str, frozenset[Role]] = {
     "GET /auth/me": ALL_ROLES,
     "POST /auth/logout": ALL_ROLES,
+    "POST /auth/step-up": ALL_ROLES,
     "GET /admin/users": frozenset({Role.administrator}),
     "POST /admin/users": frozenset({Role.administrator}),
     # Ending a compromised user's sessions is the administrator's act,
@@ -168,5 +169,23 @@ TOKEN_ROUTES: frozenset[str] = frozenset(
         "GET /api/v1/identities",
         "GET /api/v1/delta",
         "GET /api/v1/changes",
+    }
+)
+
+# Routes that need the password given within the step-up window
+# (D-089): bulk disclosure, bulk change of the authorized record, and
+# credential creation. Each declares the step-up dependency itself; a
+# test holds this list and the declarations to each other.
+STEP_UP_ROUTES: frozenset[str] = frozenset(
+    {
+        "GET /export.csv",
+        "GET /export.json",
+        "GET /report.html",
+        "GET /campaigns/{campaign_id}/evidence",
+        "GET /campaigns/{campaign_id}/evidence.csv",
+        "GET /export/observed-grants.csv",
+        "POST /authorizations/import",
+        "POST /admin/users",
+        "POST /admin/tokens",
     }
 )

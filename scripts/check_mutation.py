@@ -19,6 +19,15 @@ from pathlib import Path
 
 MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
     (
+        # D-089: a session that gave its password an hour ago must not
+        # take a bulk export; without the refusal, any live session does.
+        "a stale session takes a bulk export without its password",
+        "manifest_identity/core/deps.py",
+        "    if given is None or datetime.now(UTC) - given > window:",
+        "    if False:",
+        ["tests/test_step_up.py"],
+    ),
+    (
         # 1.6: access that arrives by assuming a role is the half an
         # inventory of attached policies cannot see. Treating it as
         # standing would hide it inside what an identity already holds.

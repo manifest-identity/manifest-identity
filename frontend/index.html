@@ -65,6 +65,13 @@
 
   <main>
     <p id="page-error" class="empty" role="alert" hidden></p>
+    <form id="stepup-form" hidden>
+      <p>This action discloses or changes data in bulk, or creates a credential, so it needs your password again.</p>
+      <label>Password <input name="password" type="password" autocomplete="current-password" maxlength="256" required></label>
+      <button type="submit">Continue</button>
+      <button type="button" id="stepup-cancel">Cancel</button>
+      <p id="stepup-error" class="empty" role="alert" hidden>That password was not accepted.</p>
+    </form>
     <section id="signin">
       <div class="page-head"><h2>Sign in</h2></div>
       <form id="signin-form">

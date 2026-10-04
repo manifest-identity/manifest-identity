@@ -2619,3 +2619,33 @@ failures as weather to re-run through, which cost an afternoon and
 would cost the next one. The rule generalizes: a pipeline step that
 reaches a service other than the one it exists to use is a dependency,
 and it is pinned or it is removed.
+
+## D-089: The password again for bulk and for credentials, a record of every disclosure, and rejected input that never comes back
+
+A session proves who signed in, not who is at the keyboard now. Until
+this decision, any live session could export the whole inventory, the
+risk report, the evidence of every campaign, and every observed grant,
+replace the authorized record in bulk from a file, and create a user or
+an integration token, all with nothing more than the token it already
+held. A stolen or unattended session was therefore the whole estate.
+
+Three changes. Every export, the authorization file import, and user
+and token creation need the password given within the last five
+minutes; signing in counts, and `POST /auth/step-up` gives it again,
+with its own audit row and the sign-in limiter's budget. The page asks
+once when the server answers `step_up_required` and repeats the request.
+The routes are one list in `core/roles.py` and each declares the
+dependency; a test holds the two to each other, and a mutation that
+removes the refusal is noticed. Every export now writes an audit record
+of who took what, because a bulk export is a disclosure and was until
+now the one kind of read that left no trace. An evidence export records
+itself before it reads the audit chain's head, so the head the file
+carries includes its own disclosure. And every import door is
+sent a file carrying a marker string in three shapes it rejects, and
+the marker reaches no response, log line, or audit record.
+
+Rejected: step-up on every write, which would make the password a
+reflex; a longer window, which is a longer life for a stolen session;
+and leaving the imports of observed data out of the marker test, since
+they are the doors most likely to receive a file with a live key in it.
+

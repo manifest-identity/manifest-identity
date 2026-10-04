@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from manifest_identity.api.models import IntegrationToken
 from manifest_identity.core import audit, security
 from manifest_identity.core.db import get_session
-from manifest_identity.core.deps import AuthContext, require_roles, require_scope
+from manifest_identity.core.deps import AuthContext, SteppedUp, require_roles, require_scope
 from manifest_identity.core.models import utcnow
 
 router = APIRouter(prefix="/admin/tokens", tags=["tokens"])
@@ -73,6 +73,7 @@ def create_token(
     body: CreateToken,
     db: Annotated[Session, Depends(get_session)],
     auth: Annotated[AuthContext, require_roles("POST /admin/tokens")],
+    _stepped: SteppedUp,
 ) -> MintedToken:
     require_scope(db, auth, "POST /admin/tokens", None)
     if db.execute(

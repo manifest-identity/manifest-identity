@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
-from manifest_identity.core.deps import require_roles
+from manifest_identity.core.deps import SteppedUp, require_roles
 from manifest_identity.decide.reports import (
     evidence_to_csv,
     group_row,
@@ -35,9 +35,20 @@ def _as_of(db: Session) -> str | None:
     return newest.isoformat(timespec="seconds") if newest else None
 
 
+def _disclosed(db: Session, auth: SteppedUp, target: str, detail: str) -> None:
+    """Every export is a disclosure, and a disclosure leaves a record
+    of who took what (D-089)."""
+    audit.record(
+        db, actor_user_id=auth.user.id, actor_username=auth.user.username,
+        action="export", target=target, detail=detail,
+    )
+    db.commit()
+
+
 @router.get("/export.csv", dependencies=[require_roles("GET /export.csv")])
-def export_csv(db: Annotated[Session, Depends(get_session)]) -> Response:
+def export_csv(db: Annotated[Session, Depends(get_session)], auth: SteppedUp) -> Response:
     rows = [identity_row(a) for a in assess_identities(db)]
+    _disclosed(db, auth, "export.csv", f"{len(rows)} identities")
     return Response(
         content=to_csv(rows),
         media_type="text/csv; charset=utf-8",
@@ -55,22 +66,25 @@ class ExportEnvelope(BaseModel):
 
 @router.get("/export.json", dependencies=[require_roles("GET /export.json")])
 def export_json(
-    db: Annotated[Session, Depends(get_session)],
+    db: Annotated[Session, Depends(get_session)], auth: SteppedUp,
 ) -> ExportEnvelope:
-    return ExportEnvelope(
+    envelope = ExportEnvelope(
         as_of=_as_of(db),
         identities=rank([identity_row(a) for a in assess_identities(db)]),
         groups=[group_row(g) for g in assess_groups(db)],
     )
+    _disclosed(
+        db, auth, "export.json",
+        f"{len(envelope.identities)} identities, {len(envelope.groups)} groups",
+    )
+    return envelope
 
 
 @router.get("/report.html", dependencies=[require_roles("GET /report.html")])
-def report_html(db: Annotated[Session, Depends(get_session)]) -> Response:
-    html = render_report(
-        [identity_row(a) for a in assess_identities(db)],
-        [group_row(g) for g in assess_groups(db)],
-        _as_of(db),
-    )
+def report_html(db: Annotated[Session, Depends(get_session)], auth: SteppedUp) -> Response:
+    identities = [identity_row(a) for a in assess_identities(db)]
+    html = render_report(identities, [group_row(g) for g in assess_groups(db)], _as_of(db))
+    _disclosed(db, auth, "report.html", f"{len(identities)} identities")
     return Response(
         content=html,
         media_type="text/html; charset=utf-8",
@@ -120,11 +134,29 @@ class EvidenceExport(BaseModel):
     dependencies=[require_roles("GET /campaigns/{campaign_id}/evidence")],
 )
 def campaign_evidence(
-    campaign_id: int, db: Annotated[Session, Depends(get_session)]
+    campaign_id: int, db: Annotated[Session, Depends(get_session)], auth: SteppedUp
 ) -> EvidenceExport:
     """The per-campaign evidence file: the population statement, the
     coverage, and every decision with its actor and time. This is what
     gets handed to whoever asks how the review was done."""
+    _record_evidence(db, auth, campaign_id, "evidence")
+    return _evidence(campaign_id, db)
+
+
+def _record_evidence(db: Session, auth: SteppedUp, campaign_id: int, kind: str) -> None:
+    """The export records itself before it reads the chain head, so the
+    head the file carries includes its own disclosure."""
+    if db.get(Campaign, campaign_id) is None:
+        raise HTTPException(status_code=404, detail="no such campaign")
+    total = db.scalar(
+        select(func.count())
+        .select_from(CampaignItem)
+        .where(CampaignItem.campaign_id == campaign_id)
+    )
+    _disclosed(db, auth, f"campaign:{campaign_id}", f"{kind}, {total} items")
+
+
+def _evidence(campaign_id: int, db: Session) -> EvidenceExport:
     campaign = db.get(Campaign, campaign_id)
     if campaign is None:
         raise HTTPException(status_code=404, detail="no such campaign")
@@ -184,13 +216,14 @@ def campaign_evidence(
     dependencies=[require_roles("GET /campaigns/{campaign_id}/evidence.csv")],
 )
 def campaign_evidence_csv(
-    campaign_id: int, db: Annotated[Session, Depends(get_session)]
+    campaign_id: int, db: Annotated[Session, Depends(get_session)], auth: SteppedUp
 ) -> Response:
     """The same evidence file for people who live in spreadsheets
     (issue 58): built from the JSON export, never a second read, so
     the two artifacts cannot disagree about the population or a
     decision."""
-    export = campaign_evidence(campaign_id, db)
+    _record_evidence(db, auth, campaign_id, "evidence csv")
+    export = _evidence(campaign_id, db)
     return Response(
         content=evidence_to_csv(export.model_dump()),
         media_type="text/csv; charset=utf-8",

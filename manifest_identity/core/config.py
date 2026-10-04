@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     # a stolen token has a bounded life no matter how actively it is used.
     session_ttl_hours: int = 12
 
+    # A session that gave its password longer ago than this is asked for
+    # it again before bulk disclosure, bulk change, or credential
+    # creation (D-089). Sign-in counts as giving it.
+    step_up_minutes: int = 5
+
     # When both are set, startup creates this administrator if no user
     # with that name exists, and never touches an existing one.
     admin_username: str | None = None

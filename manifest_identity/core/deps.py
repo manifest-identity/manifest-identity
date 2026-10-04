@@ -8,7 +8,7 @@ an answer they can act on.
 """
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, params
@@ -16,6 +16,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.core.config import get_settings
 from manifest_identity.core.db import get_session
 from manifest_identity.core.ratelimit import WRITE_LIMITER
 from manifest_identity.core.roles import ROUTE_ROLES, Role
@@ -75,6 +76,24 @@ def _throttle_writes(auth: CurrentAuth) -> AuthContext:
 
 
 ThrottledWrite = Annotated[AuthContext, Depends(_throttle_writes)]
+
+
+def require_step_up(auth: CurrentAuth) -> AuthContext:
+    """Step-up (D-089): a session proves who signed in, not who is at
+    the keyboard now, so an action that discloses or changes data in
+    bulk, or creates a credential, needs the password given within the
+    last few minutes. The refusal is a 403 with a fixed detail the page
+    recognizes and answers by asking for the password once."""
+    given = auth.session.stepped_up_at
+    if given is not None and given.tzinfo is None:
+        given = given.replace(tzinfo=UTC)
+    window = timedelta(minutes=get_settings().step_up_minutes)
+    if given is None or datetime.now(UTC) - given > window:
+        raise HTTPException(status_code=403, detail="step_up_required")
+    return auth
+
+
+SteppedUp = Annotated[AuthContext, Depends(require_step_up)]
 
 
 def require_roles(route_key: str) -> params.Depends:
