@@ -30,51 +30,16 @@ Kubernetes, Google Cloud, Azure and Entra, Okta, Active Directory)
 and any other provider's table through a mapping, and it holds no
 provider credential.
 
-**Design boundaries**
-
-- It reads every provider and changes none of them, and it holds no
-  provider credential.
-- Every identity's state, and every difference between the two records,
-  is computed from the stored history at read time and never kept as a
-  status that could drift. The computed difference is called the delta.
-- The application finds and presents; a person makes every review
-  decision, and the approver is taken from the session, never from a
-  form.
-- When the owner a provider tags and the owner a person authorized
-  disagree, the disagreement is shown as a finding rather than resolved.
-
 **Start here**
 
 1. [What this is](#what-this-is), in this document.
-2. [ARCHITECTURE.md](ARCHITECTURE.md): components, data flow, trust boundaries.
-3. [How it is put together](#how-it-is-put-together): the data model, in this document.
-4. [SECURITY.md](SECURITY.md): the controls, each mapped to the threat it answers.
+2. [ARCHITECTURE.md](ARCHITECTURE.md): the model, the tables, data flow, trust boundaries.
+3. [SECURITY.md](SECURITY.md): the controls, each mapped to the threat it answers.
+4. [THREAT-MODEL.md](THREAT-MODEL.md): the threats, ranked, with the accepted risks.
 5. [DECISIONS.md](DECISIONS.md): every choice with the alternatives it rejected.
-6. [How it was built and gated](#how-it-was-built-and-gated), in this document.
-
-**Current scope**
-
-This document describes what is built. [ROADMAP.md](ROADMAP.md) lists
-what is planned and marks each item built or not, and v0.5.0 is the
-current release.
-
-**How this is checked**
-
-- Authorization: the role matrix every route is in, walked by
-  [tests/test_matrix.py](tests/test_matrix.py), and the scope check by
-  [tests/test_scope.py](tests/test_scope.py).
-- Audit integrity: the chain in [tests/test_audit_chain.py](tests/test_audit_chain.py).
-- Database privileges: the runtime role cannot change the schema
-  (D-051), held by a probe in [the pipeline](.github/workflows/ci.yml)
-  that connects as that role and tries.
-- Runtime controls: every claim in
-  [Running it on Kubernetes](#running-it-on-kubernetes) names its probe.
-- Release integrity: every release artifact carries a build provenance
-  attestation from [the release workflow](.github/workflows/release.yml),
-  verifiable against the platform's log.
-- Published counts: the figures in the table above are recounted by
-  [tests/test_matrix.py](tests/test_matrix.py), and a stated figure that
-  drifts from the counted one fails the build.
+6. [ROADMAP.md](ROADMAP.md): what is planned, by version, each item marked built or not.
+7. [How it was built and gated](#how-it-was-built-and-gated), in this document.
+8. [AGENTS.md](AGENTS.md): the standards this repository is built to.
 
 **If you run a cloud account, this happens to you.** Service accounts
 get created for one integration, roles get broad policies so something
@@ -138,10 +103,9 @@ owns this, is it still needed, and did anyone say it should exist" and
 prove they asked. It is not a provisioning tool and it does not change
 anything in any provider.
 
-manifest-identity is one application inside
-[control-plane](https://tltaylor1.github.io/control-plane/), a security engineering
-program built in public; the roadmap around this application, the
-platform phases, and the program's own documents live there.
+manifest-identity stands on its own: its roadmap is
+[ROADMAP.md](ROADMAP.md), and the platform it will deploy to is built as
+code in [control-plane](https://tltaylor1.github.io/control-plane/).
 
 **The measured figures, each counted by a test:**
 
@@ -200,8 +164,6 @@ The design lives in three files beside this one: [ARCHITECTURE.md](ARCHITECTURE.
 - [What comes next, and what never will](#what-comes-next-and-what-never-will)
 - [What done means here](#what-done-means-here)
 - [Contributing](#contributing)
-- [Diagrams to draw](#diagrams-to-draw)
-- [Where to read next](#where-to-read-next)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
 
@@ -244,30 +206,6 @@ documents say so.
 -------------------------------------------------------------------------------
 
 ## What this is
-
-You feed manifest-identity the export files your providers already
-produce: a record of every identity in an account, an organization, a
-cluster, a project, or a tenant at one moment. It keeps every import
-and never edits an old one. When you open the inventory, it works out
-each identity's situation at that moment: compare the newest import
-with the history, add what people have recorded, and show the result.
-No status is ever stored, so no status can go stale or be quietly
-changed; the answer is recomputed from the evidence every time you ask.
-
-Beside that observed record it keeps a second one that no export can
-supply: what each identity is supposed to hold, said by a named person,
-for a period, with an owner. The difference between the two records is
-what the product exists to show, and the review campaigns exist to put
-each difference in front of the person who can answer it.
-
-People supply what the files cannot: who owns this identity, which one
-is suspicious, which one was reviewed and found fine, which access was
-meant. Each of those records is saved with who said it and when, and
-the same database action that saves it also writes the audit line, so
-a decision cannot exist without its record. Reports and exports come
-from the same computation the screen shows, so they cannot disagree
-with it. And in version one the tool never connects to any provider:
-files come in, reports go out, and nothing else moves.
 
 ### What it does
 
@@ -395,6 +333,13 @@ something else:
   them.
 - Not a judge. It recommends with its reasons and a named person
   decides, every time.
+- Not a status store. Every identity's state and every difference
+  between the two records is computed from the stored history at read
+  time, never kept as a status that could drift; the computed
+  difference is the delta.
+- Not an arbiter of ownership. When the owner a provider tags and the
+  owner a person authorized disagree, the disagreement is shown as a
+  finding rather than resolved.
 
 -------------------------------------------------------------------------------
 
@@ -765,7 +710,7 @@ Insufficient evidence must name what was missing and delegation must
 name who holds it now, because those answers are meaningless without
 their notes; the rollup collects the missing-evidence notes across
 campaigns, since one recurring note is a reviewer's problem and the
-same note across a column is the program's problem. A decision is
+same note across a column is the application's problem. A decision is
 final within its campaign, a changed mind being the next campaign's
 decision, and close refuses while any item is unanswered, because an
 access review with gaps is a false population statement. The evidence
@@ -925,28 +870,9 @@ failure happened, not what was typed.
 
 ### Trust boundaries
 
-Three boundaries, in order of hostility:
-
-1. **The imported file.** The only input the application
-   accepts from outside, treated as hostile in every particular even
-   though it nominally comes from a cloud provider's own reporting:
-   bounded, parsed in memory, verified against its own claims, never
-   echoed.
-2. **The browser session.** Authenticated on every request; nothing
-   about a session is trusted from one request to the next. Identity
-   names, tags, and paths inside imported data are
-   attacker-influenceable and are rendered as text, never markup,
-   because the person most exposed to this data is the operator
-   reading it.
-3. **The exports.** Everything leaving the system passes an allowlist:
-   the response models for the API, formula escaping for the
-   spreadsheet forms, and deliberate field selection for the report,
-   because the inventory is a map of the account's weakest identities
-   and an export is that map on the move.
-
-Version one has no outbound connection to any provider. The cloud
-credential and its boundary arrive with the cloud phases and get their
-own threat model revision first.
+The four boundaries, the three of version one and the one the
+authorized half added, are in
+[ARCHITECTURE.md](ARCHITECTURE.md#trust-boundaries).
 
 -------------------------------------------------------------------------------
 
@@ -1000,205 +926,8 @@ disagree with the screen.
 
 ### The data model shape
 
-The model is provider-neutral: no table carries a word only one cloud
-uses, and the provider's own vocabulary ends at the parser (D-071).
-
-```
-scope_nodes --< scope_nodes (the tree, global at the top)
-scope_nodes --< imports --< identity_observations >-- identities
-imports --< credentials >-- identities
-imports --< grants >-- identities, role_definitions, scope_nodes
-imports --< memberships >-- identities (groups are identities)
-imports --< observed_relationships >-- identities
-identities --< governance_records
-identities --< authorizations >-- scope_nodes
-users --< role_bindings >-- scope_nodes
-campaigns --< campaign_items
-alerts --< alert_deliveries
-audit_events
-```
-
-- A **scope node** is one place in a provider's hierarchy: an
-  organization, an account, a tenant, a subscription, a cluster. Each
-  names its partition explicitly, commercial or government, so a
-  government estate is labeled on every record rather than inferred.
-  One synthetic node named **global** sits above all of them.
-- An **identity** is one principal at one scope node, keyed by the
-  provider's immutable identifier, never the name or ARN, which are
-  display attributes (D-016). A recreated principal is a new identity.
-  Groups are identities of kind group: governable sources of
-  privilege, never actors (D-019).
-- An **import** is one file or pull: one scope node, one source kind,
-  one capture time taken from the file's own content (D-008), unique
-  on that triple, so a re-import is rejected rather than
-  double-counted.
-- A **credential** is one credential as one import saw it. Two access
-  keys are two rows and a provider with five is five rows, so nothing
-  in the model assumes a cloud that offers exactly two.
-- A **grant** is an identity holding a **role definition** at a scope,
-  by a path and in a mode. The path records how the privilege arrives,
-  hop by hop, through a membership or a trust; the mode records
-  whether it is held now or can be obtained, which is what PIM-style
-  eligibility is. A role definition is versioned by the hash of its
-  contents, so a changed built-in role is a new row and a review can
-  show what the role allowed on the day of the decision.
-- A **role binding** is authority: a user holding a role at a scope
-  node, covering that node and everything beneath it (D-072). Users
-  carry no role column. A binding is revoked, never deleted, so the
-  record of who could act when survives.
-- An **authorization** is what a person said an identity may hold:
-  one grant path, an owner, the authorizer taken from the session, a
-  justification, and a window that ends (D-073). Nothing is edited. A
-  renewal writes a new row that supersedes the old one and a
-  revocation writes one too, so the chain from the first authorization
-  to the last is the history. Expiry is the clock compared to a
-  column, never a job that might not run. Which fields an
-  authorization must carry is the administrator's choice, shipped
-  strict, and every change to that choice is audited (D-070).
-  Authorizations arrive through the form on an identity's page or
-  through a file. A file
-  keeps its own shape: the import carries a **mapping** that names
-  which of their columns holds each field, or a constant for a field
-  their file does not have, so nobody is asked to transform their
-  spreadsheet before they get anything back (D-074). A mapping is
-  written and superseded rather than edited, and every import names
-  the mapping that read it, so a mapping later found wrong leaves
-  every row it produced findable. Nothing is guessed: a missing
-  required column refuses the file, a missing optional one is named
-  in the result, unmapped columns are counted, and a date is read by
-  a format the mapping declares, because 03/04/2026 is two different
-  days in two countries. A dry run shows how the file was understood
-  and writes nothing.
-  Neither door asks anyone to retype what the system can already see.
-  The observed grants come back in the authorized record's own shape,
-  as a prefill on an identity's page and as an export in the import's
-  columns, with the owner and the justification left empty because
-  they are the two things the observed side cannot know. What already
-  carries an authorization is marked, so the page asks where the
-  answer is still owed. It prefills and never writes: turning what is
-  into what should be without a person in the middle would leave the
-  delta comparing the observed record against a copy of itself
-  (D-024).
-- The **delta** is the product, and it is stored nowhere. It is the
-  difference between the two records, computed every time somebody
-  asks, in nine classes: held but not authorized, reached through an
-  unauthorized relationship, expired and still held, can be obtained
-  and is not authorized, the role changed after it was authorized, a
-  custom definition changed after it was authorized, a custom
-  definition nobody authorized, authorized but not held, and owner
-  disagreement. The two that read the route rather than the hold
-  arrived with 1.6, because comparing what an identity holds against
-  what was authorized cannot see access that arrives by assuming a
-  role, or the door it arrives through. The two about a definition
-  arrived with 1.7, because a custom policy is a thing somebody wrote
-  and should own, and when it changes after it was agreed the finding
-  names the actions that arrived rather than only saying it moved. Every finding carries when each side
-  was last heard from, because a finding from a month-old import is
-  true about a month-old world, and a stale side makes a difference
-  look like agreement (threat 15).
-- An **alert** is a record that people were told, and each delivery to
-  each recipient is its own row with its result, so "nobody told me"
-  is answerable either way. Alerts fire on an authorization written or
-  revoked, an authorization entering its expiry window, and a
-  revocation recommended by a review, which is the work item the tool
-  produces because it never acts. Delivery sits behind one narrow
-  interface; this release records and does not send, so the failure
-  paths and the recipient bound are built and tested before any mail
-  server is involved. A delivery that fails is recorded as failed and
-  never breaks the action that raised it.
-- An **integration token** opens a read-only surface under `/api/v1/`
-  for a system rather than a person: identities paged from a cursor,
-  the delta, and a change feed that walks the audit record from a
-  cursor and returns the next one, so a consumer follows decisions as
-  they happen rather than polling a full dump. A token is a second kind
-  of credential, stored as a hash the way sessions are, shown once at
-  minting and never again, revocable, and rate limited per token.
-  Session routes refuse tokens and token routes refuse sessions. This
-  surface is demonstration-grade: enough to show the shape, and not yet
-  hardened for anyone to rely on, which is an open question the plan
-  carries on purpose.
-- **GitHub is the second native provider** (D-076): one document
-  assembled from the REST API's own objects becomes the same neutral
-  rows, with the organization and its repositories as scope nodes,
-  teams as groups, outside collaborators as guests, app installations
-  and deploy keys as identities of their own, and the fixed permission
-  levels as provider-managed definitions whose contents say what the
-  level can do in the terms the privilege reading already speaks. An
-  organization owner, a repository admin, and an app that may write
-  members read as administrator equivalent through the same finding as
-  an AWS administrator policy.
-- **Kubernetes is the third native provider** (D-079): the cluster's
-  own dump becomes the same rows, with the cluster and its namespaces
-  as scope nodes, service accounts as services, users and outside
-  groups as identities the authenticator asserts, the cluster's own
-  two groups with their members written, and every role's rules read
-  as capabilities, so a role that can bind or escalate reads as
-  changing access and a rule for every verb on every resource reads
-  as administering. The rules ride as actions, so a changed custom
-  role names what it gained.
-- **Google Cloud is the fourth native provider** (D-080): a document
-  of gcloud's own answers becomes the same rows, with the project as
-  the scope node, service accounts keyed by the identifier the
-  provider never reuses and their user-managed keys as credentials
-  with ages, every member form a policy can write read (a group, a
-  domain, the two public forms, a deleted principal a binding still
-  names, a federated principal), and a role read from its permission
-  list when the export carries one, from a table of the fixed roles
-  otherwise, and from its name as the last resort.
-- **Azure and Entra are the fifth native provider** (D-081): one
-  document of Graph's objects and the command line's output becomes
-  the same rows, with the tenant, its subscriptions, and their
-  resource groups as scope nodes, members with a password whose second
-  factor state the registration report answers, guests from another
-  tenant, service principals with their secrets and certificates as
-  credentials that expire, groups passing their members up, directory
-  roles held standing by members and in the eligible mode by
-  privileged identity management, and Azure roles read from their
-  actions or their names. An eligibility is what an identity can
-  obtain and is never counted as privilege held.
-- **Active Directory is the seventh native provider, with two doors**
-  (D-083, D-084): a document of the directory cmdlets' objects or the
-  SharpHound collector's zip becomes the same rows, with the domain
-  as the scope node keyed by its identifier and every organizational
-  unit beneath it, a password per user active while the account is
-  enabled, a Kerberos key beside it for an account with a service
-  principal name, computers as workloads with their machine accounts,
-  groups flattened through every level of nesting with the holding
-  group named, the built-in groups that hold the domain read from a
-  table of what each may do, a member from another domain as an
-  external identity, a trust as a relationship, and, from the
-  collector alone, a control right on the domain or on a privileged
-  group or one of its members as access the principal can obtain.
-- **Okta is the sixth native provider** (D-082): one document of the
-  management API's objects becomes the same rows, with the
-  organization as the scope node, a password only for users whose
-  credentials Okta holds, the enrolled factors as the second factor
-  state, groups carrying their roles and applications to their members
-  with the group's name kept, administrator roles read from a table of
-  their types and custom roles from their permissions, and every
-  application assignment a grant somebody can be asked to authorize.
-- The **observed side reads any provider's table** through the same
-  mapping mechanism the authorized side uses, with its own field set
-  and a shipped template. An organization with a spreadsheet of
-  on-premises accounts, or a vendor's export with no schema, gets the
-  same neutral rows the AWS parsers produce and the delta on them the
-  same day; a provider earns a native parser later if it earns one at
-  all. A definition read this way carries no document, so the
-  capability reading says nothing about it, and that limit is stated
-  beside the source. The import routes also read a file's shape before
-  parsing it and refuse one named as one source and shaped as another,
-  naming both.
-- A **governance record** is the human layer: an owner, a purpose, a
-  flag, or an attestation, on an identity or a group (D-019),
-  attributed and audited, stored rather than derived because it IS the
-  human input.
-- A **review campaign** scopes a set of identities and groups to a set
-  of reviewers with a due date (D-021); its items hold each
-  disposition, including insufficient evidence, and the campaign
-  closes into an evidence export.
-- Everything shown about an identity's state, current, stale, unused,
-  unowned, over-privileged, is derived from the observed rows plus
-  governance records at read time. No status column exists anywhere.
+The tables, the diagram of their relations, and the reasons for their
+shape are in [ARCHITECTURE.md](ARCHITECTURE.md#the-tables).
 
 ### The route surface
 
@@ -1532,9 +1261,9 @@ status-truth gates, and [AI-USAGE.md](AI-USAGE.md) keeps the record of
 what the coding agent got wrong along the way, because that record is
 the point.
 
-The program-level view across every repository is
-[PIPELINES](https://tltaylor1.github.io/build-doctrine/02-enforcement/#every-repositorys-pipeline) at the program's
-home; what follows is this repository's own.
+The pipeline every repository under build-doctrine shares is documented
+once, in [Every repository's pipeline](https://tltaylor1.github.io/build-doctrine/02-enforcement/#every-repositorys-pipeline);
+what follows is this repository's own.
 
 ### The pipeline, explained
 
@@ -1766,8 +1495,8 @@ actually installed. GitHub's dependency graph offers its own export
 built from the same pinned file.
 
 Releases carry the same discipline outward (D-050). The version
-scheme reads from the roadmap: v0.N means the work through phase N is
-complete. Each release starts from a signed tag, carries a source
+scheme reads from [ROADMAP.md](ROADMAP.md): a version ships when its
+roadmap section is complete (D-087). Each release starts from a signed tag, carries a source
 archive, the sample account at both sizes (the curated set as
 committed, and a scaled set of a thousand bulk identities per
 generation for load work), the bill of materials, and checksums,
@@ -1777,7 +1506,7 @@ word; the attestation bundle also ships as a release asset, so the
 same proof reads offline and by raters that only look at assets:
 
 ```bash
-gh attestation verify sbom-v0.2.0.json -R manifest-identity/manifest-identity
+gh attestation verify sbom-v0.5.0.json -R manifest-identity/manifest-identity
 ```
 
 ### The plan, fixed before code
@@ -1798,65 +1527,42 @@ subphase is proof, not retrofit.
 
 ![The cycle every subphase travels: plan, build, demo and tests, human review, pull request merged](diagrams/subphase-cycle-sketch.svg)
 
-1. **Foundation.** Hash-pinned dependencies checked against canonical
-   sources, the software bill of materials, automated update review, a
-   digest-pinned container image, fail-fast configuration, migrations
-   from the first table, allowlist logging, health.
-2. **Operators.** Sign-in with a timing-equal path for unknown names,
-   revocable sessions, the three roles checked per route, the audit
-   spine writing in the same transaction as every action.
-3. **Ingestion one.** The credential report parser: bounded, in
-   memory, verified against its own claims, append-only, identities
-   keyed by the provider's immutable identifier, with its
-   property-based fuzz suite.
-4. **Ingestion two.** The authorization details parser: roles, trust
-   policies, groups as privilege sources, memberships, policy
-   documents, tags, and recreated-name detection.
-5. **Derivation and credential findings.** State from history at read
-   time, and the credential-hygiene findings with their tiers and the
-   minimum observation age.
-6. **Privilege findings.** Admin equivalence by capability, escalation
-   paths, external trust exposure, ownership and group findings,
-   membership drift, privilege attributed to its source.
-7. **Sample data.** The synthetic generator producing both file
-   formats across three import generations and every archetype the
-   rules need; moved up from eleventh with the reason recorded in
-   D-034, because every subphase since the first parser had needed
-   demo input made by hand, and hand-made input was wrong three times.
-8. **Inventory and frontend.** The lists, the detail view with its
-   observation timeline, the dashboard, the as-of banner, and the
-   single page that renders every value as text.
-9. **Governance records.** Owner, purpose, flag, and attestation on
-   identities and groups, attributed, audited, clearable.
-10. **Review campaigns.** Scoped, deadlined review cycles with
-    per-item dispositions including insufficient evidence,
-    recommendations with their reasons, the change-since-last-
-    certification view, and no bulk certification by design.
-11. **Reports and exports.** Escaped CSV and JSON, the self-contained
-    risk report, and the per-campaign evidence export with its
-    population statement.
-12. **Proof, and the stranger drill.** Container hardening verified by
-    command, the mutation check with coverage measured to inform it,
-    the external checklist audits, figures verified against the
-    running system, the fresh-clone run on a machine with nothing but
-    Docker, and the documents re-read and shortened.
+| Subphase | What it built |
+|---|---|
+| 1 Foundation | Hash-pinned dependencies against canonical sources, the bill of materials, update review, a digest-pinned image, fail-fast configuration, migrations from the first table, allowlist logging, health |
+| 2 Operators | Sign-in with a timing-equal path for unknown names, revocable sessions, three roles checked per route, the audit spine in the same transaction as every action |
+| 3 Ingestion one | The credential report parser: bounded, in memory, verified against its own claims, append-only, keyed by the provider's immutable identifier, with its fuzz suite |
+| 4 Ingestion two | The authorization details parser: roles, trust policies, groups, memberships, policy documents, tags, recreated-name detection |
+| 5 Derivation and credential findings | State from history at read time, and the credential-hygiene findings with their tiers and minimum observation age |
+| 6 Privilege findings | Admin equivalence by capability, escalation paths, external trust exposure, ownership and group findings, membership drift |
+| 7 Sample data | The generator producing every file shape across three generations and every archetype the rules need; moved up from eleventh (D-034) |
+| 8 Inventory and frontend | The lists, the detail view with its timeline, the dashboard, the as-of banner, one page rendering every value as text |
+| 9 Governance records | Owner, purpose, flag, and attestation on identities and groups, attributed, audited, clearable |
+| 10 Review campaigns | Scoped, deadlined review cycles with per-item dispositions, recommendations with reasons, the change-since-last-certification view, no bulk certification |
+| 11 Reports and exports | Escaped CSV and JSON, the self-contained risk report, the per-campaign evidence export with its population statement |
+| 12 Proof | Container hardening verified by command, the mutation check, the external checklist audits, figures verified against the running system, the fresh-clone drill |
+| 1.1 | The scope tree and scoped administration |
+| 1.2 | The authorization record: append-only, attributed, with required fields the administrator sets |
+| 1.3 | The form and the file door, through a mapping with a dry run |
+| 1.4 | Authorize from observed, and the export shaped for the import |
+| 1.5 | The delta, computed at read, five classes |
+| 1.6 | Paths and relationships, holds now and can obtain |
+| 1.7 | Role definitions as versioned observations, and the finding when one changes |
+| 1.8 | Campaigns driven by the delta and by expiry |
+| 1.9 | Alerts and their records |
+| 1.10 | The read API and the change feed |
+| 1.11 | The table door with the source selector |
+| 1.12 | GitHub as the second provider, proven against a generated organization |
+| 1.13 | The page: the sidebar shell, the split view, the browser-driven test |
+| 1.14 | Every provider's file: Kubernetes, Google Cloud, Azure and Entra, Okta, and the recipes |
+| 1.15 | Active Directory natively, through the cmdlet export and the SharpHound collection |
+| 1.16 | The populated record a fresh clone gets from one script |
 
-Those twelve built the observed half and were tagged v0.2.0 with
-Phase 2. The authorized half then followed the same discipline in
-sixteen more subphases, numbered 1.1 to 1.16, planned before the
-first was started and built in batches of two, each batch one pull
-request with its runtime proof: the scope tree and scoped
-administration (1.1), the authorization record (1.2), the form and
-the file door (1.3), authorize from observed (1.4), the delta (1.5),
-paths and relationships (1.6), role definitions as versioned
-observations (1.7), campaigns driven by the delta and by expiry (1.8),
-alerts and their records (1.9), the read API and the change feed
-(1.10), the table door with the source selector (1.11), GitHub as the
-second provider (1.12), the page (1.13), and every provider's file
-(1.14), Active Directory natively through two doors (1.15), and the
-populated record a fresh clone gets from one script (1.16). Their
-decisions run from D-071 onward, and the sixteen shipped together as
-v0.5.0 (D-087).
+The first twelve built the observed half and were tagged v0.2.0 with
+Phase 2; the sixteen after them built the authorized half, planned
+before the first was started and built in batches of two, each batch
+one pull request with its runtime proof, and shipped together as
+v0.5.0 (D-087). Their decisions run from D-071 onward.
 
 The order had reasons. Identity before data, because every later route
 needs the role checks. Parsers before the engine, because reading the
@@ -1876,31 +1582,11 @@ plan as written and the build as it happened stays readable in
 Calico, so network policies are enforced rather than silently ignored;
 role-based access control, pod security standards, admission control.
 
-**Phase 3, cloud enclave as code.** The AWS environment as code, split
-into persistent foundation and ephemeral workload. The organization
-trail lands here, which is also when enrichment deepens: creator
-attribution and usage beyond the provider's 90 day window become
-possible only with logs to hold them.
-
-**Phase 4, managed Kubernetes.** The image promoted by digest into the
-enclave; the orchestration questions were already answered locally.
-
-**Phase 5, security-gated pipeline.** The running gates consolidated,
-the gaps closed, and the set proven by introducing a flaw deliberately
-and confirming the pipeline stops it.
-
-**Phase 6, runtime security and alerting.** Detection on the audit
-events the threat model names, alerts on new high-risk identities, and
-the first-hour response procedure written and exercised once.
-
-**Phase 7, human-triggered remediation.** The trust step change:
-a tightly scoped action credential, deactivate and restore behind
-step-up authentication, each action shown as a policy diff before it
-happens and verified against the provider afterward, because clicked
-is not revoked until the provider says so. Report-only quarantine and
-review windows arrive here, and this phase requires its own threat
-model revision before any code, because write access changes what the
-tool is.
+What this plan once listed as Phases 3 to 7, the cloud estate as
+code, managed Kubernetes, the gated pipeline, runtime detection, and
+human-triggered remediation, is [control-plane](https://tltaylor1.github.io/control-plane/)'s
+plan now. This application's own next steps are in
+[ROADMAP.md](ROADMAP.md), by version.
 
 Beyond the phases, in order: expected-profile checks, where a known
 vendor integration holding exactly its documented permissions is
@@ -2038,30 +1724,20 @@ than a date. The out-of-scope items and their reasons are there too.
 
 ## What done means here
 
-Done is a claim, so it carries a definition. For this build:
+Done is a claim, so it carries a definition: the doctrine's
+[definition of done](https://tltaylor1.github.io/build-doctrine/01-standards/#definition-of-done),
+met here by the drills above. A stranger runs it from a fresh clone
+with Docker alone, and that drill was performed. Every control has a
+test named beside it and the mutation check proves the tests notice a
+control breaking. Every figure a document states is recounted by a
+test. Every non-obvious choice carries its reason and its rejected
+alternative in [DECISIONS.md](DECISIONS.md). No credential-shaped
+string exists in the repository or its history.
 
-**Done means a stranger can run it, and every decision can be
-defended.**
-
-- It runs from a fresh clone using only this document and Docker, and
-  that drill was performed, not assumed.
-- Every control is a mechanism with a test named beside it, the
-  container claims are verifiable by the commands printed above, and
-  the mutation check proves the tests would notice the controls
-  breaking.
-- Every figure a document states is asserted against the running
-  system or gated against its source, so the documents cannot quietly
-  disagree with the code.
-- Every non-obvious choice carries its reason and its rejected
-  alternative in [DECISIONS.md](DECISIONS.md), including what was
-  deliberately left out.
-- No credential-shaped string exists anywhere in the repository or its
-  history, including demo and test material.
-
-Done does not mean finished: the roadmap above and the out-of-scope
-list are the record of what is deliberately absent, each with its
-reason, because an undocumented gap and a considered exclusion look
-identical in code.
+Done does not mean finished: [ROADMAP.md](ROADMAP.md) and its
+out-of-scope list are the record of what is deliberately absent, each
+with its reason, because an undocumented gap and a considered
+exclusion look identical in code.
 
 -------------------------------------------------------------------------------
 
@@ -2073,27 +1749,6 @@ each self-contained with its files and its done-criteria stated:
 Changes land through pull requests and the checks described in
 [How it was built and gated](#how-it-was-built-and-gated); the
 standards themselves are the AGENTS.md file in this repository.
-
--------------------------------------------------------------------------------
-
-## Diagrams to draw
-
-The diagram list lives with the architecture:
-[ARCHITECTURE.md](ARCHITECTURE.md#diagrams), the ten finished
-diagrams still to be drawn by hand for the observed half and the four
-for the authorized half, with the working sketches in the diagrams
-directory standing in until each completes.
-
--------------------------------------------------------------------------------
-
-## Where to read next
-
-- [DECISIONS.md](DECISIONS.md) records what was chosen, what was
-  rejected, and why; every entry names the incident or question that
-  produced it.
-- [SECURITY.md](SECURITY.md) is the reporting path and the controls
-  tables, each control with the test that proves it.
-- [AGENTS.md](AGENTS.md) is the standards this project is built to.
 
 -------------------------------------------------------------------------------
 

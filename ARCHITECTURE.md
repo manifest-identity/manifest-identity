@@ -67,6 +67,208 @@ itself:
 | Role binding | A user holding a role at a scope node | The only source of authority. Covers that node and everything beneath it; revoked, never deleted, so who could act and when survives. Users carry no role of their own |
 | Import | One file or pull that produced observations | Keyed by scope node, source kind, and the capture time taken from the file's own content (D-008), so the same file twice is refused. Every observed row names the import that saw it |
 
+### The tables
+
+The model is provider-neutral: no table carries a word only one cloud
+uses, and the provider's own vocabulary ends at the parser (D-071).
+
+```
+scope_nodes --< scope_nodes (the tree, global at the top)
+scope_nodes --< imports --< identity_observations >-- identities
+imports --< credentials >-- identities
+imports --< grants >-- identities, role_definitions, scope_nodes
+imports --< memberships >-- identities (groups are identities)
+imports --< observed_relationships >-- identities
+identities --< governance_records
+identities --< authorizations >-- scope_nodes
+users --< role_bindings >-- scope_nodes
+campaigns --< campaign_items
+alerts --< alert_deliveries
+audit_events
+```
+
+- A **scope node** is one place in a provider's hierarchy: an
+  organization, an account, a tenant, a subscription, a cluster. Each
+  names its partition explicitly, commercial or government, so a
+  government estate is labeled on every record rather than inferred.
+  One synthetic node named **global** sits above all of them.
+- An **identity** is one principal at one scope node, keyed by the
+  provider's immutable identifier, never the name or ARN, which are
+  display attributes (D-016). A recreated principal is a new identity.
+  Groups are identities of kind group: governable sources of
+  privilege, never actors (D-019).
+- An **import** is one file or pull: one scope node, one source kind,
+  one capture time taken from the file's own content (D-008), unique
+  on that triple, so a re-import is rejected rather than
+  double-counted.
+- A **credential** is one credential as one import saw it. Two access
+  keys are two rows and a provider with five is five rows, so nothing
+  in the model assumes a cloud that offers exactly two.
+- A **grant** is an identity holding a **role definition** at a scope,
+  by a path and in a mode. The path records how the privilege arrives,
+  hop by hop, through a membership or a trust; the mode records
+  whether it is held now or can be obtained, which is what PIM-style
+  eligibility is. A role definition is versioned by the hash of its
+  contents, so a changed built-in role is a new row and a review can
+  show what the role allowed on the day of the decision.
+- A **role binding** is authority: a user holding a role at a scope
+  node, covering that node and everything beneath it (D-072). Users
+  carry no role column. A binding is revoked, never deleted, so the
+  record of who could act when survives.
+- An **authorization** is what a person said an identity may hold:
+  one grant path, an owner, the authorizer taken from the session, a
+  justification, and a window that ends (D-073). Nothing is edited. A
+  renewal writes a new row that supersedes the old one and a
+  revocation writes one too, so the chain from the first authorization
+  to the last is the history. Expiry is the clock compared to a
+  column, never a job that might not run. Which fields an
+  authorization must carry is the administrator's choice, shipped
+  strict, and every change to that choice is audited (D-070).
+  Authorizations arrive through the form on an identity's page or
+  through a file. A file
+  keeps its own shape: the import carries a **mapping** that names
+  which of their columns holds each field, or a constant for a field
+  their file does not have, so nobody is asked to transform their
+  spreadsheet before they get anything back (D-074). A mapping is
+  written and superseded rather than edited, and every import names
+  the mapping that read it, so a mapping later found wrong leaves
+  every row it produced findable. Nothing is guessed: a missing
+  required column refuses the file, a missing optional one is named
+  in the result, unmapped columns are counted, and a date is read by
+  a format the mapping declares, because 03/04/2026 is two different
+  days in two countries. A dry run shows how the file was understood
+  and writes nothing.
+  Neither door asks anyone to retype what the system can already see.
+  The observed grants come back in the authorized record's own shape,
+  as a prefill on an identity's page and as an export in the import's
+  columns, with the owner and the justification left empty because
+  they are the two things the observed side cannot know. What already
+  carries an authorization is marked, so the page asks where the
+  answer is still owed. It prefills and never writes: turning what is
+  into what should be without a person in the middle would leave the
+  delta comparing the observed record against a copy of itself
+  (D-024).
+- The **delta** is the product, and it is stored nowhere. It is the
+  difference between the two records, computed every time somebody
+  asks, in nine classes: held but not authorized, reached through an
+  unauthorized relationship, expired and still held, can be obtained
+  and is not authorized, the role changed after it was authorized, a
+  custom definition changed after it was authorized, a custom
+  definition nobody authorized, authorized but not held, and owner
+  disagreement. The two that read the route rather than the hold
+  arrived with 1.6, because comparing what an identity holds against
+  what was authorized cannot see access that arrives by assuming a
+  role, or the door it arrives through. The two about a definition
+  arrived with 1.7, because a custom policy is a thing somebody wrote
+  and should own, and when it changes after it was agreed the finding
+  names the actions that arrived rather than only saying it moved. Every finding carries when each side
+  was last heard from, because a finding from a month-old import is
+  true about a month-old world, and a stale side makes a difference
+  look like agreement (threat 15).
+- An **alert** is a record that people were told, and each delivery to
+  each recipient is its own row with its result, so "nobody told me"
+  is answerable either way. Alerts fire on an authorization written or
+  revoked, an authorization entering its expiry window, and a
+  revocation recommended by a review, which is the work item the tool
+  produces because it never acts. Delivery sits behind one narrow
+  interface; this release records and does not send, so the failure
+  paths and the recipient bound are built and tested before any mail
+  server is involved. A delivery that fails is recorded as failed and
+  never breaks the action that raised it.
+- An **integration token** opens a read-only surface under `/api/v1/`
+  for a system rather than a person: identities paged from a cursor,
+  the delta, and a change feed that walks the audit record from a
+  cursor and returns the next one, so a consumer follows decisions as
+  they happen rather than polling a full dump. A token is a second kind
+  of credential, stored as a hash the way sessions are, shown once at
+  minting and never again, revocable, and rate limited per token.
+  Session routes refuse tokens and token routes refuse sessions. This
+  surface is demonstration-grade: enough to show the shape, and not yet
+  hardened for anyone to rely on, which is an open question the plan
+  carries on purpose.
+- **GitHub is the second native provider** (D-076): one document
+  assembled from the REST API's own objects becomes the same neutral
+  rows, with the organization and its repositories as scope nodes,
+  teams as groups, outside collaborators as guests, app installations
+  and deploy keys as identities of their own, and the fixed permission
+  levels as provider-managed definitions whose contents say what the
+  level can do in the terms the privilege reading already speaks. An
+  organization owner, a repository admin, and an app that may write
+  members read as administrator equivalent through the same finding as
+  an AWS administrator policy.
+- **Kubernetes is the third native provider** (D-079): the cluster's
+  own dump becomes the same rows, with the cluster and its namespaces
+  as scope nodes, service accounts as services, users and outside
+  groups as identities the authenticator asserts, the cluster's own
+  two groups with their members written, and every role's rules read
+  as capabilities, so a role that can bind or escalate reads as
+  changing access and a rule for every verb on every resource reads
+  as administering. The rules ride as actions, so a changed custom
+  role names what it gained.
+- **Google Cloud is the fourth native provider** (D-080): a document
+  of gcloud's own answers becomes the same rows, with the project as
+  the scope node, service accounts keyed by the identifier the
+  provider never reuses and their user-managed keys as credentials
+  with ages, every member form a policy can write read (a group, a
+  domain, the two public forms, a deleted principal a binding still
+  names, a federated principal), and a role read from its permission
+  list when the export carries one, from a table of the fixed roles
+  otherwise, and from its name as the last resort.
+- **Azure and Entra are the fifth native provider** (D-081): one
+  document of Graph's objects and the command line's output becomes
+  the same rows, with the tenant, its subscriptions, and their
+  resource groups as scope nodes, members with a password whose second
+  factor state the registration report answers, guests from another
+  tenant, service principals with their secrets and certificates as
+  credentials that expire, groups passing their members up, directory
+  roles held standing by members and in the eligible mode by
+  privileged identity management, and Azure roles read from their
+  actions or their names. An eligibility is what an identity can
+  obtain and is never counted as privilege held.
+- **Active Directory is the seventh native provider, with two doors**
+  (D-083, D-084): a document of the directory cmdlets' objects or the
+  SharpHound collector's zip becomes the same rows, with the domain
+  as the scope node keyed by its identifier and every organizational
+  unit beneath it, a password per user active while the account is
+  enabled, a Kerberos key beside it for an account with a service
+  principal name, computers as workloads with their machine accounts,
+  groups flattened through every level of nesting with the holding
+  group named, the built-in groups that hold the domain read from a
+  table of what each may do, a member from another domain as an
+  external identity, a trust as a relationship, and, from the
+  collector alone, a control right on the domain or on a privileged
+  group or one of its members as access the principal can obtain.
+- **Okta is the sixth native provider** (D-082): one document of the
+  management API's objects becomes the same rows, with the
+  organization as the scope node, a password only for users whose
+  credentials Okta holds, the enrolled factors as the second factor
+  state, groups carrying their roles and applications to their members
+  with the group's name kept, administrator roles read from a table of
+  their types and custom roles from their permissions, and every
+  application assignment a grant somebody can be asked to authorize.
+- The **observed side reads any provider's table** through the same
+  mapping mechanism the authorized side uses, with its own field set
+  and a shipped template. An organization with a spreadsheet of
+  on-premises accounts, or a vendor's export with no schema, gets the
+  same neutral rows the AWS parsers produce and the delta on them the
+  same day; a provider earns a native parser later if it earns one at
+  all. A definition read this way carries no document, so the
+  capability reading says nothing about it, and that limit is stated
+  beside the source. The import routes also read a file's shape before
+  parsing it and refuse one named as one source and shaped as another,
+  naming both.
+- A **governance record** is the human layer: an owner, a purpose, a
+  flag, or an attestation, on an identity or a group (D-019),
+  attributed and audited, stored rather than derived because it IS the
+  human input.
+- A **review campaign** scopes a set of identities and groups to a set
+  of reviewers with a due date (D-021); its items hold each
+  disposition, including insufficient evidence, and the campaign
+  closes into an evidence export.
+- Everything shown about an identity's state, current, stale, unused,
+  unowned, over-privileged, is derived from the observed rows plus
+  governance records at read time. No status column exists anywhere.
+
 ## Data flow
 
 Two stores, one comparison, one write path.
@@ -93,8 +295,30 @@ Two stores, one comparison, one write path.
 
 ## Trust boundaries
 
-Version one has three, listed in the README. The authorized half adds
-one and sharpens two:
+Version one has three, in order of hostility:
+
+1. **The imported file.** The only input the application
+   accepts from outside, treated as hostile in every particular even
+   though it nominally comes from a cloud provider's own reporting:
+   bounded, parsed in memory, verified against its own claims, never
+   echoed.
+2. **The browser session.** Authenticated on every request; nothing
+   about a session is trusted from one request to the next. Identity
+   names, tags, and paths inside imported data are
+   attacker-influenceable and are rendered as text, never markup,
+   because the person most exposed to this data is the operator
+   reading it.
+3. **The exports.** Everything leaving the system passes an allowlist:
+   the response models for the API, formula escaping for the
+   spreadsheet forms, and deliberate field selection for the report,
+   because the inventory is a map of the account's weakest identities
+   and an export is that map on the move.
+
+Version one has no outbound connection to any provider. The cloud
+credential and its boundary arrive with v0.6, the read-only
+connection, and get their own threat model revision first.
+
+The authorized half adds one and sharpens two:
 
 - **The authorized record is a target.** Whoever can write intent can
   make unwanted access look intended (threat 12). The boundary is

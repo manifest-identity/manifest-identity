@@ -15,7 +15,7 @@ something was actually read. Snapshot taken 2026-09-30, UTC.
 |---|---|---|
 | [OpenSSF Scorecard](#openssf-scorecard) | 8.2 / 10 | supply-chain and project security practices, read from the repository by a scanner |
 | [OpenSSF Best Practices](#openssf-best-practices) | passing | criteria for open source projects, each answered with a justification the site publishes |
-| [build-doctrine score](#build-doctrine-score) | 3.5 / 5 | how far each rule of the program's own doctrine is enforced here, from stated to gated and proven |
+| [build-doctrine score](#build-doctrine-score) | 3.5 / 5 | how far each rule of build-doctrine is enforced here, from stated to gated and proven |
 | [Codecov](#codecov) | 95.02 percent | line coverage of the application by its test suite |
 | [SonarCloud](#sonarcloud) | quality gate ok | static analysis of new code: reliability, security, maintainability, duplication, coverage |
 
@@ -190,7 +190,7 @@ evidence stops.
 
 ## build-doctrine score
 
-The program's own doctrine, [build-doctrine](https://github.com/tltaylor1/build-doctrine),
+The doctrine this repository is built under, [build-doctrine](https://github.com/tltaylor1/build-doctrine),
 scores each of its rules by how far the repository enforces it,
 and the badge is the mean over the rules that apply to an
 application repository. The scorer ran at doctrine commit `a47b0cb94ca5`.

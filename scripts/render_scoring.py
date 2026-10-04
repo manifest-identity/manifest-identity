@@ -258,7 +258,7 @@ def render(s: dict) -> str:
     w(f"| [OpenSSF Best Practices](#openssf-best-practices) | {bp['level']} | "
       "criteria for open source projects, each answered with a justification the site publishes |")
     w(f"| [build-doctrine score](#build-doctrine-score) | {_mean(dc['rules'])} / 5 | "
-      "how far each rule of the program's own doctrine is enforced here, "
+      "how far each rule of build-doctrine is enforced here, "
       "from stated to gated and proven |")
     w(f"| [Codecov](#codecov) | {cc['coverage']} percent | "
       "line coverage of the application by its test suite |")
@@ -337,7 +337,7 @@ def render(s: dict) -> str:
 
     w("## build-doctrine score")
     w("")
-    w("The program's own doctrine, [build-doctrine](https://github.com/tltaylor1/build-doctrine),")
+    w("The doctrine this repository is built under, [build-doctrine](https://github.com/tltaylor1/build-doctrine),")
     w("scores each of its rules by how far the repository enforces it,")
     w("and the badge is the mean over the rules that apply to an")
     w(f"{dc['kind']} repository. The scorer ran at doctrine commit `{dc['commit'][:12]}`.")
