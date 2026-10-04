@@ -110,12 +110,55 @@ async function api(path, options) {
   const opts = options || {};
   opts.headers = { ...opts.headers };
   if (token) opts.headers["Authorization"] = "Bearer " + token;
-  const response = await fetch(path, opts);
+  let response = await fetch(path, opts);
   if (response.status === 401) {
     signOut();
     throw new Error("session ended");
   }
+  // Step-up (D-089): the server asks for the password again before
+  // bulk disclosure, bulk change, or credential creation. Ask once,
+  // and repeat the request only if it was accepted.
+  if (response.status === 403 && await needsStepUp(response) && await stepUp()) {
+    response = await fetch(path, opts);
+  }
   return response;
+}
+
+async function needsStepUp(response) {
+  const body = await response.clone().json().catch(() => null);
+  return body !== null && body.detail === "step_up_required";
+}
+
+function stepUp() {
+  const form = $("stepup-form");
+  const cancel = $("stepup-cancel");
+  form.hidden = false;
+  $("stepup-error").hidden = true;
+  form.elements.password.value = "";
+  form.elements.password.focus();
+  return new Promise((resolve) => {
+    const finish = (accepted) => {
+      form.hidden = true;
+      form.elements.password.value = "";
+      form.removeEventListener("submit", onSubmit);
+      cancel.removeEventListener("click", onCancel);
+      resolve(accepted);
+    };
+    const onCancel = () => finish(false);
+    const onSubmit = async (e) => {
+      e.preventDefault();
+      const r = await fetch("/auth/step-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ password: form.elements.password.value }),
+      });
+      if (r.ok) finish(true);
+      else if (r.status === 401) { finish(false); signOut(); }
+      else $("stepup-error").hidden = false;
+    };
+    form.addEventListener("submit", onSubmit);
+    cancel.addEventListener("click", onCancel);
+  });
 }
 
 async function signIn(username, password) {

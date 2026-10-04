@@ -86,7 +86,11 @@ def login(
     token, token_hash = security.new_session_token()
     expires = utcnow() + timedelta(hours=get_settings().session_ttl_hours)
     db.add(
-        AuthSession(token_hash=token_hash, user_id=user.id, expires_at=expires)
+        AuthSession(
+            token_hash=token_hash, user_id=user.id, expires_at=expires,
+            # Signing in is giving the password, so it counts as a step-up.
+            stepped_up_at=utcnow(),
+        )
     )
     audit.record(
         db,
@@ -131,3 +135,45 @@ def me(auth: CurrentAuth, db: Annotated[Session, Depends(get_session)]) -> dict[
         "roles": sorted(held),
         "session_expires_at": auth.session.expires_at.isoformat(),
     }
+
+
+class StepUpRequest(BaseModel):
+    password: str = Field(max_length=256)
+
+
+@router.post("/step-up", dependencies=[require_roles("POST /auth/step-up")])
+def step_up(
+    body: StepUpRequest,
+    request: Request,
+    auth: CurrentAuth,
+    db: Annotated[Session, Depends(get_session)],
+) -> dict[str, str]:
+    """The session gives its password again (D-089). A wrong password is
+    a 403, not a 401, because the session itself is still valid; the
+    attempts share the sign-in limiter's budget per user, and each
+    outcome is an audit row."""
+    key = f"step-up:{auth.user.username}"
+    if not LOGIN_LIMITER.allowed(key):
+        log_event("step_up_rate_limited", path="/auth/step-up")
+        raise HTTPException(status_code=429, detail="too many attempts")
+    ip = _client_ip(request)
+    if not security.verify_password(body.password, auth.user.password_hash):
+        LOGIN_LIMITER.record_failure(key)
+        audit.record(
+            db, actor_user_id=auth.user.id, actor_username=auth.user.username,
+            action="step_up_failure", ip=ip,
+        )
+        db.commit()
+        raise HTTPException(status_code=403, detail="password not accepted")
+    LOGIN_LIMITER.reset(key)
+    row = db.get(AuthSession, auth.session.id)
+    now = utcnow()
+    if row is not None:
+        row.stepped_up_at = now
+    audit.record(
+        db, actor_user_id=auth.user.id, actor_username=auth.user.username,
+        action="step_up", ip=ip,
+    )
+    db.commit()
+    until = now + timedelta(minutes=get_settings().step_up_minutes)
+    return {"stepped_up_until": until.isoformat(timespec="seconds")}

@@ -79,6 +79,8 @@ def test_the_evidence_export_anchors_the_chain_head(client: TestClient, db: Sess
                         headers=auth_header(token)).json()
     assert export["audit_chain_head"] == audit.chain_head(db)
     assert len(export["audit_chain_head"]) == 64
+    # Each export records itself first (D-089), so each file anchors the
+    # head as it stood after its own disclosure.
     csv_body = client.get(f"/campaigns/{created.json()['id']}/evidence.csv",
                           headers=auth_header(token)).text
-    assert "audit_chain_head," + export["audit_chain_head"] in csv_body
+    assert "audit_chain_head," + audit.chain_head(db) in csv_body

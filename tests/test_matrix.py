@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from manifest_identity.core.roles import PUBLIC_ROUTES, ROUTE_ROLES, TOKEN_ROUTES, Role
 from manifest_identity.main import app
 from manifest_identity.observe.importer import contents_hash
-from tests.conftest import ROLE_USERS, auth_header, login, make_user
+from tests.conftest import ROLE_USERS, TEST_PASSWORD, auth_header, login, make_user
 
 SAMPLE_REPORT = (
     b"user,arn,user_creation_time,password_enabled,password_last_used,"
@@ -62,6 +62,7 @@ OBSERVED_TABLE = (
 CALL_PLANS: dict[str, tuple[str, str, dict[str, object]]] = {
     "GET /auth/me": ("get", "/auth/me", {}),
     "POST /auth/logout": ("post", "/auth/logout", {}),
+    "POST /auth/step-up": ("post", "/auth/step-up", {"json": {"password": TEST_PASSWORD}}),
     "GET /admin/users": ("get", "/admin/users", {}),
     "POST /admin/users": (
         "post",
@@ -533,7 +534,7 @@ def test_the_mutation_table_is_the_mutation_set() -> None:
     )
     # The sentence above the table states the count in words; the map
     # grows by one entry each time the set does, which is the point.
-    words = {32: "Thirty-two", 34: "Thirty-four"}
+    words = {32: "Thirty-two", 34: "Thirty-four", 35: "Thirty-five"}
     word = words.get(len(MUTATIONS))
     assert word, f"add the word for {len(MUTATIONS)} mutations to this test"
     assert f"**{word} mutations, {word.lower()} kills.**" in text

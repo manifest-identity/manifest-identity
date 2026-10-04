@@ -72,6 +72,9 @@ refer to the ranked threats in [THREAT-MODEL.md](THREAT-MODEL.md).
 
 | Control | Threat it answers | Proven by |
 |---|---|---|
+| Step-up: bulk export, bulk authorization import, and user or token creation need the password given within five minutes | 6 | `tests/test_step_up.py` |
+| Every export writes an audit record of who took what | 6, 17 | `tests/test_step_up.py::test_every_export_leaves_a_record` |
+| A rejected file never comes back: a marker planted at every import door reaches no response, log, or audit record | 1 | `tests/test_markers_at_every_door.py` |
 | Authentication on every request; 401 without a valid session | 2, 6 | tests/test_matrix.py, tests/test_auth.py |
 | The role matrix as one source driving enforcement and tests, with a drift test refusing ungoverned routes | 2 | tests/test_matrix.py |
 | Timing-equalized login: unknown names pay the same bcrypt cost and receive the identical body | 2 | tests/test_auth.py |

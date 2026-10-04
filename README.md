@@ -111,10 +111,10 @@ code in [control-plane](https://tltaylor1.github.io/control-plane/).
 
 | Measured | Standing |
 |---|---|
-| Tests | **432 tests in 47 files**, coverage 95 over a 90 percent floor |
-| Mutation | 34 controls removed by the check, 34 noticed by the suite |
-| Surface | **70 routes**, every one in the role matrix the tests walk |
-| Record | **88 recorded decisions**, each with its rejected alternatives |
+| Tests | **440 tests in 49 files**, coverage 95 over a 90 percent floor |
+| Mutation | 35 controls removed by the check, 35 noticed by the suite |
+| Surface | **71 routes**, every one in the role matrix the tests walk |
+| Record | **89 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -870,6 +870,16 @@ spell a username a denial of service against its owner. And the
 attempted password never reaches a log; the log line records that a
 failure happened, not what was typed.
 
+**The password again, for bulk and for credentials.** A session
+proves who signed in, not who is at the keyboard now. Every export, the
+bulk import of authorizations, and the creation of a user or an
+integration token ask for the password again when it was last given
+more than five minutes ago; signing in counts as giving it (D-089).
+The page asks once and repeats the request. Every export also writes
+an audit record of who took what, because a bulk export is a
+disclosure. The routes are one list in `core/roles.py`, and a test
+holds the list and the routes' declarations to each other.
+
 ### Trust boundaries
 
 The four boundaries, the three of version one and the one the
@@ -945,6 +955,7 @@ GET /health/database
 POST /auth/login
 GET /auth/me
 POST /auth/logout
+POST /auth/step-up
 GET /admin/users
 POST /admin/users
 POST /admin/users/{username}/sessions/revoke
@@ -1646,7 +1657,7 @@ load-bearing ones:
 sits under the measured figure to catch erosion without inviting tests
 written to move a number.
 
-**Thirty-four mutations, thirty-four kills.** The mutation check breaks
+**Thirty-five mutations, thirty-five kills.** The mutation check breaks
 one control at a time and requires the tests that claim that control
 to fail. The table is generated from the check's own list by
 `scripts/check_mutation.py --table`, and a test fails the build when
@@ -1655,6 +1666,7 @@ the two differ, so the count here is the count the check runs:
 ```mutations
 | Mutation | Killed by |
 |---|---|
+| A stale session takes a bulk export without its password | the step_up tests |
 | Assumable access is reported as if it were held | the paths, delta tests |
 | The doors an identity may cross are not reported | the delta tests |
 | The actions a changed definition gained go unnamed | the role_definitions tests |

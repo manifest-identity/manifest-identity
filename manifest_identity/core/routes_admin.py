@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from manifest_identity.core import audit, options, security
 from manifest_identity.core.db import get_session
-from manifest_identity.core.deps import AuthContext, require_roles, require_scope
+from manifest_identity.core.deps import AuthContext, SteppedUp, require_roles, require_scope
 from manifest_identity.core.models import (
     AuthSession,
     Partition,
@@ -126,6 +126,7 @@ def create_user(
     body: CreateUser,
     db: Annotated[Session, Depends(get_session)],
     auth: Annotated[AuthContext, require_roles("POST /admin/users")],
+    _stepped: SteppedUp,
 ) -> UserView:
     require_scope(db, auth, "POST /admin/users", None)
     try:

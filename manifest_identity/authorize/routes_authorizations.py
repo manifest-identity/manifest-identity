@@ -22,6 +22,7 @@ from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import (
     AuthContext,
+    SteppedUp,
     ThrottledWrite,
     require_roles,
     require_scope,
@@ -410,6 +411,7 @@ def import_authorizations(
     auth: Annotated[AuthContext, require_roles("POST /authorizations/import")],
     file: UploadFile,
     _budget: ThrottledWrite,
+    _stepped: SteppedUp,
     mapping_id: Annotated[int | None, Form()] = None,
 ) -> ReadingView:
     row = _mapping_or_default(db, mapping_id)
@@ -463,12 +465,19 @@ def observed_grants(
 def export_observed_grants(
     db: Annotated[Session, Depends(get_session)],
     _auth: Annotated[AuthContext, require_roles("GET /export/observed-grants.csv")],
+    stepped: SteppedUp,
 ) -> Response:
     """Every observed grant in the import's own columns, with owner and
     justification left empty: the two things the observed side cannot
     know and the two a person is being asked for. Export, fill them in,
     import."""
     body = from_observed.export_csv(from_observed.for_estate(db))
+    audit.record(
+        db, actor_user_id=stepped.user.id, actor_username=stepped.user.username,
+        action="export", target="export/observed-grants.csv",
+        detail=f"{max(body.count(chr(10)) - 1, 0)} grants",
+    )
+    db.commit()
     return Response(
         content=body,
         media_type="text/csv",

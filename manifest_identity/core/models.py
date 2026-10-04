@@ -112,6 +112,12 @@ class AuthSession(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )
+    # When this session last gave its password: at sign-in, and at each
+    # step-up. Bulk disclosure, bulk change, and credential creation ask
+    # for it again when this is older than the window (D-089).
+    stepped_up_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
 
 
 class RoleBinding(Base):
