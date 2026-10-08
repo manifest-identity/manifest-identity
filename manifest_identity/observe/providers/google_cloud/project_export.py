@@ -43,7 +43,10 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime
+
+from manifest_identity.observe.providers import parsing
+from manifest_identity.observe.providers.parsing import ParseError
 
 MAX_FILE_BYTES = 25 * 1024 * 1024
 MAX_ENTITIES = 50_000
@@ -59,9 +62,11 @@ _ROLE = re.compile(r"^(roles/[A-Za-z0-9._]+|(projects|organizations)/[^/]+/roles
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+$")
 
 
-class ParseError(ValueError):
-    """File-level rejection; messages carry rules and names of our own
-    contract, never values from the file."""
+_LIMITS = parsing.Limits(max_entries=MAX_ENTITIES, max_text=MAX_TEXT_CHARS)
+_list = _LIMITS.read_list
+_text = _LIMITS.read_text
+_record = parsing.read_record
+_time = parsing.read_time
 
 
 @dataclass
@@ -112,44 +117,6 @@ class ParsedProject:
     service_accounts: list[ParsedServiceAccount] = field(default_factory=list)
     role_definitions: list[ParsedRoleDefinition] = field(default_factory=list)
     skipped: int = 0
-
-
-def _time(raw: object, where: str) -> datetime | None:
-    if raw is None:
-        return None
-    if not isinstance(raw, str):
-        raise ParseError(f"{where}: a timestamp must be a string")
-    try:
-        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-    except ValueError as exc:
-        raise ParseError(f"{where}: a timestamp is not ISO 8601") from exc
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
-
-
-def _text(raw: object, where: str, default: str | None = None) -> str:
-    if raw is None and default is not None:
-        return default
-    if not isinstance(raw, str) or not raw or len(raw) > MAX_TEXT_CHARS:
-        raise ParseError(f"{where}: text is missing or longer than {MAX_TEXT_CHARS}")
-    if any(ord(c) < 32 for c in raw):
-        raise ParseError(f"{where}: text carries a control character")
-    return raw
-
-
-def _list(raw: object, where: str) -> list[object]:
-    if raw is None:
-        return []
-    if not isinstance(raw, list):
-        raise ParseError(f"{where}: must be a list")
-    if len(raw) > MAX_ENTITIES:
-        raise ParseError(f"{where}: more than {MAX_ENTITIES} entries")
-    return raw
-
-
-def _record(raw: object, where: str) -> dict[str, object]:
-    if not isinstance(raw, dict):
-        raise ParseError(f"{where}: must be an object")
-    return raw
 
 
 def parse_member(text: str, where: str) -> ParsedMember:

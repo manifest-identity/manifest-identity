@@ -1050,7 +1050,7 @@ holds the reviews and the alerts.
 | `manifest_identity/core/models.py` | Users, sessions, scope nodes, role bindings, settings, the audit chain |
 | `manifest_identity/core/audit.py` | The audit spine: the record commits with the action |
 | `manifest_identity/core/verify_chain.py` | The offline verifier: recompute the chain, compare to an anchor |
-| `manifest_identity/observe/providers/` | The nine parsers, AWS, GitHub, Kubernetes, Google Cloud, Azure, Okta, and Active Directory through its cmdlets and through SharpHound: bounded, in memory, distrusting their own preconditions |
+| `manifest_identity/observe/providers/` | The nine parsers, AWS, GitHub, Kubernetes, Google Cloud, Azure, Okta, and Active Directory through its cmdlets and through SharpHound: bounded, in memory, distrusting their own preconditions. The type and size checks they share, and their one rejection error, live once in `parsing.py` |
 | `manifest_identity/observe/importer.py` | AWS records become neutral rows; the vocabulary ends here |
 | `manifest_identity/observe/estate.py` | What every native importer does the same way, written once: the root node, the identities at it, one observation per import |
 | `manifest_identity/observe/github_importer.py` | GitHub records become the same neutral rows: teams as groups, permission levels as capability documents |
