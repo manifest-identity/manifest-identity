@@ -132,7 +132,7 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         # Expiry is the clock compared to a column (D-073's record): if
         # the comparison goes, every lapsed access reports as current
         # and the delta lies in the safest-looking direction.
-        "manifest_identity/authorize/authorizations.py",
+        "manifest_identity/authorize/lifecycle.py",
         "    if row.status == AuthorizationStatus.authorized and is_expired(row, now):",
         "    if False:",
         ["tests/test_authorizations.py"],

@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.authorize import relationships
+from manifest_identity.authorize import lifecycle, relationships
 from manifest_identity.authorize.models import AuthorizedRelationship
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import (
@@ -81,7 +81,7 @@ def _view(
     unauthorized, which is what it is."""
     standing = (
         authorization is not None
-        and relationships.status_of(authorization) == "authorized"
+        and lifecycle.status_of(authorization) == "authorized"
     )
     return RelationshipView(
         kind=kind,
@@ -93,7 +93,7 @@ def _view(
         authorization_id=authorization.id if authorization else None,
         owner_kind=authorization.owner_kind if standing and authorization else None,
         owner_ref=authorization.owner_ref if standing and authorization else None,
-        status=relationships.status_of(authorization) if authorization else None,
+        status=lifecycle.status_of(authorization) if authorization else None,
         valid_until=authorization.valid_until if authorization else None,
     )
 

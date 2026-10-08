@@ -38,6 +38,7 @@ from sqlalchemy.orm import Session
 from manifest_identity.authorize import (
     authorizations,
     from_observed,
+    lifecycle,
     relationships,
     role_definitions,
 )
@@ -299,7 +300,7 @@ def for_identity(
     live_keys: set[str] = set()
     for row in rows:
         key = _key(row.path, row.role_definition_external_id)
-        status = authorizations.status_of(row, now)
+        status = lifecycle.status_of(row, now)
         if status == AuthorizationStatus.revoked:
             continue
         if status == AuthorizationStatus.expired:
@@ -400,7 +401,7 @@ def _reachable_findings(
     standing_doors = {
         relationships.door_key(row.kind, row.to_identity_id, row.from_ref)
         for row in relationships.latest_rows(db)
-        if relationships.status_of(row, now) == AuthorizationStatus.authorized
+        if lifecycle.status_of(row, now) == AuthorizationStatus.authorized
     }
 
     out: list[DeltaFinding] = []
