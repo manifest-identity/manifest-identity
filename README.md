@@ -2,7 +2,7 @@
 
 [![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/manifest-identity/manifest-identity?label=OpenSSF%20Scorecard&style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/manifest-identity/manifest-identity)
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/14563?label=OpenSSF%20Best%20Practices&style=for-the-badge)](https://www.bestpractices.dev/projects/14563)
-[![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmanifest-identity%2Fmanifest-identity%2Fmain%2Fbadges%2Fbuild-doctrine-score.json&style=for-the-badge)](https://github.com/tltaylor1/build-doctrine/blob/main/SCORES.md)
+[![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmanifest-identity%2Fmanifest-identity%2Fmain%2Fbadges%2Fbuild-doctrine-score.json&style=for-the-badge)](SCORING.md#build-doctrine-score)
 [![Coverage](https://img.shields.io/codecov/c/github/manifest-identity/manifest-identity?label=Coverage&style=for-the-badge)](https://codecov.io/gh/manifest-identity/manifest-identity)
 [![Quality gate](https://img.shields.io/sonar/quality_gate/manifest-identity_manifest-identity?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=manifest-identity_manifest-identity)
 
