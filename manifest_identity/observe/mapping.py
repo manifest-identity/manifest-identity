@@ -91,10 +91,6 @@ class Reading:
     absent_fields: list[str] = dataclass_field(default_factory=list)
     row_count: int = 0
 
-    @property
-    def preview(self) -> list[ReadRow]:
-        return self.rows[:PREVIEW_ROWS]
-
 
 def parse_specs(raw: dict[str, dict[str, str | None]]) -> dict[str, FieldSpec]:
     specs: dict[str, FieldSpec] = {}

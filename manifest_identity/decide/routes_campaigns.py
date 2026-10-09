@@ -102,7 +102,6 @@ class CampaignView(BaseModel):
     notes_required: list[str]
     total: int
     disposed: int
-    by_disposition: dict[str, int]
 
 
 class CampaignDetail(CampaignView):
@@ -188,18 +187,12 @@ def _in_scope_group(g: AssessedGroup, scope: str) -> bool:
     return True
 
 
-def _counts(items: list[CampaignItem]) -> tuple[int, dict[str, int]]:
-    by: dict[str, int] = {}
-    disposed = 0
-    for item in items:
-        if item.disposition is not None:
-            disposed += 1
-            by[item.disposition] = by.get(item.disposition, 0) + 1
-    return disposed, by
+def _disposed(items: list[CampaignItem]) -> int:
+    return sum(1 for item in items if item.disposition is not None)
 
 
 def _campaign_view(campaign: Campaign, items: list[CampaignItem]) -> CampaignView:
-    disposed, by = _counts(items)
+    disposed = _disposed(items)
     return CampaignView(
         id=campaign.id,
         name=campaign.name,
@@ -217,7 +210,6 @@ def _campaign_view(campaign: Campaign, items: list[CampaignItem]) -> CampaignVie
         closed_by=campaign.closed_by,
         total=len(items),
         disposed=disposed,
-        by_disposition=by,
         notes_required=list(campaign.notes_required),
     )
 
