@@ -21,9 +21,9 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.authorize.models import GovernanceRecord
 from manifest_identity.core import audit
-from manifest_identity.core.models import User
-from manifest_identity.models import GovernanceRecord, utcnow
+from manifest_identity.core.models import User, utcnow
 from manifest_identity.observe.findings import Finding
 
 KINDS = ("owner", "purpose", "flag", "attestation")

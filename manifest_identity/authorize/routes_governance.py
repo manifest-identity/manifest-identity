@@ -18,10 +18,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from manifest_identity.authorize.governance import set_record
+from manifest_identity.authorize.models import GovernanceRecord
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, require_roles, require_scope
-from manifest_identity.models import GovernanceRecord, Identity, utcnow
+from manifest_identity.core.models import utcnow
+from manifest_identity.observe.models import Identity
 
 router = APIRouter()
 

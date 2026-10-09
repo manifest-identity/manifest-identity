@@ -196,7 +196,7 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
     ),
     (
         "formula escaping removed from the CSV exit",
-        "manifest_identity/decide/reports.py",
+        "manifest_identity/core/spreadsheet.py",
         "    if text.startswith(FORMULA_LEADERS):",
         "    if False:",
         ["tests/test_reports.py"],

@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from manifest_identity.authorize import authorizations, csv_import
 from manifest_identity.core.models import ScopeNode
+from manifest_identity.core.spreadsheet import csv_safe
 from manifest_identity.observe import paths
 from manifest_identity.observe.models import Identity, IdentityKind
 
@@ -137,8 +138,6 @@ def export_csv(grants: list[ObservedGrant]) -> str:
     in between. The owner and the justification are left empty on
     purpose, because they are the two things the observed side cannot
     know and the two a person is being asked for."""
-    from manifest_identity.decide.reports import csv_safe
-
     columns = [
         column
         for spec in csv_import.DEFAULT_FIELDS.values()

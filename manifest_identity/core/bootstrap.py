@@ -12,9 +12,9 @@ from sqlalchemy.orm import Session
 from manifest_identity.core import audit, security
 from manifest_identity.core.config import Settings
 from manifest_identity.core.logs import log_event
+from manifest_identity.core.models import User
 from manifest_identity.core.roles import Role
 from manifest_identity.core.scope import bind, global_node
-from manifest_identity.models import User
 
 
 def bootstrap_admin(db: Session, settings: Settings) -> None:

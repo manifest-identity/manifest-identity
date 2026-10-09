@@ -2649,3 +2649,47 @@ reflex; a longer window, which is a longer life for a stolen session;
 and leaving the imports of observed data out of the marker test, since
 they are the doors most likely to receive a file with a live key in it.
 
+## D-090: The floors are a checked rule, not a convention
+
+The code was organized in parts that read as layers, core at the bottom
+and the API at the top, and nothing checked that a lower part never
+used a higher one. An import graph drawn on October 8, 2026 found the
+layers already leaking in four ways: core imported the module that
+gathers every part's tables, so the bottom floor reached every floor; an
+authorize function borrowed the spreadsheet formula helper from decide
+through an import placed inside the function, the usual sign of a
+dodged cycle; writing an authorization raised an alert in decide; and
+the inventory in observe showed governance from authorize. An agent
+adding a feature takes the nearest import that works, and each one
+looks harmless alone; the sum is code where nothing can change without
+touching everything.
+
+The six parts are now floors, api, decide, compare, authorize, observe,
+core, from the top, and import-linter holds a layers contract over them
+in the commit hook and the pipeline. It follows indirect chains, which
+is how it found four more modules importing their tables through the
+gathering module rather than from their own floor; each now imports
+from the floor its tables live on. The formula helper moved to core,
+where every floor's exports can reach it. The two remaining upward
+imports are listed in the contract with their reasons, as visible debt.
+
+import-linter was vetted on October 8, 2026 with build-doctrine's
+script: BSD-2-Clause, maintained, no published advisories, no install
+scripts or committed binaries in its checkout. The two vulnerabilities
+the scan found in its lockfile are in anyio, which only its optional
+web interface installs; this tree installs it without extras, pinned
+by hash with click and grimp, and grimp ships a compiled extension,
+acceptable in a development tree that never enters the image.
+
+A first wiring ran `python -m importlinter.cli`, which imports the
+module and exits 0 without checking anything; the hook runs the
+`lint-imports` command instead, and a planted upward import from core
+turned it red before this was committed.
+
+Rejected: Tach, which requires every edge between modules declared and
+ships a compiled binary, more than one ordering rule needs; leaving the
+order as a convention in the documents, where the four leaks grew; and
+fixing the two remaining upward imports here, since turning the alert
+dependency around is a change of its own and where governance belongs
+is the owner's decision.
+

@@ -46,7 +46,7 @@ def main() -> int:
 def _reaches(db: Session, anchor: str) -> bool:
     from sqlalchemy import select
 
-    from manifest_identity.models import AuditEvent
+    from manifest_identity.core.models import AuditEvent
     return db.execute(
         select(AuditEvent.id).where(AuditEvent.row_hash == anchor)
     ).first() is not None

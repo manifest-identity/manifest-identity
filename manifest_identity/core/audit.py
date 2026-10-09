@@ -25,7 +25,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.models import AuditEvent, utcnow
+from manifest_identity.core.models import AuditEvent, utcnow
 
 GENESIS = "0" * 64
 

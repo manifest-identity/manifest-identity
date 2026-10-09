@@ -8,3 +8,4 @@ pip-audit
 mypy
 hypothesis
 pytest-cov
+import-linter

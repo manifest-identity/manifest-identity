@@ -114,7 +114,7 @@ code in [control-plane](https://tltaylor1.github.io/control-plane/).
 | Tests | **440 tests in 49 files**, coverage 95 over a 90 percent floor |
 | Mutation | 35 controls removed by the check, 35 noticed by the suite |
 | Surface | **71 routes**, every one in the role matrix the tests walk |
-| Record | **89 recorded decisions**, each with its rejected alternatives |
+| Record | **90 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -1049,6 +1049,7 @@ holds the reviews and the alerts.
 | `manifest_identity/core/deps.py` | Authentication, the matrix check, the scope check, and the write budget |
 | `manifest_identity/core/models.py` | Users, sessions, scope nodes, role bindings, settings, the audit chain |
 | `manifest_identity/core/audit.py` | The audit spine: the record commits with the action |
+| `manifest_identity/core/spreadsheet.py` | The formula-injection gate every CSV export passes through, on every floor |
 | `manifest_identity/core/verify_chain.py` | The offline verifier: recompute the chain, compare to an anchor |
 | `manifest_identity/observe/providers/` | The nine parsers, AWS, GitHub, Kubernetes, Google Cloud, Azure, Okta, and Active Directory through its cmdlets and through SharpHound: bounded, in memory, distrusting their own preconditions. The type and size checks they share, and their one rejection error, live once in `parsing.py` |
 | `manifest_identity/observe/importer.py` | AWS records become neutral rows; the vocabulary ends here |
@@ -1276,6 +1277,13 @@ through a pull request whose checks include the writing rules and the
 status-truth gates, and [AI-USAGE.md](AI-USAGE.md) keeps the record of
 what the coding agent got wrong along the way, because that record is
 the point.
+
+The code is stacked in six floors, from `core` at the bottom to `api` at
+the top, and each floor may import only the floors below it. A check
+fails any import that reaches up a floor, at commit and in the
+pipeline, and the two places that still reach up are listed with their
+reasons; [ARCHITECTURE.md](ARCHITECTURE.md#how-the-code-is-stacked)
+describes the floors (D-090).
 
 The pipeline every repository under build-doctrine shares is documented
 once, in [Every repository's pipeline](https://tltaylor1.github.io/build-doctrine/02-enforcement/#every-repositorys-pipeline);
