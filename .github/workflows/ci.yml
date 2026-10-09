@@ -189,7 +189,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tltaylor1/build-doctrine
-          ref: 03f8d1e8dcecc97e1f3c20695bf9bbffb159075a
+          ref: dcf5e75b4a6aa85436c13e90a1e601392252792f
           path: doctrine
           persist-credentials: false
       - name: score against the doctrine
@@ -211,6 +211,9 @@ jobs:
       # on a push there is no base to compare against, and it says so.
       - name: no new copy of code the repository already holds
         run: python3 doctrine/scripts/check_repetition.py .
+      # The same comparison for code nothing uses (build-doctrine D-046).
+      - name: no new code that nothing uses
+        run: python3 doctrine/scripts/check_dead_code.py .
 
   resolve:
     runs-on: ubuntu-latest
