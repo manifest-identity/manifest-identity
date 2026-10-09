@@ -381,6 +381,13 @@ accepted.
   bound copied into six parsers and the same revocation rule into three
   records, the copies already differing in wording and in which limit
   applied.
+- Code nothing uses is removed, not kept. It is read, reviewed, patched,
+  and audited like the rest, and it protects nothing; an agent that writes
+  a new version instead of reusing the old one leaves the old one behind.
+  An import kept for its side effect says so where it stands. From one
+  application (October 2026), where a scan found four constants nothing
+  read, one of them a second statement of a rule the running code stated
+  again elsewhere.
 - Fixtures and demonstration input are derived from the system, never
   typed from assumption: read the values the generator or the database
   actually produced. From three consecutive subphases of one build
