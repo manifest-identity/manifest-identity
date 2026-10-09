@@ -15,6 +15,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
 
 from manifest_identity.api import routes_read as read_api
 from manifest_identity.api import routes_tokens as tokens
@@ -61,8 +62,6 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        from sqlalchemy.orm import Session
-
         with Session(get_engine()) as db:
             bootstrap_admin(db, settings)
         yield

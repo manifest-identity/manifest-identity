@@ -15,10 +15,12 @@ verifies, 1 when it does not.
 import argparse
 import sys
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_engine
+from manifest_identity.core.models import AuditEvent
 
 
 def main() -> int:
@@ -44,9 +46,6 @@ def main() -> int:
 
 
 def _reaches(db: Session, anchor: str) -> bool:
-    from sqlalchemy import select
-
-    from manifest_identity.core.models import AuditEvent
     return db.execute(
         select(AuditEvent.id).where(AuditEvent.row_hash == anchor)
     ).first() is not None

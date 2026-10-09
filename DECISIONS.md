@@ -2774,3 +2774,34 @@ campaign is open, for the reason above; and requiring a note for every
 answer always, which turns the note into a field people fill with
 nothing.
 
+## D-093: No two parts depend on each other; the floors are removed
+
+**What the floors did.** D-090 made each part use only the parts below
+it, checked by import-linter. In its first run it found four leaks,
+and the fixes stay: core takes its tables from its own module, and the
+spreadsheet helper lives in core.
+
+**Why they came out.** They added three packages to the development
+tree, one with compiled code, to enforce an ordering rule this
+application does not need. Most of what they enforced was order, and
+order alone creates no tangle. The owner asked whether they were ever
+needed, and they were not the only way to the protection that matters.
+
+**What replaces them.** Two checks with no new tool. A short test fails
+when any two parts start importing each other, which is the real
+tangle; the two pairs that exist, authorize with decide and authorize
+with observe, are listed with their reasons. The same test refuses any
+part importing the module that gathers every table. And ruff's PLC0415
+refuses an import placed inside a function in the application, the
+usual way around a two-way dependency; the seven that existed moved to
+the top of their files, and tests keep theirs, which reload modules on
+purpose. A planted two-way import and a planted function-level import
+each failed before this was committed.
+
+**What is given up.** A part may now use a part that would have sat
+above it, as long as the two do not depend on each other.
+
+Rejected: keeping import-linter for the reason above; and removing the
+floors with nothing in their place, which loses the check against the
+tangle the owner asked about.
+

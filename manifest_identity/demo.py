@@ -20,6 +20,8 @@ import sys
 from datetime import timedelta
 from pathlib import Path
 
+from alembic import command as alembic_command
+from alembic.config import Config as AlembicConfig
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -70,9 +72,6 @@ DEMO_CAMPAIGN = "Quarterly access review (demo)"
 
 
 def _migrate() -> str:
-    from alembic import command as alembic_command
-    from alembic.config import Config as AlembicConfig
-
     ini = Path(__file__).resolve().parent.parent / "alembic.ini"
     cfg = AlembicConfig(str(ini))
     # Leave the host process's logging alone; see migrations/env.py.

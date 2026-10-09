@@ -41,6 +41,7 @@ from manifest_identity.core import audit, security
 from manifest_identity.core.models import ScopeNode, User
 from manifest_identity.core.roles import Role
 from manifest_identity.core.scope import bind, global_node
+from manifest_identity.observe.mapping import parse_path
 from manifest_identity.observe.models import (
     Identity,
     IdentityKind,
@@ -234,7 +235,6 @@ def _not_held_rows(db: Session, existing: dict[int, set[str]]) -> list[dict[str,
             authorizations.grant_key(row.path, row.role_definition_external_id)
             for row in authorizations.latest_rows(db, identity.id)
         })
-        from manifest_identity.observe.mapping import parse_path
         if authorizations.grant_key(parse_path(path), role) in keys:
             continue
         rows.append({

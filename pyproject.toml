@@ -2,36 +2,6 @@
 # compiled with hashes into requirements.txt; this project is an
 # application, not a distributable package.
 
-[tool.importlinter]
-root_package = "manifest_identity"
-
-# The floors (D-090): each part may import only the parts below it.
-# An import that reaches up a floor fails the commit hook and the
-# pipeline. The two listed exceptions are known debt, each with its
-# reason in D-090; the list is meant only to shrink.
-[[tool.importlinter.contracts]]
-name = "each floor imports only the floors below it"
-type = "layers"
-layers = [
-    "manifest_identity.api",
-    "manifest_identity.decide",
-    "manifest_identity.compare",
-    "manifest_identity.authorize",
-    "manifest_identity.observe",
-    "manifest_identity.core",
-]
-ignore_imports = [
-    # Writing an authorization raises an alert. Turning this around, so
-    # decide listens for a written record, is a change of its own.
-    "manifest_identity.authorize.authorizations -> manifest_identity.decide.alerts",
-    # The inventory shows owners and flags, which live in authorize.
-    # Whether governance belongs on a lower floor is an open decision.
-    "manifest_identity.observe.assessment -> manifest_identity.authorize.governance",
-    "manifest_identity.observe.assessment -> manifest_identity.authorize.models",
-    "manifest_identity.observe.routes_inventory -> manifest_identity.authorize.governance",
-    "manifest_identity.observe.routes_inventory -> manifest_identity.authorize.routes_governance",
-]
-
 [tool.ruff]
 target-version = "py311"
 line-length = 100
@@ -40,7 +10,7 @@ line-length = 100
 # E, F: correctness. I: import order. B: known bug patterns. UP: outdated
 # idioms. S: security checks. ERA: commented-out code, which the standards
 # forbid as a deferred-work marker in disguise.
-select = ["E", "F", "I", "B", "UP", "S", "ERA", "C90", "RUF100"]
+select = ["E", "F", "I", "B", "UP", "S", "ERA", "C90", "RUF100", "PLC0415"]
 
 # A function whose branches exceed ten is past what a reader holds in
 # mind at once (D-091). The functions already past it carry a noqa
@@ -48,9 +18,12 @@ select = ["E", "F", "I", "B", "UP", "S", "ERA", "C90", "RUF100"]
 # shows and can only be changed on purpose.
 [tool.ruff.lint.mccabe]
 max-complexity = 10
+
 [tool.ruff.lint.per-file-ignores]
 # Test functions assert; that is their job, not an assertion misuse.
-"tests/*" = ["S101"]
+# Tests also import inside a function on purpose, to reload a module
+# after changing its settings; the application never needs to (D-093).
+"tests/*" = ["S101", "PLC0415"]
 
 [tool.ruff.lint.flake8-bugbear]
 # Dependency factories are FastAPI's idiom for defaults, not the

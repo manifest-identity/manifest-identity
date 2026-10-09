@@ -31,33 +31,37 @@ without a human. This applies the same premise to identity and
 access: the observed side is never edited, the authorized side is
 never automatic, and the difference is the work.
 
-## How the code is stacked
+## How the parts depend on each other
 
-The code has six parts, stacked like floors in a building:
+The code has six parts:
 
-1. `core` is at the bottom: sign-in, the database, and the audit log.
+1. `core` holds sign-in, the database, and the audit log.
 2. `observe` holds what each provider's files say people hold.
 3. `authorize` holds what people are allowed to hold.
 4. `compare` computes the differences between those two.
 5. `decide` runs reviews, alerts, and reports.
-6. `api` is at the top: the read-only API for other systems.
+6. `api` serves the read-only API for other systems.
 
-Each floor may use only the floors below it. That keeps the code from
-tangling, because a change to a lower floor cannot be wound into
-everything above it. The rule is checked, not remembered: `lint-imports`
-runs in the commit hook and in the pipeline, and it fails any import
-that reaches up a floor, directly or through another module (D-090).
+**The rule.** No two parts may depend on each other. When two parts
+import each other, neither can change without the other, and that is
+how code turns into spaghetti.
 
-Two places reach up today, and both are listed in `pyproject.toml` with
-their reasons so the debt stays visible. Writing an authorization raises
-an alert in `decide`, and the inventory in `observe` shows owners and
-flags that live in `authorize`. The list is meant only to shrink.
+**How it is checked.** A test fails when a new pair of parts starts
+importing each other. The two pairs that exist are listed in the test
+with their reasons: writing an authorization raises an alert in
+`decide`, and the inventory in `observe` shows owners and flags from
+`authorize`. ruff also refuses an import placed inside a function, the
+usual way around the rule.
 
-The modules at the top of the package sit outside the floors.
-`main.py` assembles the application, the demo scripts populate it, and
-`models.py` gathers every floor's tables for the migrations and the
-tests; no floor imports it, because importing it would reach every
-floor at once.
+**The module that gathers every table.** `models.py` at the top of the
+package collects every part's tables for the migrations and the tests.
+No part imports it, because that would tie a part to all the others at
+once. The same test checks this.
+
+**What came before.** A stricter version, where each part could use
+only the parts listed below it, ran for a day (D-090). It needed three
+extra packages for an ordering rule this application does not need, so
+this replaced it (D-093).
 
 ## The model
 
