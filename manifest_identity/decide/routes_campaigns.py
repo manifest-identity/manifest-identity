@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -26,11 +26,18 @@ from manifest_identity.core.deps import AuthContext, ThrottledWrite, require_rol
 from manifest_identity.core.models import aware, utcnow
 from manifest_identity.decide import alerts
 from manifest_identity.decide.campaigns import (
+    NOTE_REASONS,
     Recommendation,
     evidence_delta,
     recommend,
 )
-from manifest_identity.decide.models import Campaign, CampaignItem, CampaignTrigger
+from manifest_identity.decide.models import (
+    DEFAULT_NOTES_REQUIRED,
+    Campaign,
+    CampaignItem,
+    CampaignTrigger,
+    Disposition,
+)
 from manifest_identity.observe.assessment import (
     AssessedGroup,
     AssessedIdentity,
@@ -54,23 +61,16 @@ class CreateCampaignRequest(BaseModel):
     # ends within the window.
     trigger: Literal["manual", "delta", "expiry"] = "manual"
     within_days: int = Field(default=30, ge=1, le=365)
+    # Which answers need a note, chosen here and fixed for the life of
+    # the campaign (D-092).
+    notes_required: list[Disposition] = Field(
+        default_factory=lambda: list(DEFAULT_NOTES_REQUIRED), max_length=4
+    )
 
 
 class DispositionRequest(BaseModel):
-    disposition: Literal[
-        "certify", "revoke_recommended", "insufficient_evidence", "delegated"
-    ]
+    disposition: Disposition
     note: str | None = Field(default=None, min_length=1, max_length=500)
-
-    @model_validator(mode="after")
-    def note_where_meaning_needs_it(self) -> DispositionRequest:
-        if self.disposition == "insufficient_evidence" and self.note is None:
-            raise ValueError(
-                "insufficient evidence must name what was missing"
-            )
-        if self.disposition == "delegated" and self.note is None:
-            raise ValueError("a delegation must name who holds it now")
-        return self
 
 
 class ItemView(BaseModel):
@@ -99,6 +99,7 @@ class CampaignView(BaseModel):
     created_at: str
     closed_at: str | None
     closed_by: str | None
+    notes_required: list[str]
     total: int
     disposed: int
     by_disposition: dict[str, int]
@@ -217,6 +218,7 @@ def _campaign_view(campaign: Campaign, items: list[CampaignItem]) -> CampaignVie
         total=len(items),
         disposed=disposed,
         by_disposition=by,
+        notes_required=list(campaign.notes_required),
     )
 
 
@@ -230,6 +232,7 @@ def build_campaign(
     created_by: str,
     trigger: str = CampaignTrigger.manual,
     within_days: int = 30,
+    notes_required: list[str] | None = None,
 ) -> tuple[Campaign, list[CampaignItem]]:
     """The campaign and its frozen population, one builder for every
     caller: the route and the demo command both create campaigns
@@ -250,6 +253,9 @@ def build_campaign(
         due_at=due_at,
         recurrence=recurrence,
         created_by=created_by,
+        notes_required=sorted(set(
+            DEFAULT_NOTES_REQUIRED if notes_required is None else notes_required
+        )),
     )
     db.add(campaign)
     db.flush()
@@ -430,6 +436,7 @@ def create_campaign(
         created_by=auth.user.username,
         trigger=body.trigger,
         within_days=body.within_days,
+        notes_required=list(body.notes_required),
     )
     if not items:
         raise HTTPException(
@@ -443,7 +450,10 @@ def create_campaign(
         actor_username=auth.user.username,
         action="campaign_created",
         target=f"campaign:{campaign.id}",
-        detail=f"{body.name}: {body.trigger} over {body.scope}, {len(items)} item(s)",
+        detail=(
+            f"{body.name}: {body.trigger} over {body.scope}, {len(items)} item(s), "
+            f"notes required for {', '.join(campaign.notes_required) or 'none'}"
+        ),
     )
     db.commit()
     return _campaign_view(campaign, items)
@@ -586,6 +596,8 @@ def dispose_item(
         db, auth, "POST /campaigns/{campaign_id}/items/{item_id}/disposition",
         target.scope_node_id if target else None,
     )
+    if body.disposition in campaign.notes_required and body.note is None:
+        raise HTTPException(status_code=422, detail=NOTE_REASONS[body.disposition])
     if item.disposition is not None:
         raise HTTPException(
             status_code=409,

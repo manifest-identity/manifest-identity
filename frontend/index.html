@@ -317,6 +317,13 @@
             <option value="yearly">yearly</option>
           </select>
         </label>
+        <fieldset>
+          <legend>Require a note for</legend>
+          <label><input type="checkbox" name="notes_required" value="certify"> certify</label>
+          <label><input type="checkbox" name="notes_required" value="revoke_recommended"> revoke recommended</label>
+          <label><input type="checkbox" name="notes_required" value="insufficient_evidence" checked> insufficient evidence</label>
+          <label><input type="checkbox" name="notes_required" value="delegated" checked> delegated</label>
+        </fieldset>
         <button type="submit">Create</button>
       </form>
       <output id="campaign-result" hidden></output>
@@ -348,7 +355,7 @@
         <button id="campaign-x" class="close-x secondary" type="button" aria-label="Close campaign details">&#215;</button>
       </div>
       <p id="campaign-facts" class="empty"></p>
-      <p id="campaign-done" class="empty" hidden>Every item is decided. Close the campaign to record the outcome; a recurring campaign opens its next cycle when it closes.</p>
+      <p id="campaign-done" class="empty" hidden>Every item is decided. Close the campaign to record the outcome; a recurring campaign then shows when its next cycle is due, for a person to create.</p>
       <p id="campaign-items-empty" class="empty" hidden>This campaign holds no items: its scope matched nothing when it was created.</p>
       <output id="campaign-detail-result" hidden></output>
       <div id="campaign-items"></div>
