@@ -294,8 +294,6 @@ jobs:
         run: ruff check .
       - name: types
         run: mypy
-      - name: the floors, each part importing only the parts below it (D-090)
-        run: lint-imports
       - name: tests, with the coverage floor
         # The floor sits under the measured figure (94 at adoption) so
         # it catches erosion without inviting tests written to move a

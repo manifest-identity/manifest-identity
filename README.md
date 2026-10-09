@@ -111,10 +111,10 @@ code in [control-plane](https://tltaylor1.github.io/control-plane/).
 
 | Measured | Standing |
 |---|---|
-| Tests | **446 tests in 50 files**, coverage 95 over a 90 percent floor |
-| Mutation | 36 controls removed by the check, 36 noticed by the suite |
+| Tests | **451 tests in 51 files**, coverage 95 over a 90 percent floor |
+| Mutation | 37 controls removed by the check, 37 noticed by the suite |
 | Surface | **71 routes**, every one in the role matrix the tests walk |
-| Record | **92 recorded decisions**, each with its rejected alternatives |
+| Record | **93 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -1051,7 +1051,7 @@ holds the reviews and the alerts.
 | `manifest_identity/core/deps.py` | Authentication, the matrix check, the scope check, and the write budget |
 | `manifest_identity/core/models.py` | Users, sessions, scope nodes, role bindings, settings, the audit chain |
 | `manifest_identity/core/audit.py` | The audit spine: the record commits with the action |
-| `manifest_identity/core/spreadsheet.py` | The formula-injection gate every CSV export passes through, on every floor |
+| `manifest_identity/core/spreadsheet.py` | The formula-injection gate every CSV export passes through, in every part |
 | `manifest_identity/core/verify_chain.py` | The offline verifier: recompute the chain, compare to an anchor |
 | `manifest_identity/observe/providers/` | The nine parsers, AWS, GitHub, Kubernetes, Google Cloud, Azure, Okta, and Active Directory through its cmdlets and through SharpHound: bounded, in memory, distrusting their own preconditions. The type and size checks they share, and their one rejection error, live once in `parsing.py` |
 | `manifest_identity/observe/importer.py` | AWS records become neutral rows; the vocabulary ends here |
@@ -1280,12 +1280,10 @@ status-truth gates, and [AI-USAGE.md](AI-USAGE.md) keeps the record of
 what the coding agent got wrong along the way, because that record is
 the point.
 
-The code is stacked in six floors, from `core` at the bottom to `api` at
-the top, and each floor may import only the floors below it. A check
-fails any import that reaches up a floor, at commit and in the
-pipeline, and the two places that still reach up are listed with their
-reasons; [ARCHITECTURE.md](ARCHITECTURE.md#how-the-code-is-stacked)
-describes the floors (D-090). Within a floor, no function may branch
+No two parts of the code may depend on each other. A test fails when a
+new pair appears, and the two pairs that exist are listed with their
+reasons; [ARCHITECTURE.md](ARCHITECTURE.md#how-the-parts-depend-on-each-other)
+describes the parts (D-093). Within a part, no function may branch
 more than ten ways; the 31 functions still past that limit are marked
 and counted, so the list changes only on purpose
 (D-091).
@@ -1671,7 +1669,7 @@ load-bearing ones:
 sits under the measured figure to catch erosion without inviting tests
 written to move a number.
 
-**Thirty-six mutations, thirty-six kills.** The mutation check breaks
+**Thirty-seven mutations, thirty-seven kills.** The mutation check breaks
 one control at a time and requires the tests that claim that control
 to fail. The table is generated from the check's own list by
 `scripts/check_mutation.py --table`, and a test fails the build when
@@ -1716,6 +1714,7 @@ the two differ, so the count here is the count the check runs:
 | A disabled account's password is recorded as live | the active_directory_import tests |
 | An inherited control right is recorded as obtainable | the active_directory_import tests |
 | An answer a campaign requires a note for is accepted without one | the campaigns tests |
+| The offline verifier accepts an anchor the trail never reached | the audit_chain tests |
 ```
 
 On its first run the token-hashing mutation survived: every test

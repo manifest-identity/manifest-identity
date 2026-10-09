@@ -32,6 +32,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+from manifest_identity.authorize.fields import DEFAULT_FIELDS
+
 ACCOUNT = "555555555555"
 
 # Three generations, a month apart. Far enough that the minimum
@@ -1303,8 +1305,6 @@ def authorizations_template() -> str:
     the two cannot drift. Its rows name identities from the sample
     account above, so a reader can import it after the observed files
     and watch the record fill."""
-    from manifest_identity.authorize.fields import DEFAULT_FIELDS
-
     columns = [
         column
         for spec in DEFAULT_FIELDS.values()

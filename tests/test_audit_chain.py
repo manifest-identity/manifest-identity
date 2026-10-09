@@ -7,11 +7,14 @@ carries the chain head, so a copy held outside the database anchors
 the trail against alteration after the export.
 """
 
+import sys
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from manifest_identity.core import audit
+from manifest_identity.core import audit, verify_chain
 from manifest_identity.core.roles import Role
 from manifest_identity.models import AuditEvent
 from manifest_identity.sample_data import GENERATIONS, file_set
@@ -84,3 +87,47 @@ def test_the_evidence_export_anchors_the_chain_head(client: TestClient, db: Sess
     csv_body = client.get(f"/campaigns/{created.json()['id']}/evidence.csv",
                           headers=auth_header(token)).text
     assert "audit_chain_head," + audit.chain_head(db) in csv_body
+
+
+def _verify(monkeypatch: pytest.MonkeyPatch, *args: str) -> int:
+    """Run the offline verifier the way an operator does, by its command line."""
+    monkeypatch.setattr(sys, "argv", ["verify_chain", *args])
+    return verify_chain.main()
+
+
+def test_the_verifier_passes_an_intact_trail_and_its_own_head(
+    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _write(db, 3)
+    rows = audit.verify(db).rows
+    assert _verify(monkeypatch) == 0
+    assert f"audit chain intact, {rows} rows" in capsys.readouterr().out
+    assert _verify(monkeypatch, "--anchor", audit.chain_head(db)) == 0
+    assert "intact through the anchor" in capsys.readouterr().out
+
+
+def test_the_verifier_refuses_an_anchor_the_trail_does_not_reach(
+    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The anchor is a head copied out in an evidence export; a trail
+    that no longer reaches it was altered after the export."""
+    _write(db, 2)
+    assert _verify(monkeypatch, "--anchor", "0" * 64) == 1
+    assert "does not reach the anchored head" in capsys.readouterr().err
+
+
+def test_the_verifier_fails_a_tampered_trail_and_names_the_row(
+    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _write(db, 3)
+    middle = db.execute(select(AuditEvent).order_by(AuditEvent.id)).scalars().all()[1]
+    db.execute(text("UPDATE audit_events SET detail = 'rewritten' WHERE id = :id"),
+               {"id": middle.id})
+    db.commit()
+    db.expire_all()
+    assert _verify(monkeypatch) == 1
+    assert f"audit chain broken at row {middle.id}" in capsys.readouterr().err
+

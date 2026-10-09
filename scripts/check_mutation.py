@@ -347,6 +347,16 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         "    if False:",
         ["tests/test_campaigns.py"],
     ),
+    (
+        "the offline verifier accepts an anchor the trail never reached",
+        # The anchor is the head an evidence export carried out of the
+        # database; without the comparison, history altered after the
+        # export verifies as intact.
+        "manifest_identity/core/verify_chain.py",
+        "        select(AuditEvent.id).where(AuditEvent.row_hash == anchor)",
+        "        select(AuditEvent.id)",
+        ["tests/test_audit_chain.py"],
+    ),
 ]
 
 
