@@ -2798,6 +2798,12 @@ the top of their files, and tests keep theirs, which reload modules on
 purpose. A planted two-way import and a planted function-level import
 each failed before this was committed.
 
+**What moving the imports showed.** Two of the seven sat in the
+offline audit-chain verifier, and moving them made the coverage check
+notice that no test had ever run that tool. Three tests now hold its
+exit codes and its anchor check, and a mutation that makes it accept
+any anchor is killed.
+
 **What is given up.** A part may now use a part that would have sat
 above it, as long as the two do not depend on each other.
 

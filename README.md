@@ -111,8 +111,8 @@ code in [control-plane](https://tltaylor1.github.io/control-plane/).
 
 | Measured | Standing |
 |---|---|
-| Tests | **448 tests in 51 files**, coverage 95 over a 90 percent floor |
-| Mutation | 36 controls removed by the check, 36 noticed by the suite |
+| Tests | **451 tests in 51 files**, coverage 95 over a 90 percent floor |
+| Mutation | 37 controls removed by the check, 37 noticed by the suite |
 | Surface | **71 routes**, every one in the role matrix the tests walk |
 | Record | **93 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
@@ -1669,7 +1669,7 @@ load-bearing ones:
 sits under the measured figure to catch erosion without inviting tests
 written to move a number.
 
-**Thirty-six mutations, thirty-six kills.** The mutation check breaks
+**Thirty-seven mutations, thirty-seven kills.** The mutation check breaks
 one control at a time and requires the tests that claim that control
 to fail. The table is generated from the check's own list by
 `scripts/check_mutation.py --table`, and a test fails the build when
@@ -1714,6 +1714,7 @@ the two differ, so the count here is the count the check runs:
 | A disabled account's password is recorded as live | the active_directory_import tests |
 | An inherited control right is recorded as obtainable | the active_directory_import tests |
 | An answer a campaign requires a note for is accepted without one | the campaigns tests |
+| The offline verifier accepts an anchor the trail never reached | the audit_chain tests |
 ```
 
 On its first run the token-hashing mutation survived: every test
