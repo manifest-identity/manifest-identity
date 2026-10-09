@@ -10,12 +10,21 @@ is a record, and each delivery to each recipient is a record, so
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 
 from sqlalchemy import JSON, DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from manifest_identity.core.db import Base
 from manifest_identity.core.models import utcnow
+
+# The four answers a reviewer gives an item, defined once.
+Disposition = Literal["certify", "revoke_recommended", "insufficient_evidence", "delegated"]
+
+# The answers a campaign requires a note for when its creator does not
+# choose: the two whose meaning is incomplete without one, what was
+# missing and who holds the question now (D-092).
+DEFAULT_NOTES_REQUIRED: tuple[Disposition, ...] = ("insufficient_evidence", "delegated")
 
 
 class CampaignTrigger(StrEnum):
@@ -40,6 +49,12 @@ class Campaign(Base):
     # none | monthly | quarterly | yearly; a preset the next cycle is
     # created from, never an automatic creation (people decide).
     recurrence: Mapped[str] = mapped_column(String(16), default="none")
+    # The answers that need a note in this campaign, chosen at creation
+    # and fixed after it, so every answer is judged by the rule it was
+    # given under (D-092).
+    notes_required: Mapped[list[str]] = mapped_column(
+        JSON, default=lambda: list(DEFAULT_NOTES_REQUIRED)
+    )
     created_by: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow

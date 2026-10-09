@@ -111,10 +111,10 @@ code in [control-plane](https://tltaylor1.github.io/control-plane/).
 
 | Measured | Standing |
 |---|---|
-| Tests | **441 tests in 50 files**, coverage 95 over a 90 percent floor |
-| Mutation | 35 controls removed by the check, 35 noticed by the suite |
+| Tests | **446 tests in 50 files**, coverage 95 over a 90 percent floor |
+| Mutation | 36 controls removed by the check, 36 noticed by the suite |
 | Surface | **71 routes**, every one in the role matrix the tests walk |
-| Record | **91 recorded decisions**, each with its rejected alternatives |
+| Record | **92 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -273,8 +273,10 @@ and what proves it.
   frozen population, one decision per item with no bulk certification,
   recommendations with their reasons, the changes since the last
   certification, insufficient evidence as a recorded outcome, and an
-  evidence export with the audit chain's head in it (D-039, 1.8).
-  Proven by `test_campaigns.py`.
+  evidence export with the audit chain's head in it (D-039, 1.8). The
+  person who sets up a campaign chooses which answers need a written
+  note, and the choice is fixed for the life of the campaign and stated
+  in its evidence (D-092). Proven by `test_campaigns.py`.
 - **Alerts that are records first.** A revocation recommended, an
   authorization approaching expiry, a difference for an owner to
   answer: each recorded, each delivery recorded per recipient, sent
@@ -1669,7 +1671,7 @@ load-bearing ones:
 sits under the measured figure to catch erosion without inviting tests
 written to move a number.
 
-**Thirty-five mutations, thirty-five kills.** The mutation check breaks
+**Thirty-six mutations, thirty-six kills.** The mutation check breaks
 one control at a time and requires the tests that claim that control
 to fail. The table is generated from the check's own list by
 `scripts/check_mutation.py --table`, and a test fails the build when
@@ -1713,6 +1715,7 @@ the two differ, so the count here is the count the check runs:
 | An inactive role assignment is recorded as held | the okta_import tests |
 | A disabled account's password is recorded as live | the active_directory_import tests |
 | An inherited control right is recorded as obtainable | the active_directory_import tests |
+| An answer a campaign requires a note for is accepted without one | the campaigns tests |
 ```
 
 On its first run the token-hashing mutation survived: every test

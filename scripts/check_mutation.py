@@ -338,6 +338,15 @@ MUTATIONS: list[tuple[str, str, str, str, list[str]]] = [
         "        if ace.right in READ_ONLY_RIGHTS or ace.principal_sid in administers:",
         ["tests/test_active_directory_import.py"],
     ),
+    (
+        "an answer a campaign requires a note for is accepted without one",
+        # The rule the campaign's creator chose (D-092): without the
+        # check, the setting is stored and shown and enforces nothing.
+        "manifest_identity/decide/routes_campaigns.py",
+        "    if body.disposition in campaign.notes_required and body.note is None:",
+        "    if False:",
+        ["tests/test_campaigns.py"],
+    ),
 ]
 
 

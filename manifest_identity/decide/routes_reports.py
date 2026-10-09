@@ -119,6 +119,7 @@ class EvidenceExport(BaseModel):
     due_at: str
     closed_at: str | None
     closed_by: str | None
+    notes_required: str
     total: int
     decided: int
     coverage: str
@@ -187,6 +188,7 @@ def _evidence(campaign_id: int, db: Session) -> EvidenceExport:
             else None
         ),
         closed_by=campaign.closed_by,
+        notes_required=", ".join(campaign.notes_required) or "none",
         total=len(items),
         decided=decided,
         coverage=f"{decided} of {len(items)}",

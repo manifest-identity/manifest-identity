@@ -18,20 +18,14 @@ from dataclasses import dataclass
 from manifest_identity.observe.derive import MIN_OBSERVATION_DAYS
 from manifest_identity.observe.findings import Finding
 
-SCOPES = ("everything", "privileged", "flagged", "users", "roles")
-
-RECURRENCES = ("none", "monthly", "quarterly", "yearly")
-
-DISPOSITIONS = (
-    "certify",
-    "revoke_recommended",
-    "insufficient_evidence",
-    "delegated",
-)
-
-# Dispositions whose meaning is incomplete without a note: what was
-# missing, or who now holds the question.
-NOTE_REQUIRED = ("insufficient_evidence", "delegated")
+# What a note has to say for each answer, in the refusal a person reads
+# when a campaign requires one and none was given (D-092).
+NOTE_REASONS = {
+    "certify": "a certification in this campaign must say why the access stands",
+    "revoke_recommended": "a revocation recommendation in this campaign must say why",
+    "insufficient_evidence": "insufficient evidence must name what was missing",
+    "delegated": "a delegation must name who holds it now",
+}
 
 # Finding codes that argue for revocation rather than mere attention:
 # unused means the access is not earning its risk, and root use means
