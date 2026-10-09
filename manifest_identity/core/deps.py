@@ -18,11 +18,11 @@ from sqlalchemy.orm import Session
 
 from manifest_identity.core.config import get_settings
 from manifest_identity.core.db import get_session
+from manifest_identity.core.models import AuthSession, User
 from manifest_identity.core.ratelimit import WRITE_LIMITER
 from manifest_identity.core.roles import ROUTE_ROLES, Role
 from manifest_identity.core.scope import holds, roles_held
 from manifest_identity.core.security import hash_token
-from manifest_identity.models import AuthSession, User
 
 _bearer = HTTPBearer(auto_error=False)
 

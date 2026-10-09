@@ -23,15 +23,14 @@ from manifest_identity.compare import delta
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import AuthContext, ThrottledWrite, require_roles, require_scope
-from manifest_identity.core.models import aware
+from manifest_identity.core.models import aware, utcnow
 from manifest_identity.decide import alerts
 from manifest_identity.decide.campaigns import (
     Recommendation,
     evidence_delta,
     recommend,
 )
-from manifest_identity.decide.models import CampaignTrigger
-from manifest_identity.models import Campaign, CampaignItem, Identity, utcnow
+from manifest_identity.decide.models import Campaign, CampaignItem, CampaignTrigger
 from manifest_identity.observe.assessment import (
     AssessedGroup,
     AssessedIdentity,
@@ -39,6 +38,7 @@ from manifest_identity.observe.assessment import (
     assess_identities,
 )
 from manifest_identity.observe.derive import MIN_OBSERVATION_DAYS
+from manifest_identity.observe.models import Identity
 
 router = APIRouter()
 

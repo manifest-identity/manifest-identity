@@ -19,9 +19,9 @@ from manifest_identity.core.config import get_settings
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import CurrentAuth, highest_role, require_roles
 from manifest_identity.core.logs import log_event
+from manifest_identity.core.models import AuthSession, User, utcnow
 from manifest_identity.core.ratelimit import LOGIN_LIMITER
 from manifest_identity.core.scope import roles_held
-from manifest_identity.models import AuthSession, User, utcnow
 
 router = APIRouter(prefix="/auth")
 

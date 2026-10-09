@@ -30,6 +30,8 @@ fi
 
 "$PYTHON" -m ruff check .
 "$PYTHON" -m mypy
+# The floors (D-090): no part imports a part above it.
+"$(dirname "$PYTHON")/lint-imports"
 # The repository's own rules, each one a lesson a scanner taught after
 # a push (D-086). Semgrep ships in its own hashed tree, apart from the
 # development tree, because one of its pins is overridden at compile

@@ -2,6 +2,36 @@
 # compiled with hashes into requirements.txt; this project is an
 # application, not a distributable package.
 
+[tool.importlinter]
+root_package = "manifest_identity"
+
+# The floors (D-090): each part may import only the parts below it.
+# An import that reaches up a floor fails the commit hook and the
+# pipeline. The two listed exceptions are known debt, each with its
+# reason in D-090; the list is meant only to shrink.
+[[tool.importlinter.contracts]]
+name = "each floor imports only the floors below it"
+type = "layers"
+layers = [
+    "manifest_identity.api",
+    "manifest_identity.decide",
+    "manifest_identity.compare",
+    "manifest_identity.authorize",
+    "manifest_identity.observe",
+    "manifest_identity.core",
+]
+ignore_imports = [
+    # Writing an authorization raises an alert. Turning this around, so
+    # decide listens for a written record, is a change of its own.
+    "manifest_identity.authorize.authorizations -> manifest_identity.decide.alerts",
+    # The inventory shows owners and flags, which live in authorize.
+    # Whether governance belongs on a lower floor is an open decision.
+    "manifest_identity.observe.assessment -> manifest_identity.authorize.governance",
+    "manifest_identity.observe.assessment -> manifest_identity.authorize.models",
+    "manifest_identity.observe.routes_inventory -> manifest_identity.authorize.governance",
+    "manifest_identity.observe.routes_inventory -> manifest_identity.authorize.routes_governance",
+]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100

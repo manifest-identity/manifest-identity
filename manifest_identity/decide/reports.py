@@ -22,18 +22,8 @@ from typing import cast
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from manifest_identity.core.spreadsheet import csv_safe
 from manifest_identity.observe.assessment import AssessedGroup, AssessedIdentity
-
-# A cell beginning with one of these executes as a formula in common
-# spreadsheets; a leading tab or carriage return smuggles the same.
-FORMULA_LEADERS = ("=", "+", "-", "@", "\t", "\r")
-
-
-def csv_safe(value: object) -> str:
-    text = "" if value is None else str(value)
-    if text.startswith(FORMULA_LEADERS):
-        return "'" + text
-    return text
 
 
 def identity_row(a: AssessedIdentity) -> dict[str, object]:
