@@ -114,7 +114,7 @@ code in [control-plane](https://tltaylor1.github.io/control-plane/).
 | Tests | **451 tests in 51 files**, coverage 95 over a 90 percent floor |
 | Mutation | 37 controls removed by the check, 37 noticed by the suite |
 | Surface | **71 routes**, every one in the role matrix the tests walk |
-| Record | **93 recorded decisions**, each with its rejected alternatives |
+| Record | **94 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in

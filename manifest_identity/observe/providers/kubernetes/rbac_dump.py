@@ -47,6 +47,8 @@ VERBS = frozenset({
 })
 
 
+_LIMITS = parsing.Limits(max_entries=MAX_ENTITIES, max_text=MAX_NAME_CHARS)
+_strings_or_records = _LIMITS.read_list
 _record = parsing.read_record
 _time = parsing.read_time
 
@@ -118,13 +120,8 @@ def _optional_name(raw: object, where: str) -> str | None:
 
 
 def _strings(raw: object, where: str) -> list[str]:
-    if raw is None:
-        return []
-    if not isinstance(raw, list) or not all(isinstance(x, str) for x in raw):
-        raise ParseError(f"{where}: must be a list of strings")
-    if len(raw) > MAX_ENTITIES:
-        raise ParseError(f"{where}: more than {MAX_ENTITIES} entries")
-    return raw
+    # The empty string names the core API group, so it is allowed here.
+    return _LIMITS.read_strings(raw, where, allow_empty=True)
 
 
 def _metadata(item: dict[str, object], where: str) -> dict[str, object]:
@@ -151,16 +148,6 @@ def _rules(raw: object, where: str) -> list[ParsedRule]:
             non_resource_urls=_strings(rule.get("nonResourceURLs"), r_where),
         ))
     return rules
-
-
-def _strings_or_records(raw: object, where: str) -> list[object]:
-    if raw is None:
-        return []
-    if not isinstance(raw, list):
-        raise ParseError(f"{where}: must be a list")
-    if len(raw) > MAX_ENTITIES:
-        raise ParseError(f"{where}: more than {MAX_ENTITIES} entries")
-    return raw
 
 
 def parse_rbac_dump(data: bytes) -> ParsedDump:  # noqa: C901
