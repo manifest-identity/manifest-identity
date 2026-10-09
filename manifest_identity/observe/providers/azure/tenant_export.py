@@ -48,13 +48,12 @@ verified against its own claims, and no error ever repeats file content.
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
 from manifest_identity.observe.providers import parsing
-from manifest_identity.observe.providers.parsing import ParseError
+from manifest_identity.observe.providers.parsing import ParseError, read_document
 
 MAX_FILE_BYTES = 50 * 1024 * 1024
 MAX_ENTITIES = 100_000
@@ -217,15 +216,8 @@ def _credentials(record: dict[str, object], where: str) -> list[ParsedCredential
     return out
 
 
-def parse_tenant_export(data: bytes) -> ParsedTenant:
-    if len(data) > MAX_FILE_BYTES:
-        raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
-    try:
-        document = json.loads(data)
-    except ValueError as exc:
-        raise ParseError("file is not valid JSON") from exc
-    if not isinstance(document, dict):
-        raise ParseError("file must be a JSON object")
+def parse_tenant_export(data: bytes) -> ParsedTenant:  # noqa: C901
+    document = read_document(data, MAX_FILE_BYTES)
 
     tenant = _record(document.get("tenant"), "tenant")
     cloud = tenant.get("cloud", "AzureCloud")

@@ -79,7 +79,7 @@ def _owner_from_tags(tags: object) -> str | None:
     return None
 
 
-def read_identity_privilege(
+def read_identity_privilege(  # noqa: C901
     *,
     identity_key: str,
     tags: object,
@@ -141,7 +141,7 @@ def _limits(reading: PolicyReading) -> str:
     return "; " + ", ".join(notes) if notes else ""
 
 
-def evaluate_privilege(picture: PrivilegePicture) -> list[Finding]:
+def evaluate_privilege(picture: PrivilegePicture) -> list[Finding]:  # noqa: C901
     found: list[Finding] = []
     combined = picture.combined
     caveat = _limits(combined)

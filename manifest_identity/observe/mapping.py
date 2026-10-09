@@ -135,7 +135,7 @@ def check_cover(
         )
 
 
-def read_table(data: bytes) -> tuple[list[str], list[list[str]]]:
+def read_table(data: bytes) -> tuple[list[str], list[list[str]]]:  # noqa: C901
     """The bounded read, in memory, in the style the two AWS parsers
     already hold to: every axis has a limit and a limit reached is a
     refusal of the whole file rather than a truncation nobody sees."""

@@ -41,7 +41,7 @@ SELF_ESCALATION = {
 
 # Passing a role into a compute service runs code as that role, so
 # either half alone is ordinary and the pair is an escalation path.
-# noqa on the next line: the checker reads "PASS" in the name as a
+
 # credential; this is the provider's action string for passing a role.
 PASS_ROLE = "iam:passrole"  # noqa: S105
 COMPUTE_LAUNCH = {
@@ -145,7 +145,7 @@ def capability_document(
     return document
 
 
-def read_policy(document: object) -> PolicyReading:
+def read_policy(document: object) -> PolicyReading:  # noqa: C901
     """Read one policy document. Malformed input reads as granting
     nothing, never as an exception: these documents are untrusted
     file content, and the parsers upstream already bound them."""
@@ -246,7 +246,7 @@ class TrustReading:
     conditioned: bool = False
 
 
-def read_trust_policy(document: object, own_account: str) -> TrustReading:
+def read_trust_policy(document: object, own_account: str) -> TrustReading:  # noqa: C901
     reading = TrustReading()
     if not isinstance(document, dict):
         return reading

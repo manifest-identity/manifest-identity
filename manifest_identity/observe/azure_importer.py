@@ -145,7 +145,7 @@ def azure_role_capabilities(
     )
 
 
-def import_tenant_export(
+def import_tenant_export(  # noqa: C901
     db: Session,
     *,
     export: ParsedTenant,

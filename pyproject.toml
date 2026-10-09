@@ -40,8 +40,14 @@ line-length = 100
 # E, F: correctness. I: import order. B: known bug patterns. UP: outdated
 # idioms. S: security checks. ERA: commented-out code, which the standards
 # forbid as a deferred-work marker in disguise.
-select = ["E", "F", "I", "B", "UP", "S", "ERA"]
+select = ["E", "F", "I", "B", "UP", "S", "ERA", "C90", "RUF100"]
 
+# A function whose branches exceed ten is past what a reader holds in
+# mind at once (D-091). The functions already past it carry a noqa
+# marker each, counted by tests/test_complexity_debt.py, so the list
+# shows and can only be changed on purpose.
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 [tool.ruff.lint.per-file-ignores]
 # Test functions assert; that is their job, not an assertion misuse.
 "tests/*" = ["S101"]

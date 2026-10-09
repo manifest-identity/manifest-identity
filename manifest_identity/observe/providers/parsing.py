@@ -10,6 +10,7 @@ in every parser at once. A parser binds its own limits through
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -75,3 +76,18 @@ def read_choice(raw: object, allowed: frozenset[str], where: str, what: str) -> 
     if not isinstance(raw, str) or raw not in allowed:
         raise ParseError(f"{where}: {what} is not one the format defines")
     return raw
+
+
+def read_document(data: bytes, max_bytes: int) -> dict[str, object]:
+    """The opening every JSON export parser shares: refuse a file past
+    its size bound before parsing it, refuse what is not JSON, and
+    refuse a document that is not an object."""
+    if len(data) > max_bytes:
+        raise ParseError(f"file exceeds {max_bytes} bytes")
+    try:
+        document = json.loads(data)
+    except ValueError as exc:
+        raise ParseError("file is not valid JSON") from exc
+    if not isinstance(document, dict):
+        raise ParseError("file must be a JSON object")
+    return document

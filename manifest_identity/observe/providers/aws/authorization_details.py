@@ -180,7 +180,7 @@ def _account_of(arn: object, report: ParsedDetails) -> str | None:
     return account
 
 
-def parse_authorization_details(data: bytes) -> ParsedDetails:
+def parse_authorization_details(data: bytes) -> ParsedDetails:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError("file exceeds the size bound")
     try:

@@ -65,7 +65,7 @@ SHAPE_SHARPHOUND = "sharphound"
 SHAPE_TABLE = "table"
 
 
-def detect_source(data: bytes) -> str | None:
+def detect_source(data: bytes) -> str | None:  # noqa: C901
     """What a file is shaped like, read from its first bytes: an AWS
     authorization details export is JSON carrying a user list, a GitHub
     organization export is JSON carrying an organization object, an AWS
@@ -415,7 +415,7 @@ def import_credential_report(
     )
 
 
-def import_authorization_details(
+def import_authorization_details(  # noqa: C901
     db: Session,
     *,
     report: ParsedDetails,

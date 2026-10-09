@@ -40,13 +40,12 @@ content.
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
 from manifest_identity.observe.providers import parsing
-from manifest_identity.observe.providers.parsing import ParseError
+from manifest_identity.observe.providers.parsing import ParseError, read_document
 
 MAX_FILE_BYTES = 25 * 1024 * 1024
 MAX_ENTITIES = 50_000
@@ -136,15 +135,8 @@ def parse_member(text: str, where: str) -> ParsedMember:
     return ParsedMember(text=text, kind=prefix, name=name)
 
 
-def parse_project_export(data: bytes) -> ParsedProject:
-    if len(data) > MAX_FILE_BYTES:
-        raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
-    try:
-        document = json.loads(data)
-    except ValueError as exc:
-        raise ParseError("file is not valid JSON") from exc
-    if not isinstance(document, dict):
-        raise ParseError("file must be a JSON object")
+def parse_project_export(data: bytes) -> ParsedProject:  # noqa: C901
+    document = read_document(data, MAX_FILE_BYTES)
 
     project = _record(document.get("project"), "project")
     project_id = _text(project.get("projectId"), "project")

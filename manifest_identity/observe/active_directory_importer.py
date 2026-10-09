@@ -162,7 +162,7 @@ def organizational_units(distinguished_name: str) -> list[str]:
     return list(reversed(units))
 
 
-def import_domain(
+def import_domain(  # noqa: C901
     db: Session,
     *,
     domain: ParsedDomain,

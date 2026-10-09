@@ -371,7 +371,7 @@ def authorize_definitions(db: Session, operator: User) -> int:
     return written
 
 
-def govern(db: Session, operator: User) -> int:
+def govern(db: Session, operator: User) -> int:  # noqa: C901
     """Owners on most identities and groups, purposes on the services,
     one flag, one attestation, and one owner who disagrees with the
     provider's tag."""

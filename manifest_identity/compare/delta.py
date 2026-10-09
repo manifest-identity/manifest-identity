@@ -265,7 +265,7 @@ def _owner_tag(db: Session, identity_id: int) -> str | None:
     ).scalars().first()
 
 
-def for_identity(
+def for_identity(  # noqa: C901
     db: Session, identity: Identity, now: datetime | None = None
 ) -> list[DeltaFinding]:
     node = db.get(ScopeNode, identity.scope_node_id)

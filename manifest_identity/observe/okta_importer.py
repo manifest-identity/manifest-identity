@@ -115,7 +115,7 @@ def custom_role_capabilities(role: ParsedCustomRole) -> dict[str, object]:
     )
 
 
-def import_org_export(
+def import_org_export(  # noqa: C901
     db: Session,
     *,
     export: ParsedOrg,

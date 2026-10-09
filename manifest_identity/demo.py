@@ -80,14 +80,14 @@ def _migrate() -> str:
     try:
         alembic_command.upgrade(cfg, "head")
         return "schema migrated"
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         # Under the split-privilege runtime role the schema is managed
         # by the migrate step and this role may not touch it; if the
         # tables exist, that is fine and the demo continues.
         return f"migration skipped ({type(exc).__name__}); assuming a managed schema"
 
 
-def main() -> int:
+def main() -> int:  # noqa: C901
     settings = get_settings()
     if not settings.admin_username or not settings.admin_password:
         print(

@@ -40,13 +40,12 @@ deleted and recreated login is two identities.
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
 from manifest_identity.observe.providers import parsing
-from manifest_identity.observe.providers.parsing import ParseError
+from manifest_identity.observe.providers.parsing import ParseError, read_document
 
 MAX_FILE_BYTES = 25 * 1024 * 1024
 MAX_ENTITIES = 50_000
@@ -170,15 +169,8 @@ def _permission(raw: object, where: str) -> str:
     return raw
 
 
-def parse_organization_export(data: bytes) -> ParsedOrganization:
-    if len(data) > MAX_FILE_BYTES:
-        raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
-    try:
-        document = json.loads(data)
-    except ValueError as exc:
-        raise ParseError("file is not valid JSON") from exc
-    if not isinstance(document, dict):
-        raise ParseError("file must be a JSON object")
+def parse_organization_export(data: bytes) -> ParsedOrganization:  # noqa: C901
+    document = read_document(data, MAX_FILE_BYTES)
 
     organization = _record(document.get("organization"), "organization")
     login = _login(organization.get("login"), "organization")
@@ -307,7 +299,7 @@ def parse_organization_export(data: bytes) -> ParsedOrganization:
     return org
 
 
-def _verify_references(org: ParsedOrganization) -> None:
+def _verify_references(org: ParsedOrganization) -> None:  # noqa: C901
     """The file is checked against its own claims: a team member, a
     collaborator, a token owner, a team's parent, and a team's
     repository must each name something the file also lists. A

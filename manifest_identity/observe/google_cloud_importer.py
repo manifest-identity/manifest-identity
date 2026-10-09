@@ -147,7 +147,7 @@ def managed_by(name: str) -> str:
     return "provider" if name.startswith("roles/") else "customer"
 
 
-def import_project_export(
+def import_project_export(  # noqa: C901
     db: Session,
     *,
     export: ParsedProject,

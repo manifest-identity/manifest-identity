@@ -2693,3 +2693,40 @@ fixing the two remaining upward imports here, since turning the alert
 dependency around is a change of its own and where governance belongs
 is the owner's decision.
 
+## D-091: No function branches more than ten ways, and the ones that already do are counted
+
+ruff measures each function's branches, its cyclomatic complexity, and
+can fail any function past a limit. The rule list was set in the first
+application commit on August 17, 2026, without that check, and nothing
+recorded a choice either way. Turned on at ruff's default of ten on
+October 8, it found 32 functions past the limit, most of them the
+parsers and importers, which read a whole provider's file in one
+function. The worst two branch 35 ways, three times what a reader holds
+in mind at once; an agent adding one more case to such a function adds
+it inline, because that is where the other cases are.
+
+The check now runs in the commit hook and the pipeline. Each of the 31
+still past the limit
+carries a `# noqa: C901` marker where ruff reports it, and
+`tests/test_complexity_debt.py` pins how many markers exist, so
+simplifying a function means removing its marker and lowering the
+count, and adding one means raising it in a diff a reviewer reads. A
+planted function branching thirteen ways failed the check, and a
+removed marker failed the count.
+
+The first pipeline run of this change failed the repetition gate
+(build-doctrine D-042): five provider parsers open with the same nine
+lines, and the marker added to each parser's first line fell inside
+that copied block, so jscpd counted an old copy as new. Reproduced
+locally, the cause was the copy, so the copy went: the five parsers now
+call one `read_document` in `observe/providers/parsing.py`. That brought
+the Active Directory parser under the limit, leaving 31, and ruff's
+RUF100 now refuses a `noqa` marker that suppresses nothing, which also
+removed five stale markers older changes had left behind.
+
+Rejected: a higher limit set just above today's worst, which would let
+every function grow to 35; ignoring whole files, which would hide a new
+tangled function in the same file as an old one; and simplifying all 31
+first, a refactor of every parser that belongs in its own changes, one
+parser at a time, each proven by its existing tests.
+
