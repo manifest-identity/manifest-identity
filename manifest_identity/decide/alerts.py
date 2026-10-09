@@ -94,7 +94,7 @@ _deliverer: Deliverer = RecordingDeliverer()
 def set_deliverer(deliverer: Deliverer) -> None:
     """Swap the delivery implementation. Tests use it to plant a
     failure; a later release uses it to install a sender."""
-    global _deliverer  # noqa: PLW0603
+    global _deliverer
     _deliverer = deliverer
 
 
@@ -152,7 +152,7 @@ def raise_alert(
         try:
             outcome = _deliverer.deliver(alert, recipient)
             result, note = RESULT_RECORDED, outcome
-        except Exception as problem:  # noqa: BLE001  (every failure is a row, none escapes)
+        except Exception as problem:
             result, note = RESULT_FAILED, f"{type(problem).__name__}: {problem}"[:500]
         db.add(AlertDelivery(
             alert_id=alert.id,

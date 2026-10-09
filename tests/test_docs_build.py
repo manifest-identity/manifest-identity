@@ -15,7 +15,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-import build_docs  # noqa: E402
+import build_docs
 
 ROOT = Path(__file__).resolve().parent.parent
 

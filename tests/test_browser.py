@@ -52,7 +52,7 @@ def site(tmp_path_factory: pytest.TempPathFactory) -> Iterator[dict[str, str]]:
         "MANIFEST_IDENTITY_ADMIN_PASSWORD": password,
         "MANIFEST_IDENTITY_LOG_LEVEL": "WARNING",
     }
-    subprocess.run(  # noqa: S603
+    subprocess.run(
         [sys.executable, "-m", "manifest_identity.demo"],
         cwd=ROOT, env=env, check=True, capture_output=True, timeout=300,
     )

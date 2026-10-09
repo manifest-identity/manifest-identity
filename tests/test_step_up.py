@@ -23,7 +23,7 @@ def _stale(db: Session) -> None:
     db.commit()
 
 
-def _declares_step_up(dependant) -> bool:  # noqa: ANN001  # FastAPI's internal type
+def _declares_step_up(dependant) -> bool:  # FastAPI's internal type
     return any(d.call is require_step_up or _declares_step_up(d) for d in dependant.dependencies)
 
 

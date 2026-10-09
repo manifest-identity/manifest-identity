@@ -37,7 +37,7 @@ def fetch(into: Path) -> Path:
         raise SystemExit(f"refusing to read {URL}")
     archive = into / ARCHIVE
     if not archive.exists():
-        with urllib.request.urlopen(URL, timeout=120) as r:  # noqa: S310  # scheme and host checked above
+        with urllib.request.urlopen(URL, timeout=120) as r:  # scheme and host checked above
             archive.write_bytes(r.read())
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
     if digest != SHA256:

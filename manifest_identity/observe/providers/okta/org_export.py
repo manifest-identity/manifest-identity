@@ -36,13 +36,12 @@ content.
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
 from manifest_identity.observe.providers import parsing
-from manifest_identity.observe.providers.parsing import ParseError
+from manifest_identity.observe.providers.parsing import ParseError, read_document
 
 MAX_FILE_BYTES = 50 * 1024 * 1024
 MAX_ENTITIES = 100_000
@@ -146,14 +145,7 @@ def _okta_id(raw: object, where: str) -> str:
 
 
 def parse_org_export(data: bytes) -> ParsedOrg:  # noqa: C901
-    if len(data) > MAX_FILE_BYTES:
-        raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
-    try:
-        document = json.loads(data)
-    except ValueError as exc:
-        raise ParseError("file is not valid JSON") from exc
-    if not isinstance(document, dict):
-        raise ParseError("file must be a JSON object")
+    document = read_document(data, MAX_FILE_BYTES)
 
     org = _record(document.get("org"), "org")
     subdomain = _text(org.get("subdomain"), "org")

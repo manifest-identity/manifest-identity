@@ -11,7 +11,7 @@ a reviewer sees in the diff.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LISTED = 32
+LISTED = 31
 
 
 def test_the_listed_complex_functions_are_counted() -> None:

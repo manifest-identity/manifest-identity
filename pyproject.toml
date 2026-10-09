@@ -40,7 +40,7 @@ line-length = 100
 # E, F: correctness. I: import order. B: known bug patterns. UP: outdated
 # idioms. S: security checks. ERA: commented-out code, which the standards
 # forbid as a deferred-work marker in disguise.
-select = ["E", "F", "I", "B", "UP", "S", "ERA", "C90"]
+select = ["E", "F", "I", "B", "UP", "S", "ERA", "C90", "RUF100"]
 
 # A function whose branches exceed ten is past what a reader holds in
 # mind at once (D-091). The functions already past it carry a noqa
