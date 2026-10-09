@@ -41,7 +41,7 @@ SELF_ESCALATION = {
 
 # Passing a role into a compute service runs code as that role, so
 # either half alone is ordinary and the pair is an escalation path.
-# noqa on the next line: the checker reads "PASS" in the name as a
+
 # credential; this is the provider's action string for passing a role.
 PASS_ROLE = "iam:passrole"  # noqa: S105
 COMPUTE_LAUNCH = {

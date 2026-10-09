@@ -1284,8 +1284,8 @@ fails any import that reaches up a floor, at commit and in the
 pipeline, and the two places that still reach up are listed with their
 reasons; [ARCHITECTURE.md](ARCHITECTURE.md#how-the-code-is-stacked)
 describes the floors (D-090). Within a floor, no function may branch
-more than ten ways; the 32 functions past that limit when the check was
-turned on are marked and counted, so the list changes only on purpose
+more than ten ways; the 31 functions still past that limit are marked
+and counted, so the list changes only on purpose
 (D-091).
 
 The pipeline every repository under build-doctrine shares is documented
