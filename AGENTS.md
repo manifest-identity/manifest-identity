@@ -369,6 +369,18 @@ accepted.
   so the enforced version and the tested version cannot drift apart. From the
   route authorization matrix (August 2026), where the drift this prevents had
   no other guard.
+- Logic is written once. Before writing a function, look for the one that
+  already does the job and reuse or extend it. A near-copy is a defect even
+  when it works, because a fix lands in one copy and misses the rest, and a
+  control written in six places is six places to get wrong. This is economy
+  of mechanism applied to the code an agent adds, and an agent asked for a
+  feature writes the near-copy far more often than it finds the original. A
+  copy kept on purpose sits between `jscpd:ignore-start` and
+  `jscpd:ignore-end` comments with the reason beside it, so review sees it.
+  From one application (October 2026), where a scan found the same input
+  bound copied into six parsers and the same revocation rule into three
+  records, the copies already differing in wording and in which limit
+  applied.
 - Fixtures and demonstration input are derived from the system, never
   typed from assumption: read the values the generator or the database
   actually produced. From three consecutive subphases of one build
@@ -404,6 +416,11 @@ accepted.
   paths first: the wrong checksum, the bad member, the missing input. From
   two pipeline scripts (October 2026) that shipped with no tests and
   failed in the pipeline on paths a test would have exercised.
+- Every test a repository holds runs in its pipeline, and a check proves
+  it: a runner that skips a test without a word leaves a green step
+  standing over code nothing tests. From this repository (October 2026),
+  where twelve tests written as bare functions never ran under the
+  pipeline's unittest discovery, for four days and three checks.
 
 ### Security
 
@@ -564,6 +581,22 @@ These controls are built in from the first commit rather than added later:
   ones nobody did. From the import parsers (September 2026), fuzzed under
   an address sanitizer after the Scorecard raise showed the gap.
 
+- **An action that discloses data in bulk, changes data in bulk, or
+  creates a credential asks for the password again.** A session proves
+  who signed in, not who is at the keyboard now, so a stolen or
+  unattended session must not be able to take everything at once. The
+  password counts for a window measured in minutes, a fresh sign-in
+  counts as giving it, and the routes that need it are one list a test
+  holds to the routes' own declarations (October 2026).
+- **Disclosure leaves a record.** A value held in confidence is shown
+  only through an explicit action that writes its own audit record,
+  never in a list or a default view, and a bulk export is a disclosure
+  that writes one too, naming who took what (October 2026).
+- **Rejected input never comes back.** Every door that accepts input
+  has a test that plants a marker string in input the door rejects and
+  asserts the marker reaches no response, no log line, and no audit
+  record, because rejected input can carry a live credential
+  (October 2026).
 - **A path containment check uses the path library's relation test,
   never a string prefix.** `startswith` on two path strings accepts a
   sibling whose name begins the same way. The hostname rule in this
