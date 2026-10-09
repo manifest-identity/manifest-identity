@@ -145,7 +145,7 @@ def capability_document(
     return document
 
 
-def read_policy(document: object) -> PolicyReading:
+def read_policy(document: object) -> PolicyReading:  # noqa: C901
     """Read one policy document. Malformed input reads as granting
     nothing, never as an exception: these documents are untrusted
     file content, and the parsers upstream already bound them."""
@@ -246,7 +246,7 @@ class TrustReading:
     conditioned: bool = False
 
 
-def read_trust_policy(document: object, own_account: str) -> TrustReading:
+def read_trust_policy(document: object, own_account: str) -> TrustReading:  # noqa: C901
     reading = TrustReading()
     if not isinstance(document, dict):
         return reading

@@ -163,7 +163,7 @@ def _strings_or_records(raw: object, where: str) -> list[object]:
     return raw
 
 
-def parse_rbac_dump(data: bytes) -> ParsedDump:
+def parse_rbac_dump(data: bytes) -> ParsedDump:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
     try:

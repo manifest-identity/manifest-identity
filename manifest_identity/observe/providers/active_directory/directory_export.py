@@ -193,7 +193,7 @@ def _account(row: dict[str, object], where: str, computer: bool) -> ParsedAccoun
     )
 
 
-def parse_domain_export(data: bytes) -> ParsedDomain:
+def parse_domain_export(data: bytes) -> ParsedDomain:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
     try:

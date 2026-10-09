@@ -87,7 +87,7 @@ def _migrate() -> str:
         return f"migration skipped ({type(exc).__name__}); assuming a managed schema"
 
 
-def main() -> int:
+def main() -> int:  # noqa: C901
     settings = get_settings()
     if not settings.admin_username or not settings.admin_password:
         print(

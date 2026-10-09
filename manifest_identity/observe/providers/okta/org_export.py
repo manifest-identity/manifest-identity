@@ -145,7 +145,7 @@ def _okta_id(raw: object, where: str) -> str:
     return raw
 
 
-def parse_org_export(data: bytes) -> ParsedOrg:
+def parse_org_export(data: bytes) -> ParsedOrg:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
     try:
@@ -250,7 +250,7 @@ def parse_org_export(data: bytes) -> ParsedOrg:
     return parsed
 
 
-def _verify(parsed: ParsedOrg) -> None:
+def _verify(parsed: ParsedOrg) -> None:  # noqa: C901
     users = {u.id for u in parsed.users}
     groups = {g.id for g in parsed.groups}
     if len(users) < len(parsed.users):

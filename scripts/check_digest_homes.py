@@ -23,7 +23,7 @@ TWINS = [("postgres", "docker-compose.yml", "deploy/k8s/postgres.yaml")]
 TAGGED = re.compile(r"(python|postgres):[0-9][A-Za-z0-9._-]*@sha256:[0-9a-f]{64}")
 
 
-def main() -> int:
+def main() -> int:  # noqa: C901
     failures = []
     for name, home, pattern in HOMES:
         if not re.search(pattern, (ROOT / home).read_text()):

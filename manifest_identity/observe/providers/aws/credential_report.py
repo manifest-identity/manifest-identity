@@ -117,7 +117,7 @@ def provisional_key(arn: str, created: datetime | None) -> str:
     return f"cr:{digest[:32]}"
 
 
-def parse_credential_report(data: bytes) -> ParsedReport:
+def parse_credential_report(data: bytes) -> ParsedReport:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError("file exceeds the size bound")
     try:

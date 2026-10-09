@@ -232,7 +232,7 @@ def _mean(rules: list[dict]) -> float:
     return round(sum(levels) / len(levels), 1)
 
 
-def render(s: dict) -> str:
+def render(s: dict) -> str:  # noqa: C901
     sc, bp, dc, cc, sq = (
         s["scorecard"], s["best_practices"], s["doctrine"], s["codecov"], s["sonarcloud"]
     )

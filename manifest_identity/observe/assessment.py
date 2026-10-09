@@ -144,7 +144,7 @@ def _newest_import_ids(db: Session, node_id: int) -> tuple[int | None, int | Non
     return newest, prior
 
 
-def scope_context(db: Session, node_id: int) -> ScopeContext:
+def scope_context(db: Session, node_id: int) -> ScopeContext:  # noqa: C901
     as_of = db.execute(
         select(func.max(Import.captured_at)).where(Import.scope_node_id == node_id)
     ).scalar_one()

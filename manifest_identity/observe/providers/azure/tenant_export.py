@@ -217,7 +217,7 @@ def _credentials(record: dict[str, object], where: str) -> list[ParsedCredential
     return out
 
 
-def parse_tenant_export(data: bytes) -> ParsedTenant:
+def parse_tenant_export(data: bytes) -> ParsedTenant:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
     try:

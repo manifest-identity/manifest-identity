@@ -2693,3 +2693,29 @@ fixing the two remaining upward imports here, since turning the alert
 dependency around is a change of its own and where governance belongs
 is the owner's decision.
 
+## D-091: No function branches more than ten ways, and the ones that already do are counted
+
+ruff measures each function's branches, its cyclomatic complexity, and
+can fail any function past a limit. The rule list was set in the first
+application commit on August 17, 2026, without that check, and nothing
+recorded a choice either way. Turned on at ruff's default of ten on
+October 8, it found 32 functions past the limit, most of them the
+parsers and importers, which read a whole provider's file in one
+function. The worst two branch 35 ways, three times what a reader holds
+in mind at once; an agent adding one more case to such a function adds
+it inline, because that is where the other cases are.
+
+The check now runs in the commit hook and the pipeline. Each of the 32
+carries a `# noqa: C901` marker where ruff reports it, and
+`tests/test_complexity_debt.py` pins how many markers exist, so
+simplifying a function means removing its marker and lowering the
+count, and adding one means raising it in a diff a reviewer reads. A
+planted function branching thirteen ways failed the check, and a
+removed marker failed the count.
+
+Rejected: a higher limit set just above today's worst, which would let
+every function grow to 35; ignoring whole files, which would hide a new
+tangled function in the same file as an old one; and simplifying all 32
+first, a refactor of every parser that belongs in its own changes, one
+parser at a time, each proven by its existing tests.
+

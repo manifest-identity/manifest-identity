@@ -204,7 +204,7 @@ def _read_zip(data: bytes) -> dict[str, object]:
     return joined
 
 
-def parse_collection(data: bytes) -> ParsedDomain:
+def parse_collection(data: bytes) -> ParsedDomain:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
     if data[:2] == b"PK":

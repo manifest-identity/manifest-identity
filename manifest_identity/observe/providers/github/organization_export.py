@@ -170,7 +170,7 @@ def _permission(raw: object, where: str) -> str:
     return raw
 
 
-def parse_organization_export(data: bytes) -> ParsedOrganization:
+def parse_organization_export(data: bytes) -> ParsedOrganization:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
     try:
@@ -307,7 +307,7 @@ def parse_organization_export(data: bytes) -> ParsedOrganization:
     return org
 
 
-def _verify_references(org: ParsedOrganization) -> None:
+def _verify_references(org: ParsedOrganization) -> None:  # noqa: C901
     """The file is checked against its own claims: a team member, a
     collaborator, a token owner, a team's parent, and a team's
     repository must each name something the file also lists. A

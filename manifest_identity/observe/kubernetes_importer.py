@@ -88,7 +88,7 @@ ALL_SERVICE_ACCOUNTS = "system:serviceaccounts"
 DIRECT = [{"via": "direct", "ref": "", "mode": "active"}]
 
 
-def role_capabilities(role: ParsedRole) -> dict[str, object]:
+def role_capabilities(role: ParsedRole) -> dict[str, object]:  # noqa: C901
     """What a role can do, in the reading's terms, from its rules."""
     administers = changes_access = writes = reads = False
     actions: list[str] = []
@@ -131,7 +131,7 @@ def subject_key(subject: ParsedSubject) -> str:
     return f"{subject.kind.lower()}:{subject.name}"
 
 
-def import_rbac_dump(
+def import_rbac_dump(  # noqa: C901
     db: Session,
     *,
     dump: ParsedDump,

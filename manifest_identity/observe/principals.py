@@ -69,7 +69,7 @@ def _values(raw: object) -> list[str]:
     return []
 
 
-def principals(document: object) -> list[Principal]:
+def principals(document: object) -> list[Principal]:  # noqa: C901
     """Every principal a trust policy allows, in the order written, with
     duplicates removed and the account-wide and wildcard forms kept as
     themselves rather than expanded."""

@@ -112,7 +112,7 @@ def level_document(level: str, scope: str, table: dict[str, bool]) -> dict[str, 
     )
 
 
-def import_github_organization(
+def import_github_organization(  # noqa: C901
     db: Session,
     *,
     export: ParsedOrganization,

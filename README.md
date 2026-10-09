@@ -111,10 +111,10 @@ code in [control-plane](https://tltaylor1.github.io/control-plane/).
 
 | Measured | Standing |
 |---|---|
-| Tests | **440 tests in 49 files**, coverage 95 over a 90 percent floor |
+| Tests | **441 tests in 50 files**, coverage 95 over a 90 percent floor |
 | Mutation | 35 controls removed by the check, 35 noticed by the suite |
 | Surface | **71 routes**, every one in the role matrix the tests walk |
-| Record | **90 recorded decisions**, each with its rejected alternatives |
+| Record | **91 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -1283,7 +1283,10 @@ the top, and each floor may import only the floors below it. A check
 fails any import that reaches up a floor, at commit and in the
 pipeline, and the two places that still reach up are listed with their
 reasons; [ARCHITECTURE.md](ARCHITECTURE.md#how-the-code-is-stacked)
-describes the floors (D-090).
+describes the floors (D-090). Within a floor, no function may branch
+more than ten ways; the 32 functions past that limit when the check was
+turned on are marked and counted, so the list changes only on purpose
+(D-091).
 
 The pipeline every repository under build-doctrine shares is documented
 once, in [Every repository's pipeline](https://tltaylor1.github.io/build-doctrine/02-enforcement/#every-repositorys-pipeline);

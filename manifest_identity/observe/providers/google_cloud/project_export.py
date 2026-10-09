@@ -136,7 +136,7 @@ def parse_member(text: str, where: str) -> ParsedMember:
     return ParsedMember(text=text, kind=prefix, name=name)
 
 
-def parse_project_export(data: bytes) -> ParsedProject:
+def parse_project_export(data: bytes) -> ParsedProject:  # noqa: C901
     if len(data) > MAX_FILE_BYTES:
         raise ParseError(f"file exceeds {MAX_FILE_BYTES} bytes")
     try:
