@@ -189,7 +189,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tltaylor1/build-doctrine
-          ref: de8d5272f8d0529d386f45c3a10030122442acc6
+          ref: 05b212a8209fdb20aa304fc85c7289b349f4b8d3
           path: doctrine
           persist-credentials: false
       - name: score against the doctrine
@@ -207,6 +207,10 @@ jobs:
         run: python3 doctrine/scripts/check_dependency_records.py .
       - name: the standards copy matches the source
         run: python3 doctrine/scripts/check_doctrine_copy.py .
+      # Fails only on an exact copy the change adds (build-doctrine D-042);
+      # on a push there is no base to compare against, and it says so.
+      - name: no new copy of code the repository already holds
+        run: python3 doctrine/scripts/check_repetition.py .
 
   resolve:
     runs-on: ubuntu-latest
