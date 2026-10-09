@@ -966,7 +966,11 @@ async function loadCampaignDetail(id) {
     + ", " + c.disposed + " of " + c.total + " decided"
     + (c.closed_at ? ", closed by " + c.closed_by + " on " + c.closed_at
        : ", open")
-    + (c.next_due ? ", next cycle due " + c.next_due : "");
+    + (c.next_due ? ", next cycle due " + c.next_due : "")
+    + ", notes required for "
+    + (c.notes_required.length
+       ? c.notes_required.map((d) => d.replaceAll("_", " ")).join(", ")
+       : "none");
   $("campaign-detail-result").hidden = true;
   const close = $("campaign-close");
   close.hidden = currentRole === "reviewer" || c.closed_at !== null;
@@ -1008,6 +1012,7 @@ $("campaign-form").addEventListener("submit", async (e) => {
       within_days: Number(form.get("within_days")) || 30,
       due_at: form.get("due_at"),
       recurrence: form.get("recurrence"),
+      notes_required: form.getAll("notes_required"),
     }),
   });
   if (response.ok) {

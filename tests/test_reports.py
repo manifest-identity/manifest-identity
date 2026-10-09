@@ -117,6 +117,7 @@ def test_evidence_export_carries_population_and_every_decision(
     assert evidence["total"] == 2
     assert evidence["coverage"] == "2 of 2"
     assert "frozen at creation" in evidence["population_statement"]
+    assert evidence["notes_required"] == "delegated, insufficient_evidence"
     by_name = {d["display_name"]: d for d in evidence["decisions"]}
     assert by_name["first"]["disposed_by"] == ROLE_USERS[Role.reviewer]
     assert by_name["first"]["disposed_at"] is not None

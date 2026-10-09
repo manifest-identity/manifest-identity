@@ -449,3 +449,84 @@ def test_a_certification_produces_no_work_item(
     assert not list(db.execute(
         select(Alert).where(Alert.event_kind == alerts.REVOCATION_RECOMMENDED)
     ).scalars())
+
+
+def create_with_notes(
+    client: TestClient, token: str, notes_required: list[str], expect: int = 201
+) -> dict[str, object]:
+    r = client.post(
+        "/campaigns",
+        headers=auth_header(token),
+        json={
+            "name": "notes review",
+            "scope": "everything",
+            "due_at": "2026-09-30T00:00:00+00:00",
+            "notes_required": notes_required,
+        },
+    )
+    assert r.status_code == expect, r.text
+    return dict(r.json()) if expect == 201 else {}
+
+
+def test_a_campaign_set_up_without_choosing_needs_the_two_notes_it_always_did(
+    client: TestClient, db: Session
+) -> None:
+    """D-092: the default is the rule every campaign ran under before."""
+    token = operator_token(client, db)
+    make_population(client, db, token)
+    created = create_campaign(client, token)
+    assert created["notes_required"] == ["delegated", "insufficient_evidence"]
+
+
+def test_a_campaign_can_require_a_note_for_every_answer(
+    client: TestClient, db: Session
+) -> None:
+    token = operator_token(client, db)
+    make_population(client, db, token)
+    cid = int(create_with_notes(client, token, [
+        "certify", "revoke_recommended", "insufficient_evidence", "delegated",
+    ])["id"])  # type: ignore[arg-type]
+    items = list(detail(client, token, cid)["items"])  # type: ignore[arg-type]
+    r = client.post(
+        f"/campaigns/{cid}/items/{items[0]['id']}/disposition",
+        headers=auth_header(token), json={"disposition": "certify"},
+    )
+    assert r.status_code == 422
+    assert r.json()["detail"] == "a certification in this campaign must say why the access stands"
+    dispose(client, token, cid, items[0]["id"], "certify", note="owner confirmed in person")
+
+
+def test_a_campaign_can_require_no_note_at_all(client: TestClient, db: Session) -> None:
+    token = operator_token(client, db)
+    make_population(client, db, token)
+    cid = int(create_with_notes(client, token, [])["id"])  # type: ignore[arg-type]
+    items = list(detail(client, token, cid)["items"])  # type: ignore[arg-type]
+    dispose(client, token, cid, items[0]["id"], "delegated")
+    assert detail(client, token, cid)["notes_required"] == []
+
+
+def test_an_answer_that_does_not_exist_is_refused_at_setup(
+    client: TestClient, db: Session
+) -> None:
+    token = operator_token(client, db)
+    make_population(client, db, token)
+    create_with_notes(client, token, ["approve"], expect=422)
+
+
+def test_no_route_changes_a_campaign_rule_after_creation() -> None:
+    """D-092: the rule is fixed at creation. The only route that writes
+    notes_required is the one that creates the campaign."""
+    from manifest_identity.main import app
+    from tests.test_matrix import flatten_routes
+
+    writers = {
+        (method, route.path)
+        for route in flatten_routes(app.routes)
+        for method in route.methods
+        if method in {"POST", "PUT", "PATCH"} and route.path.startswith("/campaigns")
+    }
+    assert writers == {
+        ("POST", "/campaigns"),
+        ("POST", "/campaigns/{campaign_id}/items/{item_id}/disposition"),
+        ("POST", "/campaigns/{campaign_id}/close"),
+    }

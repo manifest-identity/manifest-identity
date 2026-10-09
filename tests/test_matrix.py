@@ -534,7 +534,7 @@ def test_the_mutation_table_is_the_mutation_set() -> None:
     )
     # The sentence above the table states the count in words; the map
     # grows by one entry each time the set does, which is the point.
-    words = {32: "Thirty-two", 34: "Thirty-four", 35: "Thirty-five"}
+    words = {32: "Thirty-two", 34: "Thirty-four", 35: "Thirty-five", 36: "Thirty-six"}
     word = words.get(len(MUTATIONS))
     assert word, f"add the word for {len(MUTATIONS)} mutations to this test"
     assert f"**{word} mutations, {word.lower()} kills.**" in text

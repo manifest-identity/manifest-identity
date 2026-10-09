@@ -2719,3 +2719,47 @@ tangled function in the same file as an old one; and simplifying all 32
 first, a refactor of every parser that belongs in its own changes, one
 parser at a time, each proven by its existing tests.
 
+## D-092: Each campaign's creator chooses which answers need a note
+
+A reviewer answers each item one of four ways: certify, recommend
+revocation, insufficient evidence, or delegated. Two always needed a
+written note, what was missing and who holds the question now, and the
+other two never could. Organizations differ: an auditor may expect a
+reason behind every certification, and a team reviewing its own small
+estate may want no notes at all. A dead-code scan on October 8, 2026
+also found the rule written twice, once in a constant nothing read and
+once in the request model that enforced it, which is how such rules
+drift apart.
+
+The person who sets up a campaign now chooses, with one box per answer.
+A campaign set up without choosing requires the two notes every
+campaign required before, so nothing changes for anyone who does not
+look. The choice is stored on the campaign and no route changes it
+afterward, because a rule that moves mid-campaign judges early answers
+and late answers differently; a test walks the route table to hold
+that. An answer that needs a note and arrives without one is refused
+with a message saying what the note must say. The audit row for the
+campaign's creation and its evidence export both state the rule, so a
+reader of the evidence knows what the review required. The four
+answers are defined once, and the unused constants are gone. A
+mutation that removes the check is killed by the campaign tests.
+
+Migration 0004 adds the column. Campaigns that existed before it get
+the rule they ran under, a note for insufficient evidence and for
+delegated. A first version bound that value as text, which SQLite
+accepted and PostgreSQL refused as a type mismatch; it was reproduced
+on the pinned PostgreSQL image and fixed by binding the value as JSON,
+and both databases then upgraded a campaign from before the column and
+passed the drift check.
+
+The same scan found the campaign page telling reviewers that a
+recurring campaign opens its next cycle when it closes. Nothing does
+that: recurrence is a preset a person creates the next cycle from
+(D-039). The page now says so.
+
+Rejected: an organization-wide setting, which cannot tell a quarterly
+audit from a team's own review; letting the rule change while a
+campaign is open, for the reason above; and requiring a note for every
+answer always, which turns the note into a field people fill with
+nothing.
+
