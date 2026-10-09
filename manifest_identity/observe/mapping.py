@@ -29,6 +29,11 @@ from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from datetime import UTC, datetime
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from manifest_identity.observe.models import ImportMapping
+
 MAX_FILE_BYTES = 5 * 1024 * 1024
 MAX_ROWS = 50_000
 MAX_COLUMNS = 128
@@ -267,3 +272,46 @@ def parse_path(text: str | None) -> list[dict[str, str]]:
             raise ValueError("a hop names how access arrives, in letters")
         hops.append({"via": via, "ref": ref.strip(), "mode": "active"})
     return hops
+
+
+def shipped_mapping(
+    db: Session,
+    source_kind: str,
+    name: str,
+    fields: dict[str, dict[str, str | None]],
+    actor_username: str,
+) -> ImportMapping:
+    """The newest version of a shipped mapping, created on first use the
+    way the global scope node is, so a fresh database and a migrated one
+    behave the same."""
+    row = db.execute(
+        select(ImportMapping)
+        .where(ImportMapping.source_kind == source_kind, ImportMapping.name == name)
+        .order_by(ImportMapping.version.desc())
+    ).scalars().first()
+    if row is None:
+        row = ImportMapping(
+            name=name,
+            source_kind=source_kind,
+            fields=dict(fields),
+            created_by_username=actor_username,
+        )
+        db.add(row)
+        db.flush()
+    return row
+
+
+def read_mapped(
+    row: ImportMapping,
+    data: bytes,
+    known: frozenset[str],
+    required: frozenset[str],
+    dates: frozenset[str],
+) -> Reading:
+    """Read a file through a stored mapping, after refusing a mapping
+    that names a field the import does not know or leaves out one it
+    needs."""
+    specs = parse_specs(row.fields)
+    check_cover(specs, set(known), set(required))
+    header, rows = read_table(data)
+    return apply(specs, header, rows, set(dates), set(required))

@@ -148,36 +148,14 @@ class Row:
 
 
 def default_mapping(db: Session, actor_username: str = "system") -> ImportMapping:
-    """The shipped mapping, created on first use the way the authorized
-    side's is."""
-    row = db.execute(
-        select(ImportMapping).where(
-            ImportMapping.source_kind == SOURCE_KIND,
-            ImportMapping.name == DEFAULT_MAPPING_NAME,
-        ).order_by(ImportMapping.version.desc())
-    ).scalars().first()
-    if row is None:
-        row = ImportMapping(
-            name=DEFAULT_MAPPING_NAME,
-            source_kind=SOURCE_KIND,
-            fields=dict(DEFAULT_FIELDS),
-            created_by_username=actor_username,
-        )
-        db.add(row)
-        db.flush()
-    return row
-
-
-def _specs(row: ImportMapping) -> dict[str, tabular.FieldSpec]:
-    specs = tabular.parse_specs(row.fields)
-    tabular.check_cover(specs, set(FIELDS), set(REQUIRED_FIELDS))
-    return specs
+    """The shipped mapping for observed-grant files."""
+    return tabular.shipped_mapping(
+        db, SOURCE_KIND, DEFAULT_MAPPING_NAME, DEFAULT_FIELDS, actor_username
+    )
 
 
 def read(row: ImportMapping, data: bytes) -> tabular.Reading:
-    specs = _specs(row)
-    header, rows = tabular.read_table(data)
-    return tabular.apply(specs, header, rows, set(DATE_FIELDS), set(REQUIRED_FIELDS))
+    return tabular.read_mapped(row, data, FIELDS, REQUIRED_FIELDS, DATE_FIELDS)
 
 
 def _rows(reading: tabular.Reading) -> tuple[list[tuple[int, Row]], list[tabular.RowRefusal]]:
