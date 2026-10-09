@@ -19,6 +19,8 @@ import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from manifest_identity.observe.providers.parsing import ParseError
+
 MAX_FILE_BYTES = 5 * 1024 * 1024
 MAX_ROWS = 50_000
 MAX_FIELD_CHARS = 2048
@@ -48,11 +50,6 @@ REQUIRED_COLUMNS = (
 ROOT_USER = "<root_account>"
 _ABSENT = frozenset({"n/a", "no_information", "not_supported", ""})
 _ARN_ACCOUNT = re.compile(r"^arn:[^:]*:iam::(\d{12}):")
-
-
-class ParseError(ValueError):
-    """File-level rejection. Messages state the rule that failed and a
-    position, never a value from the file."""
 
 
 @dataclass

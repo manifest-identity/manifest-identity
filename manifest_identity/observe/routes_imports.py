@@ -58,7 +58,6 @@ from manifest_identity.observe.providers.active_directory import (
 from manifest_identity.observe.providers.aws import authorization_details as authz
 from manifest_identity.observe.providers.aws.credential_report import (
     MAX_FILE_BYTES,
-    ParseError,
     parse_credential_report,
 )
 from manifest_identity.observe.providers.azure import tenant_export as azure_export
@@ -66,6 +65,7 @@ from manifest_identity.observe.providers.github import organization_export as gi
 from manifest_identity.observe.providers.google_cloud import project_export as google_export
 from manifest_identity.observe.providers.kubernetes import rbac_dump
 from manifest_identity.observe.providers.okta import org_export as okta_export
+from manifest_identity.observe.providers.parsing import ParseError
 
 router = APIRouter(prefix="/imports")
 
@@ -288,7 +288,7 @@ def import_authorization(
     _refuse_mismatch(data, SHAPE_AUTHORIZATION)
     try:
         report = authz.parse_authorization_details(data)
-    except authz.ParseError as exc:
+    except ParseError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     require_scope(
         db, auth, "POST /imports/authorization-details",
@@ -327,7 +327,6 @@ def _document_import(
     shape: str,
     max_bytes: int,
     parse: Callable[[bytes], Any],
-    error: type[Exception],
     node_id: Callable[[Any], int | None],
     run: Callable[[Any, datetime], ImportResult],
 ) -> ImportResponse:
@@ -341,7 +340,7 @@ def _document_import(
     _refuse_mismatch(data, shape)
     try:
         export = parse(data)
-    except error as exc:
+    except ParseError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     require_scope(db, auth, key, node_id(export))
     try:
@@ -375,7 +374,7 @@ def import_github(
         file=file, captured_at=captured_at, db=db, auth=auth,
         key="POST /imports/github-organization",
         shape=SHAPE_GITHUB, max_bytes=github_export.MAX_FILE_BYTES,
-        parse=github_export.parse_organization_export, error=github_export.ParseError,
+        parse=github_export.parse_organization_export,
         node_id=lambda export: root_node_id(db, Provider.github, "organization", export.login),
         run=lambda export, when: github_importer.import_github_organization(
             db, export=export, captured_at=when, source_filename=file.filename,
@@ -400,7 +399,7 @@ def import_kubernetes(
         file=file, captured_at=captured_at, db=db, auth=auth,
         key="POST /imports/kubernetes-rbac",
         shape=SHAPE_KUBERNETES, max_bytes=rbac_dump.MAX_FILE_BYTES,
-        parse=rbac_dump.parse_rbac_dump, error=rbac_dump.ParseError,
+        parse=rbac_dump.parse_rbac_dump,
         node_id=lambda export: root_node_id(db, Provider.kubernetes, "cluster", cluster),
         run=lambda export, when: kubernetes_importer.import_rbac_dump(
             db, dump=export, cluster=cluster, captured_at=when,
@@ -423,7 +422,7 @@ def import_google_cloud(
         file=file, captured_at=captured_at, db=db, auth=auth,
         key="POST /imports/google-cloud",
         shape=SHAPE_GOOGLE, max_bytes=google_export.MAX_FILE_BYTES,
-        parse=google_export.parse_project_export, error=google_export.ParseError,
+        parse=google_export.parse_project_export,
         node_id=lambda export: root_node_id(db, Provider.gcp, "project", export.project_id),
         run=lambda export, when: google_cloud_importer.import_project_export(
             db, export=export, captured_at=when, source_filename=file.filename,
@@ -445,7 +444,7 @@ def import_azure(
         file=file, captured_at=captured_at, db=db, auth=auth,
         key="POST /imports/azure-tenant",
         shape=SHAPE_AZURE, max_bytes=azure_export.MAX_FILE_BYTES,
-        parse=azure_export.parse_tenant_export, error=azure_export.ParseError,
+        parse=azure_export.parse_tenant_export,
         node_id=lambda export: root_node_id(db, Provider.azure, "tenant", export.id),
         run=lambda export, when: azure_importer.import_tenant_export(
             db, export=export, captured_at=when, source_filename=file.filename,
@@ -467,7 +466,7 @@ def import_okta(
         file=file, captured_at=captured_at, db=db, auth=auth,
         key="POST /imports/okta-org",
         shape=SHAPE_OKTA, max_bytes=okta_export.MAX_FILE_BYTES,
-        parse=okta_export.parse_org_export, error=okta_export.ParseError,
+        parse=okta_export.parse_org_export,
         node_id=lambda export: root_node_id(db, Provider.okta, "organization", export.id),
         run=lambda export, when: okta_importer.import_org_export(
             db, export=export, captured_at=when, source_filename=file.filename,
@@ -490,7 +489,7 @@ def import_active_directory(
         file=file, captured_at=captured_at, db=db, auth=auth,
         key="POST /imports/active-directory",
         shape=SHAPE_ACTIVE_DIRECTORY, max_bytes=directory_export.MAX_FILE_BYTES,
-        parse=directory_export.parse_domain_export, error=directory_export.ParseError,
+        parse=directory_export.parse_domain_export,
         node_id=lambda export: root_node_id(db, Provider.active_directory, "domain", export.sid),
         run=lambda export, when: active_directory_importer.import_domain(
             db, domain=export, source_kind=active_directory_importer.SOURCE_DOMAIN,
@@ -514,7 +513,7 @@ def import_sharphound(
         file=file, captured_at=captured_at, db=db, auth=auth,
         key="POST /imports/sharphound",
         shape=SHAPE_SHARPHOUND, max_bytes=directory_export.MAX_FILE_BYTES,
-        parse=sharphound.parse_collection, error=directory_export.ParseError,
+        parse=sharphound.parse_collection,
         node_id=lambda export: root_node_id(db, Provider.active_directory, "domain", export.sid),
         run=lambda export, when: active_directory_importer.import_domain(
             db, domain=export, source_kind=active_directory_importer.SOURCE_SHARPHOUND,

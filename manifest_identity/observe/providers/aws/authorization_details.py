@@ -17,17 +17,14 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from urllib.parse import unquote
 
+from manifest_identity.observe.providers.parsing import ParseError
+
 MAX_FILE_BYTES = 25 * 1024 * 1024
 MAX_ENTITIES = 50_000
 MAX_DOCUMENT_BYTES = 200 * 1024
 MAX_NAME_CHARS = 255
 
 _ARN_ACCOUNT = re.compile(r"^arn:[^:]*:iam::(\d{12}|aws):")
-
-
-class ParseError(ValueError):
-    """File-level rejection; messages carry rules and names of our own
-    contract, never values from the file."""
 
 
 @dataclass

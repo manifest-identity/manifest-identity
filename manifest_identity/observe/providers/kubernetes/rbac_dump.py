@@ -28,7 +28,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime
+
+from manifest_identity.observe.providers import parsing
+from manifest_identity.observe.providers.parsing import ParseError
 
 MAX_FILE_BYTES = 50 * 1024 * 1024
 MAX_ENTITIES = 100_000
@@ -44,9 +47,8 @@ VERBS = frozenset({
 })
 
 
-class ParseError(ValueError):
-    """File-level rejection; messages carry rules and names of our own
-    contract, never values from the file."""
+_record = parsing.read_record
+_time = parsing.read_time
 
 
 @dataclass
@@ -115,18 +117,6 @@ def _optional_name(raw: object, where: str) -> str | None:
     return None if raw is None else _name(raw, where)
 
 
-def _time(raw: object, where: str) -> datetime | None:
-    if raw is None:
-        return None
-    if not isinstance(raw, str):
-        raise ParseError(f"{where}: a timestamp must be a string")
-    try:
-        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-    except ValueError as exc:
-        raise ParseError(f"{where}: a timestamp is not ISO 8601") from exc
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
-
-
 def _strings(raw: object, where: str) -> list[str]:
     if raw is None:
         return []
@@ -134,12 +124,6 @@ def _strings(raw: object, where: str) -> list[str]:
         raise ParseError(f"{where}: must be a list of strings")
     if len(raw) > MAX_ENTITIES:
         raise ParseError(f"{where}: more than {MAX_ENTITIES} entries")
-    return raw
-
-
-def _record(raw: object, where: str) -> dict[str, object]:
-    if not isinstance(raw, dict):
-        raise ParseError(f"{where}: each entry must be an object")
     return raw
 
 

@@ -53,14 +53,20 @@ from manifest_identity.observe.providers.active_directory.directory_export impor
     ParsedDomain,
     ParsedGroup,
     ParsedTrust,
-    ParseError,
-    _choice,
     _list,
     _optional_text,
-    _record,
     _strings,
     _text,
     verify,
+)
+from manifest_identity.observe.providers.parsing import (
+    ParseError,
+)
+from manifest_identity.observe.providers.parsing import (
+    read_choice as _choice,
+)
+from manifest_identity.observe.providers.parsing import (
+    read_record as _record,
 )
 
 MAX_MEMBER_BYTES = 200 * 1024 * 1024
