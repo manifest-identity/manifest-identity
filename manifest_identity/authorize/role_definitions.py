@@ -28,6 +28,8 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.authorize import lifecycle
+from manifest_identity.authorize.lifecycle import is_expired
 from manifest_identity.authorize.models import (
     AuthorizationStatus,
     AuthorizedRoleDefinition,
@@ -57,32 +59,9 @@ class Request:
 
 
 
-def is_expired(row: AuthorizedRoleDefinition, now: datetime | None = None) -> bool:
-    moment = now or utcnow()
-    return row.valid_until is not None and aware(row.valid_until) <= moment
-
-
-def status_of(row: AuthorizedRoleDefinition, now: datetime | None = None) -> str:
-    if row.status != AuthorizationStatus.authorized:
-        return str(row.status)
-    return "expired" if is_expired(row, now) else str(row.status)
-
-
-def superseded_ids(db: Session) -> set[int]:
-    return {
-        superseded
-        for (superseded,) in db.execute(
-            select(AuthorizedRoleDefinition.supersedes_id).where(
-                AuthorizedRoleDefinition.supersedes_id.is_not(None)
-            )
-        )
-        if superseded is not None
-    }
-
-
 def latest_rows(db: Session) -> list[AuthorizedRoleDefinition]:
     """The newest row of every chain: what nothing supersedes."""
-    superseded = superseded_ids(db)
+    superseded = lifecycle.superseded_ids(db, AuthorizedRoleDefinition.supersedes_id)
     rows = list(db.execute(select(AuthorizedRoleDefinition)).scalars())
     return [row for row in rows if row.id not in superseded]
 
@@ -159,10 +138,7 @@ def authorize(
         display_name=definition.display_name_last,
         owner_kind=request.owner_kind,
         owner_ref=request.owner_ref,
-        # From the session, never from the request (threat 14).
-        authorizer_user_id=actor.id,
-        authorizer_username=actor.username,
-        authorized_at=moment,
+        **lifecycle.authorizer(actor, moment),
         justification=request.justification,
         valid_from=valid_from,
         valid_until=valid_until,
@@ -206,14 +182,7 @@ def revoke(
         display_name=row.display_name,
         owner_kind=row.owner_kind,
         owner_ref=row.owner_ref,
-        authorizer_user_id=actor.id,
-        authorizer_username=actor.username,
-        authorized_at=moment,
-        justification=reason,
-        valid_from=row.valid_from,
-        valid_until=moment,
-        status=AuthorizationStatus.revoked,
-        supersedes_id=row.id,
+        **lifecycle.closing(row, actor, reason, moment),
     )
     db.add(closed)
     db.flush()

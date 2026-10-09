@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.authorize import authorizations, csv_import, from_observed
+from manifest_identity.authorize import authorizations, csv_import, from_observed, lifecycle
 from manifest_identity.authorize.models import Authorization, EntryPath
 from manifest_identity.core import audit
 from manifest_identity.core.db import get_session
@@ -113,7 +113,7 @@ def view(row: Authorization) -> AuthorizationView:
         ),
         # What the record says now, with the clock applied: a window
         # that has closed reads expired without anything having run.
-        status=authorizations.status_of(row),
+        status=lifecycle.status_of(row),
         supersedes_id=row.supersedes_id,
         entry_path=row.entry_path,
     )

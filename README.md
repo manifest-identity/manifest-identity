@@ -1068,6 +1068,7 @@ holds the reviews and the alerts.
 | `manifest_identity/observe/privilege.py` | The privilege picture with source attribution; shadow admin detection |
 | `manifest_identity/observe/assessment.py` | The one computation the page, the campaigns, and the exports all read |
 | `manifest_identity/authorize/authorizations.py` | The authorization write path: attributed, append-only, bounded |
+| `manifest_identity/authorize/lifecycle.py` | The rules the three authorized records share: the authorizer from the session, revocation as a closing row, expiry from the clock |
 | `manifest_identity/authorize/from_observed.py` | The observed side in the authorized side's shape, prefill and export |
 | `manifest_identity/authorize/relationships.py` | Authorizing the door: the trust itself, appended and superseded |
 | `manifest_identity/authorize/role_definitions.py` | Authorizing a custom definition as written, bound to the hash that was agreed |

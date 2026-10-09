@@ -31,6 +31,8 @@ from datetime import datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.authorize import lifecycle
+from manifest_identity.authorize.lifecycle import status_of
 from manifest_identity.authorize.models import (
     Authorization,
     AuthorizationStatus,
@@ -98,31 +100,10 @@ def grant_key(path: list[dict[str, str]], role: str) -> str:
 
 
 
-def is_expired(row: Authorization, now: datetime | None = None) -> bool:
-    if row.valid_until is None:
-        return False
-    return aware(row.valid_until) <= (now or utcnow())
-
-
-def status_of(row: Authorization, now: datetime | None = None) -> str:
-    """The status as the record stands: what was written, unless the
-    clock has overtaken it."""
-    if row.status == AuthorizationStatus.authorized and is_expired(row, now):
-        return AuthorizationStatus.expired
-    return row.status
-
-
 def superseded_ids(db: Session, identity_id: int) -> set[int]:
-    return {
-        superseded
-        for (superseded,) in db.execute(
-            select(Authorization.supersedes_id).where(
-                Authorization.identity_id == identity_id,
-                Authorization.supersedes_id.is_not(None),
-            )
-        ).all()
-        if superseded is not None
-    }
+    return lifecycle.superseded_ids(
+        db, Authorization.supersedes_id, Authorization.identity_id == identity_id
+    )
 
 
 def history(db: Session, identity_id: int) -> list[Authorization]:
@@ -248,10 +229,7 @@ def authorize(
         owner_ref=request.owner_ref,
         secondary_owner_kind=request.secondary_owner_kind,
         secondary_owner_ref=request.secondary_owner_ref,
-        # From the session, never from the request (threat 14).
-        authorizer_user_id=actor.id,
-        authorizer_username=actor.username,
-        authorized_at=moment,
+        **lifecycle.authorizer(actor, moment),
         justification=request.justification,
         reference=request.reference,
         control_reference=request.control_reference,
@@ -315,17 +293,10 @@ def revoke(
         owner_ref=target.owner_ref,
         secondary_owner_kind=target.secondary_owner_kind,
         secondary_owner_ref=target.secondary_owner_ref,
-        authorizer_user_id=actor.id,
-        authorizer_username=actor.username,
-        authorized_at=moment,
-        justification=reason,
         reference=target.reference,
         control_reference=target.control_reference,
-        valid_from=target.valid_from,
-        valid_until=moment,
-        status=AuthorizationStatus.revoked,
-        supersedes_id=target.id,
         entry_path=target.entry_path,
+        **lifecycle.closing(target, actor, reason, moment),
     )
     db.add(row)
     db.flush()

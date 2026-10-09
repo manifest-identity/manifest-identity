@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from manifest_identity.authorize import role_definitions
+from manifest_identity.authorize import lifecycle, role_definitions
 from manifest_identity.authorize.models import AuthorizedRoleDefinition
 from manifest_identity.core.db import get_session
 from manifest_identity.core.deps import (
@@ -80,7 +80,7 @@ def _view(
 ) -> RoleDefinitionView:
     authorized = (
         standing is not None
-        and role_definitions.status_of(standing) == "authorized"
+        and lifecycle.status_of(standing) == "authorized"
     )
     changed = bool(
         authorized and standing and standing.role_definition_hash != definition.contents_hash
@@ -105,7 +105,7 @@ def _view(
         authorized_hash=standing.role_definition_hash if standing else None,
         owner_kind=standing.owner_kind if authorized and standing else None,
         owner_ref=standing.owner_ref if authorized and standing else None,
-        status=role_definitions.status_of(standing) if standing else None,
+        status=lifecycle.status_of(standing) if standing else None,
         valid_until=standing.valid_until if standing else None,
         changed_since_authorized=changed,
         change=change_text,
