@@ -97,7 +97,11 @@ def role_capabilities(role: ParsedRole) -> dict[str, object]:  # noqa: C901
         resources = set(rule.resources)
         every_verb = "*" in verbs
         every_resource = "*" in resources
-        if every_verb and every_resource:
+        # resourceNames limits a rule to the objects it names, so even
+        # every verb on every resource is not the whole cluster. Binding
+        # one named role can still change access, so that stays.
+        named = rule.resource_names
+        if every_verb and every_resource and not named:
             administers = True
         if verbs & ACCESS_VERBS:
             changes_access = True
@@ -111,7 +115,8 @@ def role_capabilities(role: ParsedRole) -> dict[str, object]:  # noqa: C901
         for verb in rule.verbs:
             for group in groups:
                 for resource in rule.resources:
-                    actions.append(f"{verb} {group + '/' if group else ''}{resource}")
+                    action = f"{verb} {group + '/' if group else ''}{resource}"
+                    actions.extend([f"{action}/{name}" for name in named] or [action])
             for url in rule.non_resource_urls:
                 actions.append(f"{verb} {url}")
     return capability_document(

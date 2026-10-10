@@ -339,3 +339,30 @@ def test_a_changed_custom_role_and_a_new_door_are_differences(
     contractor = named(db, "new-contractor")
     mine = delta.for_identity(db, contractor)
     assert [f.role for f in mine if f.kind == delta.HELD_NOT_AUTHORIZED] == ["clusterrole:admin"]
+
+
+def test_a_rule_limited_to_named_objects_does_not_administer() -> None:
+    """resourceNames narrows a rule to the objects it names (D-095)."""
+    document = role_capabilities(parsed_role(
+        {"apiGroups": ["*"], "resources": ["*"], "verbs": ["*"], "resourceNames": ["only-this"]}
+    ))
+    assert document["administers"] is False
+    assert document["writes"] is True and document["reads"] is True
+    assert not policy_analysis.read_policy(document).admin_equivalent
+
+
+def test_the_named_objects_ride_in_the_actions() -> None:
+    document = role_capabilities(parsed_role(
+        {"apiGroups": [""], "resources": ["secrets"], "verbs": ["get"],
+         "resourceNames": ["app-token"]}
+    ))
+    assert policy_analysis.allowed_actions(document) == {"get secrets/app-token"}
+
+
+def test_binding_one_named_role_still_changes_access() -> None:
+    document = role_capabilities(parsed_role(
+        {"apiGroups": ["rbac.authorization.k8s.io"], "resources": ["clusterroles"],
+         "verbs": ["bind"], "resourceNames": ["cluster-admin"]}
+    ))
+    assert document["changes_access"] is True
+

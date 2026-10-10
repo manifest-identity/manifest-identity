@@ -2832,3 +2832,24 @@ pass now.
 
 Rejected: leaving Kubernetes unchecked, since its files are as
 untrusted as any other provider's.
+
+## D-095: Kubernetes rules limited to named objects are read as limited
+
+**What was wrong.** A Kubernetes rule can name the objects it applies
+to, with `resourceNames`. The importer read that list and then ignored
+it, so a rule allowing every verb on every resource, but only for one
+named object, was reported as administering the whole cluster. That
+overstated what the role can do.
+
+**What changed.** A rule limited to named objects is no longer read as
+administering. The names ride in the actions, such as
+`get secrets/app-token`, so the record shows exactly what the rule
+allows. Binding even one named role still counts as changing access,
+because the named role could be a powerful one.
+
+**Proven.** Two new tests failed against the old importer and pass now.
+A third, that binding one named role still changes access, passes on
+both, so the narrowing did not weaken that.
+
+Rejected: leaving the overstatement, since a review tool that cries
+administrator on a narrow rule teaches people to ignore it.
