@@ -2811,3 +2811,24 @@ Rejected: keeping import-linter for the reason above; and removing the
 floors with nothing in their place, which loses the check against the
 tangle the owner asked about.
 
+## D-094: Kubernetes strings get the checks every other parser has
+
+**What was wrong.** The Kubernetes parser read its lists of strings,
+the verbs, resources, API groups, resource names, and URLs, without
+checking their length or refusing control characters. Every other
+parser checks both. It was left that way because Kubernetes names its
+core API group with the empty string, which the shared text check
+refuses.
+
+**What changed.** One shared `read_strings` in
+`observe/providers/parsing.py` checks every string like any other text
+and can allow the empty string where a format needs it. Kubernetes uses
+it with the empty string allowed, and Active Directory uses it without.
+The Kubernetes parser's own copy of the list reader is gone too.
+
+**Proven.** Two new refusal cases, a control character in a verb and a
+resource name past 253 characters, failed against the old parser and
+pass now.
+
+Rejected: leaving Kubernetes unchecked, since its files are as
+untrusted as any other provider's.

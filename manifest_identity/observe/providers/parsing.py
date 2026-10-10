@@ -45,6 +45,15 @@ class Limits:
             raise ParseError(f"{where}: text carries a control character")
         return raw
 
+    def read_strings(self, raw: object, where: str, allow_empty: bool = False) -> list[str]:
+        """A list of strings, each checked like any text. Kubernetes names
+        its core API group with the empty string, so a format can allow
+        it without giving up the length and control-character checks."""
+        values = self.read_list(raw, where)
+        if not all(isinstance(v, str) for v in values):
+            raise ParseError(f"{where}: must be a list of strings")
+        return [v if allow_empty and v == "" else self.read_text(v, where) for v in values]
+
 
 def read_record(raw: object, where: str) -> dict[str, object]:
     if not isinstance(raw, dict):

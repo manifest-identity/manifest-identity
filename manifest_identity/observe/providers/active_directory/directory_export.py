@@ -60,6 +60,7 @@ _DNS_NAME = re.compile(r"^[a-z0-9][a-z0-9.-]*$")
 _LIMITS = parsing.Limits(max_entries=MAX_ENTITIES, max_text=MAX_TEXT_CHARS)
 _list = _LIMITS.read_list
 _text = _LIMITS.read_text
+_strings = _LIMITS.read_strings
 _choice = parsing.read_choice
 _record = parsing.read_record
 
@@ -161,13 +162,6 @@ def _flag(raw: object, where: str, default: bool) -> bool:
     if isinstance(raw, int):
         return raw != 0
     raise ParseError(f"{where}: a flag must be true or false")
-
-
-def _strings(raw: object, where: str) -> list[str]:
-    values = _list(raw, where)
-    if not all(isinstance(v, str) for v in values):
-        raise ParseError(f"{where}: must be a list of strings")
-    return [_text(v, where) for v in values]
 
 
 def _account(row: dict[str, object], where: str, computer: bool) -> ParsedAccount:
