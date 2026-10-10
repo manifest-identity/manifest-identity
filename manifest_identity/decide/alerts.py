@@ -29,6 +29,7 @@ from typing import Protocol
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.core import events
 from manifest_identity.core.logs import log_event
 from manifest_identity.core.models import RoleBinding, User
 from manifest_identity.core.roles import Role
@@ -162,3 +163,21 @@ def raise_alert(
             detail=note[:500] if note else None,
         ))
     return alert
+
+
+def _on_authorization_change(db: Session, change: events.AuthorizationChange) -> None:
+    """The owners and the administrators hear of every authorization
+    written or revoked; authorize announces it, and this answers (D-096)."""
+    raise_alert(
+        db,
+        event_kind=change.kind,
+        subject_kind="authorization",
+        subject_ref=str(change.authorization_id),
+        detail=change.summary,
+        recipients=recipients_for(db, *change.owners),
+    )
+
+
+events.listen(AUTHORIZATION_WRITTEN, _on_authorization_change)
+events.listen(AUTHORIZATION_REVOKED, _on_authorization_change)
+

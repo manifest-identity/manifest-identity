@@ -14,10 +14,12 @@ and the route reads it back with every delivery beside it.
 
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from manifest_identity.core import events
 from manifest_identity.core.roles import Role
 from manifest_identity.decide import alerts
 from manifest_identity.models import Alert, AlertDelivery, Identity
@@ -178,3 +180,26 @@ def test_a_reviewer_may_read_alerts(client: TestClient, db: Session) -> None:
     make_user(db, Role.reviewer)
     reviewer = login(client, ROLE_USERS[Role.reviewer])
     assert client.get("/alerts", headers=auth_header(reviewer)).status_code == 200
+
+
+def test_an_announcement_nothing_answers_is_refused_not_dropped(
+    monkeypatch: pytest.MonkeyPatch, db: Session,
+) -> None:
+    """D-096: a dropped announcement is an alert that never fired."""
+
+
+    monkeypatch.setattr(events, "_listeners", {})
+    with pytest.raises(RuntimeError, match="nothing listens"):
+        events.announce(db, events.AuthorizationChange(
+            kind="authorization_written", authorization_id=1, summary="s", owners=(None, None),
+        ))
+
+
+def test_registering_a_listener_twice_keeps_one(monkeypatch: pytest.MonkeyPatch) -> None:
+
+
+    monkeypatch.setattr(events, "_listeners", {})
+    events.listen("authorization_written", alerts._on_authorization_change)
+    events.listen("authorization_written", alerts._on_authorization_change)
+    assert len(events._listeners["authorization_written"]) == 1
+

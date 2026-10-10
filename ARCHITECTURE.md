@@ -47,9 +47,8 @@ import each other, neither can change without the other, and that is
 how code turns into spaghetti.
 
 **How it is checked.** A test fails when a new pair of parts starts
-importing each other. The two pairs that exist are listed in the test
-with their reasons: writing an authorization raises an alert in
-`decide`, and the inventory in `observe` shows owners and flags from
+importing each other. The one pair that exists is listed in the test
+with its reason: the inventory in `observe` shows owners and flags from
 `authorize`. ruff also refuses an import placed inside a function, the
 usual way around the rule.
 
@@ -62,6 +61,12 @@ once. The same test checks this.
 only the parts listed below it, ran for a day (D-090). It needed three
 extra packages for an ordering rule this application does not need, so
 this replaced it (D-093).
+
+**How authorize reaches an alert.** Writing or revoking an
+authorization must alert its owners, but alerts live in `decide`, which
+sits above `authorize`. So `authorize` announces the change through
+`core`, and `decide` answers with the alert (D-096). An announcement
+nothing answers is refused, so an alert cannot silently stop firing.
 
 ## The model
 
