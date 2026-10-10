@@ -903,13 +903,15 @@ that hiding place.
   rule above; every other deletion still asks first. From twenty-three merged
   branches found accumulated in one repository, and from two merge races whose
   window was an open branch drifting behind a moving mainline (August 2026).
-- An open pull request is brought up to date by rebuilding it on the
-  mainline, never by merging another branch into it: start a fresh branch
-  from the mainline, copy the pull request's own commits onto it, and open
-  that in its place. A check refuses a pull request branch that carries a
-  merge commit. From one pull request (October 2026) left blocked after its
-  owner approved it, because of a merge commit made on a local machine,
-  while the same files as plain commits merged at once.
+- Every pull request is opened from the mainline and targets it, and work
+  that depends on an open pull request waits until that one merges. An open
+  pull request is brought up to date by rebuilding it on the mainline, never
+  by merging another branch into it: start a fresh branch from the mainline,
+  copy the pull request's own commits onto it, and open that in its place.
+  One check refuses both a stacked pull request and a branch carrying a
+  merge commit. From two stacked pull requests (October 2026) that stayed
+  blocked after their owner approved them; the first was blamed on a merge
+  commit it carried, and the second, with none, showed that account wrong.
 - Repository visibility is decided before the first commit, and everything is
   written to the public standard from that commit onward regardless. History is
   permanent, and scrubbing it later is unreliable.
