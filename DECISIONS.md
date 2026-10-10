@@ -2853,3 +2853,24 @@ both, so the narrowing did not weaken that.
 
 Rejected: leaving the overstatement, since a review tool that cries
 administrator on a narrow rule teaches people to ignore it.
+
+## D-096: Authorize announces; decide answers with the alert
+
+**Decision.** Writing or revoking an authorization announces the change
+through a small module in `core`, and `decide` answers it with the
+alert. `authorize` no longer imports `decide`.
+
+**Why.** The two parts imported each other, one of the two pairs the
+dependency check allowed (D-093). Alerts belong in `decide`, and
+`authorize` only needs to say what happened. The pair is gone from the
+list, so the check fails if it comes back.
+
+**Safeguards.** An announcement nothing answers raises an error rather
+than being dropped, since a dropped one is an alert that never fired.
+Registering the same answer twice keeps one, so an alert never fires
+twice. Both have tests, and the existing alert tests pass unchanged.
+
+**Rejected.** Moving alerts into `core` would put the alert tables and
+their recipients below the parts that use them, which is the wrong way
+round. Calling the alert from the web route instead would let a second
+caller of `authorize` skip it.

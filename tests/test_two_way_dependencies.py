@@ -15,9 +15,6 @@ PACKAGE = Path(__file__).resolve().parent.parent / "manifest_identity"
 PARTS = {"core", "observe", "authorize", "compare", "decide", "api"}
 
 KNOWN = {
-    # Writing an authorization raises an alert, and a campaign decision
-    # writes through authorize.
-    frozenset({"authorize", "decide"}),
     # The inventory shows owners and flags, which live in authorize, and
     # authorize reads what observe holds.
     frozenset({"authorize", "observe"}),

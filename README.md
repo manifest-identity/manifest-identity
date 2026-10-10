@@ -111,10 +111,10 @@ code in [control-plane](https://tltaylor1.github.io/control-plane/).
 
 | Measured | Standing |
 |---|---|
-| Tests | **454 tests in 51 files**, coverage 95 over a 90 percent floor |
+| Tests | **456 tests in 51 files**, coverage 95 over a 90 percent floor |
 | Mutation | 37 controls removed by the check, 37 noticed by the suite |
 | Surface | **71 routes**, every one in the role matrix the tests walk |
-| Record | **95 recorded decisions**, each with its rejected alternatives |
+| Record | **96 recorded decisions**, each with its rejected alternatives |
 | Gates | 12 required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
@@ -1281,8 +1281,8 @@ what the coding agent got wrong along the way, because that record is
 the point.
 
 No two parts of the code may depend on each other. A test fails when a
-new pair appears, and the two pairs that exist are listed with their
-reasons; [ARCHITECTURE.md](ARCHITECTURE.md#how-the-parts-depend-on-each-other)
+new pair appears, and the one pair that exists is listed with its
+reason; [ARCHITECTURE.md](ARCHITECTURE.md#how-the-parts-depend-on-each-other)
 describes the parts (D-093). Within a part, no function may branch
 more than ten ways; the 31 functions still past that limit are marked
 and counted, so the list changes only on purpose
