@@ -38,9 +38,8 @@ from manifest_identity.authorize.models import (
     AuthorizationStatus,
     EntryPath,
 )
-from manifest_identity.core import audit, options
+from manifest_identity.core import audit, events, options
 from manifest_identity.core.models import User, aware, utcnow
-from manifest_identity.decide import alerts
 
 # An owner who is a person is the orphan in waiting (D-038): the
 # person leaves and the access stays. A person may own an
@@ -253,20 +252,16 @@ def authorize(
             + (f", until {valid_until.date()}" if valid_until else ", no expiry")
         ),
     )
-    alerts.raise_alert(
-        db,
-        event_kind=alerts.AUTHORIZATION_WRITTEN,
-        subject_kind="authorization",
-        subject_ref=str(row.id),
-        detail=(
+    events.announce(db, events.AuthorizationChange(
+        kind="authorization_written",
+        authorization_id=row.id,
+        summary=(
             f"{actor.username} authorized {request.role_definition_external_id} "
             f"for identity {request.identity_id}"
             + (f", until {valid_until.date()}" if valid_until else ", with no expiry")
         ),
-        recipients=alerts.recipients_for(
-            db, request.owner_ref, request.secondary_owner_ref
-        ),
-    )
+        owners=(request.owner_ref, request.secondary_owner_ref),
+    ))
     return row
 
 
@@ -308,17 +303,13 @@ def revoke(
         target=f"identity:{target.identity_id}",
         detail=f"authorization {target.id}: {reason}",
     )
-    alerts.raise_alert(
-        db,
-        event_kind=alerts.AUTHORIZATION_REVOKED,
-        subject_kind="authorization",
-        subject_ref=str(target.id),
-        detail=(
+    events.announce(db, events.AuthorizationChange(
+        kind="authorization_revoked",
+        authorization_id=target.id,
+        summary=(
             f"{actor.username} revoked {target.role_definition_external_id} "
             f"for identity {target.identity_id}: {reason[:200]}"
         ),
-        recipients=alerts.recipients_for(
-            db, target.owner_ref, target.secondary_owner_ref
-        ),
-    )
+        owners=(target.owner_ref, target.secondary_owner_ref),
+    ))
     return row
