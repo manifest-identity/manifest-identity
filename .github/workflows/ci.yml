@@ -189,7 +189,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tltaylor1/build-doctrine
-          ref: f1ee066349693436aceca7cfde77e368d9ee17d8
+          ref: d323ed3ac80f8d258ad98da950111bd0902bfb4f
           path: doctrine
           persist-credentials: false
       - name: score against the doctrine
@@ -214,8 +214,9 @@ jobs:
       # The same comparison for code nothing uses (build-doctrine D-046).
       - name: no new code that nothing uses
         run: python3 doctrine/scripts/check_dead_code.py .
-      # A branch is rebuilt on the mainline, never merged into (build-doctrine D-047).
-      - name: no merge commit on the pull request branch
+      # A pull request targets the mainline and is never merged into
+      # (build-doctrine D-047, D-048).
+      - name: no stacked pull request and no merge commit on its branch
         run: python3 doctrine/scripts/check_branch_history.py .
 
   resolve:
