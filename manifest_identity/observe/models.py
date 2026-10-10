@@ -149,7 +149,6 @@ class IdentityObservation(Base):
     last_activity: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )
-    last_activity_detail: Mapped[str | None] = mapped_column(String(64), default=None)
     tags: Mapped[dict[str, str] | None] = mapped_column(JSON, default=None)
     raw: Mapped[dict[str, object] | None] = mapped_column(JSON, default=None)
 
@@ -176,7 +175,6 @@ class Credential(Base):
     last_used: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )
-    last_used_service: Mapped[str | None] = mapped_column(String(64), default=None)
     expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )

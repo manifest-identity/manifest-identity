@@ -26,12 +26,11 @@ def user_row(
     key1_active: str = "FALSE",
     key1_rotated: str = "N/A",
     key1_used: str = "N/A",
-    key1_service: str = "N/A",
 ) -> str:
     return (
         f"{name},arn:aws:iam::{account}:user/{name},{created},"
         f"{password_enabled},no_information,{created},N/A,{mfa},"
-        f"{key1_active},{key1_rotated},{key1_used},N/A,{key1_service},"
+        f"{key1_active},{key1_rotated},{key1_used},N/A,N/A,"
         f"FALSE,N/A,N/A,N/A,N/A,FALSE,N/A,FALSE,N/A"
     )
 

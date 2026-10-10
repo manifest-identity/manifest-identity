@@ -48,7 +48,6 @@ class ParsedRole:
     created: datetime | None
     trust_policy: dict[str, object] | None
     last_used: datetime | None
-    last_used_region: str | None
     attached_policies: list[dict[str, str]]
     inline_policy_names: list[str]
     tags: dict[str, str]
@@ -269,7 +268,6 @@ def parse_authorization_details(data: bytes) -> ParsedDetails:  # noqa: C901
                 report.skipped += 1
                 continue
             last_used_raw = raw.get("RoleLastUsed") or {}
-            region = last_used_raw.get("Region") if isinstance(last_used_raw, dict) else None
             report.roles.append(
                 ParsedRole(
                     name=name[:MAX_NAME_CHARS],
@@ -281,9 +279,6 @@ def parse_authorization_details(data: bytes) -> ParsedDetails:  # noqa: C901
                         last_used_raw.get("LastUsedDate")
                         if isinstance(last_used_raw, dict)
                         else None
-                    ),
-                    last_used_region=(
-                        region[:64] if isinstance(region, str) else None
                     ),
                     attached_policies=_attached(raw.get("AttachedManagedPolicies")),
                     inline_policy_names=_inline_names(raw.get("RolePolicyList")),
