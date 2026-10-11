@@ -66,11 +66,9 @@ class ParsedRow:
     key1_active: bool | None
     key1_last_rotated: datetime | None
     key1_last_used: datetime | None
-    key1_last_service: str | None
     key2_active: bool | None
     key2_last_rotated: datetime | None
     key2_last_used: datetime | None
-    key2_last_service: str | None
     cert1_active: bool | None
     cert2_active: bool | None
 
@@ -199,11 +197,9 @@ def parse_credential_report(data: bytes) -> ParsedReport:  # noqa: C901
                     key1_active=_parse_bool(cell("access_key_1_active")),
                     key1_last_rotated=_parse_time(cell("access_key_1_last_rotated")),
                     key1_last_used=_parse_time(cell("access_key_1_last_used_date")),
-                    key1_last_service=_service(cell("access_key_1_last_used_service")),
                     key2_active=_parse_bool(cell("access_key_2_active")),
                     key2_last_rotated=_parse_time(cell("access_key_2_last_rotated")),
                     key2_last_used=_parse_time(cell("access_key_2_last_used_date")),
-                    key2_last_service=_service(cell("access_key_2_last_used_service")),
                     cert1_active=_parse_bool(cell("cert_1_active")),
                     cert2_active=_parse_bool(cell("cert_2_active")),
                 )
@@ -220,9 +216,3 @@ def parse_credential_report(data: bytes) -> ParsedReport:  # noqa: C901
         raise ParseError("file contains no usable rows")
     return report
 
-
-def _service(raw: str) -> str | None:
-    lowered = raw.strip().lower()
-    if lowered in _ABSENT:
-        return None
-    return raw.strip()[:64]

@@ -338,7 +338,6 @@ def import_credential_report(
                 identity_created_at=row.identity_created_at,
                 mfa_active=row.mfa_active,
                 last_activity=max(activity) if activity else None,
-                last_activity_detail="credential report",
             )
         )
         if row.password_enabled is not None:
@@ -353,15 +352,9 @@ def import_credential_report(
                     last_used=row.password_last_used,
                 )
             )
-        for label, active, rotated, used, service in (
-            (
-                "first", row.key1_active, row.key1_last_rotated,
-                row.key1_last_used, row.key1_last_service,
-            ),
-            (
-                "second", row.key2_active, row.key2_last_rotated,
-                row.key2_last_used, row.key2_last_service,
-            ),
+        for label, active, rotated, used in (
+            ("first", row.key1_active, row.key1_last_rotated, row.key1_last_used),
+            ("second", row.key2_active, row.key2_last_rotated, row.key2_last_used),
         ):
             if active is None:
                 continue
@@ -374,7 +367,6 @@ def import_credential_report(
                     active=bool(active),
                     last_rotated=rotated,
                     last_used=used,
-                    last_used_service=service,
                 )
             )
         for label, active in (("first", row.cert1_active), ("second", row.cert2_active)):
@@ -606,7 +598,6 @@ def import_authorization_details(  # noqa: C901
             display_name=role.name, provider_ref=role.arn,
             identity_created_at=role.created, tags=role.tags or None,
             last_activity=role.last_used,
-            last_activity_detail=role.last_used_region,
         ))
         add_grants(identity, role.role_id, role.attached_policies, role.inline_documents)
         if role.trust_policy is not None:
