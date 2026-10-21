@@ -5,7 +5,7 @@
     python3 scripts/render_scoring.py           # render SCORING.md from scoring/snapshot.json
     python3 scripts/render_scoring.py --check   # fail unless the page is what the snapshot renders
 
-Five services rate this repository, and each measures something
+Three services rate this repository, and each measures something
 different. The page lists every item each one scores, what it saw,
 and where the gaps are, so a badge at the top of the README reads
 down to the line that earned it. The page never states a figure the
@@ -31,7 +31,6 @@ SNAPSHOT = ROOT / "scoring" / "snapshot.json"
 PAGE = ROOT / "SCORING.md"
 REPO = "manifest-identity/manifest-identity"
 BEST_PRACTICES_ID = 14563
-SONAR_KEY = "manifest-identity_manifest-identity"
 
 # The scanner's own documentation of each check, at a fixed commit so
 # the links and the risk labels below cannot drift under the page.
@@ -115,17 +114,6 @@ LEVELS = [
     (5, "gated and proven", "gated, and the repository records a run where the gate fired"),
 ]
 
-SONAR_METRICS = {
-    "ncloc": "lines of code",
-    "bugs": "open reliability findings",
-    "vulnerabilities": "open security findings",
-    "security_hotspots": "security hotspots to review",
-    "code_smells": "open maintainability findings",
-    "duplicated_lines_density": "duplicated lines, percent",
-    "coverage": "coverage as the analyzer measures it, percent",
-}
-
-
 def _get(url: str) -> dict:
     with urllib.request.urlopen(url, timeout=60) as response:  # noqa: S310  (https, fixed hosts)
         return json.load(response)
@@ -134,16 +122,6 @@ def _get(url: str) -> dict:
 def fetch(doctrine: Path) -> dict:
     scorecard = _get(f"https://api.scorecard.dev/projects/github.com/{REPO}")
     entry = _get(f"https://www.bestpractices.dev/projects/{BEST_PRACTICES_ID}.json")
-    gate = _get(
-        "https://sonarcloud.io/api/qualitygates/project_status"
-        f"?projectKey={SONAR_KEY}"
-    )["projectStatus"]
-    measures = _get(
-        "https://sonarcloud.io/api/measures/component"
-        f"?component={SONAR_KEY}&metricKeys={','.join(SONAR_METRICS)}"
-    )["component"]["measures"]
-    owner, name = REPO.split("/")
-    codecov = _get(f"https://codecov.io/api/v2/github/{owner}/repos/{name}/")
     # Both commands are fixed argument lists over a path the operator
     # named on the command line; nothing here comes from a rater.
     score = json.loads(subprocess.run(  # noqa: S603
@@ -194,28 +172,6 @@ def fetch(doctrine: Path) -> dict:
             "kind": score["kind"],
             "rules": score["rules"],
         },
-        "codecov": {
-            "updated": codecov["updatestamp"][:10],
-            "coverage": codecov["totals"]["coverage"],
-            "files": codecov["totals"]["files"],
-            "lines": codecov["totals"]["lines"],
-            "hits": codecov["totals"]["hits"],
-        },
-        "sonarcloud": {
-            "status": gate["status"],
-            "since": (gate.get("periods") or [{}])[0].get("date", "")[:10],
-            "conditions": [
-                {
-                    "metric": c["metricKey"],
-                    "comparator": c["comparator"],
-                    "threshold": c["errorThreshold"],
-                    "actual": c["actualValue"],
-                    "status": c["status"],
-                }
-                for c in gate["conditions"]
-            ],
-            "measures": {m["metric"]: m["value"] for m in measures},
-        },
     }
 
 
@@ -233,14 +189,12 @@ def _mean(rules: list[dict]) -> float:
 
 
 def render(s: dict) -> str:  # noqa: C901
-    sc, bp, dc, cc, sq = (
-        s["scorecard"], s["best_practices"], s["doctrine"], s["codecov"], s["sonarcloud"]
-    )
+    sc, bp, dc = s["scorecard"], s["best_practices"], s["doctrine"]
     out: list[str] = []
     w = out.append
     w("# Scoring")
     w("")
-    w("Five outside services rate this repository, and each one measures")
+    w("Three outside services rate this repository, and each one measures")
     w("something different. This page lists every item each rater scores,")
     w("what it saw, and where the gaps are, so a badge at the top of the")
     w("[README](README.md) reads down to the line that earned it.")
@@ -260,11 +214,6 @@ def render(s: dict) -> str:  # noqa: C901
     w(f"| [build-doctrine score](#build-doctrine-score) | {_mean(dc['rules'])} / 5 | "
       "how far each rule of build-doctrine is enforced here, "
       "from stated to gated and proven |")
-    w(f"| [Codecov](#codecov) | {cc['coverage']} percent | "
-      "line coverage of the application by its test suite |")
-    w(f"| [SonarCloud](#sonarcloud) | quality gate {sq['status'].lower()} | "
-      "static analysis of new code: reliability, security, maintainability, "
-      "duplication, coverage |")
     w("")
 
     w("## OpenSSF Scorecard")
@@ -357,43 +306,6 @@ def render(s: dict) -> str:  # noqa: C901
     w("level one is one the repository states and nothing checks; a rule")
     w("moves up only when a command, then a gate, then a recorded firing")
     w("stands behind it, and the scorer never infers the fifth level.")
-    w("")
-
-    w("## Codecov")
-    w("")
-    w("The pipeline's test run uploads its coverage report, and Codecov read")
-    w(f"{cc['coverage']} percent on {cc['updated']}: {cc['hits']} of {cc['lines']} lines")
-    w(f"across {cc['files']} files of the")
-    w("application package. The pipeline floors the same figure at 90")
-    w("percent, so the outside reading and the gate measure one report.")
-    w("")
-
-    w("## SonarCloud")
-    w("")
-    w(f"The quality gate is **{sq['status']}** on main, judged on code changed")
-    w(f"since {sq['since']}.")
-    w("The analyzer runs from the pipeline on the same commit the other")
-    w("gates judged, and it imports the same coverage report. Findings are")
-    w("triaged in the analyzer: a real one is fixed in the code, and a")
-    w("false positive is accepted there with its reason written, never")
-    w("silenced in the source.")
-    w("")
-    w("| Condition on new code | Threshold | Actual | Status |")
-    w("|---|---|---|---|")
-    for c in sq["conditions"]:
-        comparator = "at most" if c["comparator"] == "GT" else "at least"
-        metric = c["metric"].removeprefix("new_").replace("_", " ")
-        w(f"| {metric} | {comparator} {c['threshold']} | {c['actual']} | {c['status']} |")
-    w("")
-    w("| Measure, whole project | Value |")
-    w("|---|---|")
-    for metric, label in SONAR_METRICS.items():
-        if metric in sq["measures"]:
-            w(f"| {label} | {sq['measures'][metric]} |")
-    w("")
-    w("The analyzer's coverage figure counts the frontend, which has no")
-    w("coverage tool of its own and is tested through the application")
-    w("suite, so it reads below the Codecov figure for the same report.")
     w("")
 
     w("## Refreshing this page")

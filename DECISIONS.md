@@ -1086,6 +1086,9 @@ with the campaign work, passed unmet and now says so.
 
 ## D-052: GuardDog scans the pinned trees for malware shapes
 
+Superseded in part by D-098: GuardDog runs when a pull request changes a
+dependency list, and on the weekly run.
+
 **Date:** 2026-08-22
 
 **Decision:** the pipeline runs DataDog's GuardDog over both pinned
@@ -1122,6 +1125,9 @@ trusted.
 -------------------------------------------------------------------------------
 
 ## D-053: The Python floor is 3.11, held by execution
+
+Superseded by D-098: the application supports Python 3.14 only, the
+interpreter its image ships, and the floor job is gone.
 
 **Date:** 2026-08-24
 
@@ -2508,6 +2514,9 @@ it, which is the shape the other writes already had.
 
 ## D-086: What a scanner teaches after a push becomes a rule before the commit, and the pipeline's analysis runs before the push
 
+Superseded in part by D-098: CodeQL runs in the pipeline and on its
+schedule, not again before each push.
+
 Superseded in part by D-097: Semgrep is removed, and its rules are held
 by CodeQL, ruff, ESLint, and tests/test_code_rules.py.
 
@@ -2917,3 +2926,42 @@ the 66 packages and the override, and meets the next exact pin the
 same way; a second override for opentelemetry-api, which makes every
 future clash another override; and Semgrep's container image, which
 still carries mcp 1.29.0 where the audit cannot read it.
+
+## D-098: Less to run and less to keep in step, with the same protection
+
+**What happened.** A small change took a day of chores. The suite ran
+a second time on Python 3.11 for a version claim the image never
+ships. Every pull request edited the README to restate a test count,
+a decision count, and a mutation count. Every standards change needed
+a pull request here to re-copy a 10,441-word file. CodeQL ran on every
+push and again in the pipeline. SonarCloud and Codecov repeated what
+CodeQL, ruff, and the coverage floor already check, and GuardDog took
+over three minutes on every change to read files most changes never
+touch.
+
+**Decision.** Six things go or narrow:
+
+- The floor job goes, and the application supports Python 3.14 only,
+  the interpreter its image ships. The browser job runs on that same
+  pinned interpreter.
+- The README states only the route count, which a test recounts. The
+  test, decision, and mutation counts and their tests go.
+- AGENTS.md points to build-doctrine's standards at the pinned build
+  (build-doctrine D-050), and a test holds the pointer to the pin.
+- CodeQL runs in the pipeline and on its schedule only; the pre-push
+  scan and its script go.
+- SonarCloud and Codecov go, with their steps, script, configuration,
+  badges, and their part of the scoring page. The coverage floor stays
+  in the pipeline.
+- GuardDog runs when a pull request changes a dependency list, and on
+  the weekly run.
+
+**What stays.** Hash-pinned dependencies and the audit of every tree,
+secret scanning, CodeQL, Trivy, the tests with the coverage floor, the
+mutation check, and the review requirement.
+
+**Rejected.** Keeping SonarCloud for its dashboard, which keeps a second
+outside service with a stored token and access to the repository; and
+running GuardDog on every change, which spends minutes on files the
+change did not touch.
+

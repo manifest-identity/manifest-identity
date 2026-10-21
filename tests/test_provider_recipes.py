@@ -8,8 +8,8 @@ each provider imports and produces the delta, so a person can try any
 provider on the list the day they meet the product.
 
 jq is a distribution package rather than a Python one, so the recipe
-tests skip where it is absent (the floor job) and run where the
-pipeline installs it (the application job).
+tests skip where it is absent and run where the pipeline installs it
+(the application job).
 """
 
 import json
