@@ -523,7 +523,7 @@ def test_the_mutation_table_is_the_mutation_set() -> None:
     import re
     from pathlib import Path
 
-    from scripts.check_mutation import MUTATIONS, table
+    from scripts.check_mutation import table
 
     text = Path(__file__).parent.parent.joinpath("README.md").read_text()
     match = re.search(r"```mutations\n(.*?)```", text, re.DOTALL)
@@ -532,69 +532,20 @@ def test_the_mutation_table_is_the_mutation_set() -> None:
         "the README's mutation table is stale; regenerate it with "
         "python3 scripts/check_mutation.py --table"
     )
-    # The sentence above the table states the count in words; the map
-    # grows by one entry each time the set does, which is the point.
-    words = {
-        32: "Thirty-two", 34: "Thirty-four", 35: "Thirty-five",
-        36: "Thirty-six", 37: "Thirty-seven",
-    }
-    word = words.get(len(MUTATIONS))
-    assert word, f"add the word for {len(MUTATIONS)} mutations to this test"
-    assert f"**{word} mutations, {word.lower()} kills.**" in text
-    n = len(MUTATIONS)
-    assert f"| Mutation | {n} controls removed by the check, {n} noticed by the suite |" in text
 
 
-def test_the_stated_figures_are_the_counted_figures() -> None:
-    """The README's bold figures drifted twice in one day, once past a
-    new route and once past a new test file, because the enumeration
-    was gated and the prose numbers were not. Now a stated figure is a
-    counted figure: each lives in exactly one sentence, and this test
-    recounts it from the thing itself."""
+def test_the_stated_route_figure_is_the_counted_figure() -> None:
+    """The README states one figure, the route count, and this test
+    recounts it from the application (D-098 removed the others)."""
     import re
     from pathlib import Path
 
-    root = Path(__file__).parent.parent
-    text = root.joinpath("README.md").read_text()
-
-    stated = re.search(r"\*\*(\d+) tests in (\d+) files\*\*", text)
-    assert stated, "README.md no longer states the test figure"
-    test_files = sorted(root.glob("tests/test_*.py"))
-    functions = sum(
-        len(re.findall(r"^def test_", f.read_text(), re.MULTILINE))
-        for f in test_files
-    )
-    assert (int(stated.group(1)), int(stated.group(2))) == (
-        functions, len(test_files)
-    ), (
-        f"README states {stated.group(0)}; counted {functions} tests "
-        f"in {len(test_files)} files"
-    )
-
+    text = Path(__file__).parent.parent.joinpath("README.md").read_text()
     routes_stated = re.findall(r"\*\*(\d+) routes\*\*", text)
     assert len(routes_stated) == 1, "the route figure must live once"
     assert int(routes_stated[0]) == len(route_keys()), (
         f"README states {routes_stated[0]} routes; "
         f"the application serves {len(route_keys())}"
-    )
-
-
-def test_the_stated_decision_count_is_the_counted_count() -> None:
-    """The decision figure drifted ten entries behind before this
-    existed; a stated figure is a counted figure, decisions included."""
-    import re
-    from pathlib import Path
-
-    root = Path(__file__).parent.parent
-    text = root.joinpath("README.md").read_text()
-    stated = re.search(r"\*\*(\d+) recorded decisions", text)
-    assert stated, "README.md no longer states the decision figure"
-    counted = len(re.findall(
-        r"^## D-", root.joinpath("DECISIONS.md").read_text(), re.MULTILINE
-    ))
-    assert int(stated.group(1)) == counted, (
-        f"README states {stated.group(1)} recorded decisions; "
-        f"DECISIONS.md holds {counted}"
     )
 
 

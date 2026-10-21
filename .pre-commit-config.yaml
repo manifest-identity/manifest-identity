@@ -96,15 +96,6 @@ repos:
         additional_dependencies: ["eslint@10.11.0", "typescript-eslint@8.71.0", "typescript@5.9.3"]
         pass_filenames: false
         files: ^(frontend/app\.js|eslint\.config\.mjs|tsconfig\.json)$
-      # The pipeline's semantic analysis, run here before the push so a
-      # finding reaches this terminal and not a pull request page
-      # (D-086). Installed with: pre-commit install --hook-type pre-push
-      - id: scan-before-push
-        name: CodeQL before the push
-        entry: scripts/scan.sh
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
       - id: no-deferred-work-markers
         name: forbid deferred-work markers
         entry: '\b(TODO|FIXME|HACK|XXX)\b'

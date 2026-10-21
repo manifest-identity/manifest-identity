@@ -3,8 +3,6 @@
 [![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/manifest-identity/manifest-identity?label=OpenSSF%20Scorecard&style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/manifest-identity/manifest-identity)
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/14563?label=OpenSSF%20Best%20Practices&style=for-the-badge)](https://www.bestpractices.dev/projects/14563)
 [![build-doctrine score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmanifest-identity%2Fmanifest-identity%2Fmain%2Fbadges%2Fbuild-doctrine-score.json&style=for-the-badge)](SCORING.md#build-doctrine-score)
-[![Coverage](https://img.shields.io/codecov/c/github/manifest-identity/manifest-identity?label=Coverage&style=for-the-badge)](https://codecov.io/gh/manifest-identity/manifest-identity)
-[![Quality gate](https://img.shields.io/sonar/quality_gate/manifest-identity_manifest-identity?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=manifest-identity_manifest-identity)
 
 **Documentation site**, this document with side navigation and search:
 <https://manifest-identity.github.io/manifest-identity/>. What each badge above
@@ -107,15 +105,15 @@ manifest-identity stands on its own: its roadmap is
 [ROADMAP.md](ROADMAP.md), and the platform it will deploy to is built as
 code in [control-plane](https://tltaylor1.github.io/control-plane/).
 
-**The measured figures, each counted by a test:**
+**What is measured, and how:**
 
 | Measured | Standing |
 |---|---|
-| Tests | **456 tests in 51 files**, coverage 95 over a 90 percent floor |
-| Mutation | 37 controls removed by the check, 37 noticed by the suite |
+| Tests | the whole suite on every change, with coverage floored at 90 percent |
+| Mutation | every control the check removes is noticed by the suite |
 | Surface | **71 routes**, every one in the role matrix the tests walk |
-| Record | **97 recorded decisions**, each with its rejected alternatives |
-| Gates | 12 required checks on every merge; releases carry provenance attestations |
+| Record | every decision, with its rejected alternatives |
+| Gates | required checks on every merge; releases carry provenance attestations |
 
 The commands behind every figure are in
 [The numbers, proven](#the-numbers-proven); a figure that drifts from
@@ -421,10 +419,9 @@ with passwords and two thirds services with keys, every variation
 derived from the identity's index so the output is byte-identical on
 every run. Scaled sets ship as release artifacts, never as commits.
 
-**Without Docker.** Requires Python 3.11 or newer; developed and
-tested on 3.14, and the whole suite runs against 3.11 in the
-pipeline so the floor is held by execution, not assertion. SQLite
-serves a local look; PostgreSQL is what the compose file runs.
+**Without Docker.** Requires Python 3.14, the interpreter the image
+ships. SQLite serves a local look; PostgreSQL is what the compose
+file runs.
 
 ```
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
@@ -1099,8 +1096,6 @@ holds the reviews and the alerts.
 | `Dockerfile` / `docker-compose.yml` | Digest-pinned base, non-root user, the composed stack |
 | `.github/workflows/` | The pipeline: tests, types, scanners, the container jobs, and the software bill of materials each run delivers |
 | `.pre-commit-config.yaml` | Secret scan, writing rules, lint, types, the page lint, and the truth gates at commit time; CodeQL before the push |
-| `scripts/scan.sh` | The pipeline's CodeQL queries run locally before the push, bundles pinned by checksum |
-| `scripts/sonar_scan.py` | SonarCloud's scanner fetched and verified against a pinned checksum, then run; no keyserver at run time |
 | `badges/` | The score badge the README shows, written by the doctrine's scorer and compared against a fresh one in the pipeline |
 | `scripts/audit.sh` | Every pinned tree audited against known vulnerabilities, with no exceptions |
 | `eslint.config.mjs` / `package.json` | The page's one lint rule and its pinned tools |
@@ -1306,10 +1301,7 @@ digest-parity gates, so a stale status claim or a drifted image pin
 blocks the merge; `workflows` lints and security-audits the workflow
 files themselves, because a mistake in the files that gate everything
 else is the most expensive kind; `links` walks every cross-reference
-offline, fragments included; `floor` runs the whole suite on the
-oldest supported interpreter, Python 3.11, because the shipped image
-runs 3.14 and 3.14 alone forgives annotation patterns older
-interpreters refuse (D-053); `browser` drives the page with a real
+offline, fragments included; `browser` drives the page with a real
 browser from a tree pinned apart in `requirements-browser.txt`, so
 the page is proven by use and the browser never enters the image or
 the ordinary suite (D-077); `application` runs the linter, strict
@@ -1330,10 +1322,7 @@ change turned main red on after months of green: a promise nobody
 awaits. typescript-eslint reads the plain script through the
 TypeScript checker, and the tools install from the lockfile with
 integrity hashes and no scripts run. The same rule runs at commit
-time, and three more rules of this repository's own, written from
-the lessons scanners taught after a push, run with the lint at commit
-time and in the application job (D-086); the pipeline's CodeQL
-queries also run locally before a push through `scripts/scan.sh`.
+time.
 
 **codeql** runs deep static analysis over the Python, the page script, and the workflow
 files, on every pull request, on main, and weekly; its findings land
@@ -1433,7 +1422,6 @@ does not name.
 | `actions/attest-build-provenance` | release, attest-release | Attests each artifact's build provenance, and the container image's digest, into the transparency log |
 | `google/clusterfuzzlite/actions/build_fuzzers` | fuzz | Builds the harnesses under fuzz/ with AddressSanitizer from the digest-pinned fuzzing base image |
 | `google/clusterfuzzlite/actions/run_fuzzers` | fuzz | Runs each harness for a bounded time against inputs derived from the change; a crash fails the check |
-| `codecov/codecov-action` | checks, the application job | Publishes the coverage report through the workflow's identity token, no stored secret, so the coverage figure is measured and shown by an outside service |
 | `actions/upload-pages-artifact` | docs | Packages the rendered site for Pages |
 | `actions/deploy-pages` | docs | Publishes the packaged site through the workflow's identity token |
 
@@ -1473,7 +1461,7 @@ here: mechanisms, not intentions.
 - **The agent cannot land anything alone.** Main refuses direct
   pushes; every change travels a branch and a pull request opened
   under the agent's own identity (D-045), so the author of record and
-  the human who approves are different parties; twelve required checks
+  the human who approves are different parties; the required checks
   and a required approving review must pass; and the merge is a human
   act. Phase and subphase transitions are likewise human declarations,
   never the agent's.
@@ -1658,11 +1646,11 @@ load-bearing ones:
   failures, revocation, expiry, a forged token refused beside a live
   session, and the write budget holding.
 
-**Coverage is 94 percent, floored at 90 in the pipeline.** The floor
+**Coverage is floored at 90 percent in the pipeline.** The floor
 sits under the measured figure to catch erosion without inviting tests
 written to move a number.
 
-**Thirty-seven mutations, thirty-seven kills.** The mutation check breaks
+**Every mutation is killed.** The mutation check breaks
 one control at a time and requires the tests that claim that control
 to fail. The table is generated from the check's own list by
 `scripts/check_mutation.py --table`, and a test fails the build when
@@ -1715,10 +1703,9 @@ presented a real token or none, so a constant hash matched any
 fabricated token and nothing noticed. The missing test exists,
 which is the check doing exactly what it is for.
 
-The decisions, migrations, and required checks the opening table counts. Every
-merge to main passes secret scanning, writing rules and status-truth
+Every merge to main passes secret scanning, writing rules and status-truth
 gates, workflow lint and audit, link checks, the application job with
-the coverage floor and mutation check, two static analysis passes, and
+the coverage floor and mutation check, CodeQL static analysis, and
 the container job. Every run also delivers the software bill of
 materials as a downloadable artifact; the reasoning for delivering it
 fresh rather than committing it is in

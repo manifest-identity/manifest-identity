@@ -1,6 +1,6 @@
 # Scoring
 
-Five outside services rate this repository, and each one measures
+Three outside services rate this repository, and each one measures
 something different. This page lists every item each rater scores,
 what it saw, and where the gaps are, so a badge at the top of the
 [README](README.md) reads down to the line that earned it.
@@ -16,8 +16,6 @@ something was actually read. Snapshot taken 2026-09-30, UTC.
 | [OpenSSF Scorecard](#openssf-scorecard) | 8.2 / 10 | supply-chain and project security practices, read from the repository by a scanner |
 | [OpenSSF Best Practices](#openssf-best-practices) | passing | criteria for open source projects, each answered with a justification the site publishes |
 | [build-doctrine score](#build-doctrine-score) | 3.5 / 5 | how far each rule of build-doctrine is enforced here, from stated to gated and proven |
-| [Codecov](#codecov) | 95.02 percent | line coverage of the application by its test suite |
-| [SonarCloud](#sonarcloud) | quality gate ok | static analysis of new code: reliability, security, maintainability, duplication, coverage |
 
 ## OpenSSF Scorecard
 
@@ -224,47 +222,6 @@ Mean over the applicable rules: **3.5**. A rule at
 level one is one the repository states and nothing checks; a rule
 moves up only when a command, then a gate, then a recorded firing
 stands behind it, and the scorer never infers the fifth level.
-
-## Codecov
-
-The pipeline's test run uploads its coverage report, and Codecov read
-95.02 percent on 2026-09-30: 6787 of 7142 lines
-across 72 files of the
-application package. The pipeline floors the same figure at 90
-percent, so the outside reading and the gate measure one report.
-
-## SonarCloud
-
-The quality gate is **OK** on main, judged on code changed
-since 2026-09-23.
-The analyzer runs from the pipeline on the same commit the other
-gates judged, and it imports the same coverage report. Findings are
-triaged in the analyzer: a real one is fixed in the code, and a
-false positive is accepted there with its reason written, never
-silenced in the source.
-
-| Condition on new code | Threshold | Actual | Status |
-|---|---|---|---|
-| reliability rating | at most 1 | 1 | OK |
-| security rating | at most 1 | 1 | OK |
-| maintainability rating | at most 1 | 1 | OK |
-| coverage | at least 80 | 95.0 | OK |
-| duplicated lines density | at most 3 | 0.9 | OK |
-| security hotspots reviewed | at least 100 | 100.0 | OK |
-
-| Measure, whole project | Value |
-|---|---|
-| lines of code | 15501 |
-| open reliability findings | 0 |
-| open security findings | 2 |
-| security hotspots to review | 0 |
-| open maintainability findings | 3 |
-| duplicated lines, percent | 1.2 |
-| coverage as the analyzer measures it, percent | 95.0 |
-
-The analyzer's coverage figure counts the frontend, which has no
-coverage tool of its own and is tested through the application
-suite, so it reads below the Codecov figure for the same report.
 
 ## Refreshing this page
 

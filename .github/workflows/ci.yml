@@ -129,26 +129,6 @@ jobs:
       - name: check internal links
         run: git ls-files -z "*.md" | xargs -0 "$RUNNER_TEMP/lychee-x86_64-unknown-linux-gnu/lychee" --offline --no-progress --include-fragments
 
-  floor:
-    # The stated Python floor, held by execution: the whole suite on
-    # the oldest supported interpreter, because the shipped image runs
-    # 3.14 and 3.14 alone forgives what older interpreters refuse
-    # (D-053). The pin is a tag on purpose: the floor is a version
-    # claim, not an artifact claim.
-    runs-on: ubuntu-latest
-    container:
-      image: python:3.11-slim
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: install the pinned tree, hashes enforced
-        run: |
-          pip install --no-cache-dir --require-hashes -r requirements.txt
-          pip install --no-cache-dir --require-hashes -r requirements-dev.txt
-      - name: the suite on the floor interpreter
-        run: pytest -q
-
   browser:
     # The page proven by use (1.13): a real browser signs in, opens an
     # identity beside the list, authorizes a grant, decides a campaign
@@ -156,9 +136,11 @@ jobs:
     # database seeded by the demo. The browser tree is pinned by hash
     # in its own file and never enters the image or the ordinary suite;
     # the browser binary is the one the pinned driver names.
+    needs: resolve
     runs-on: ubuntu-latest
     container:
-      image: python:3.11-slim
+      # The interpreter the Dockerfile pins, as in the application job.
+      image: ${{ needs.resolve.outputs.python }} # zizmor: ignore[unpinned-images]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -189,7 +171,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tltaylor1/build-doctrine
-          ref: d323ed3ac80f8d258ad98da950111bd0902bfb4f
+          ref: 9ac5ec962aa7b355cdf477d611cd8a51f46a33a5
           path: doctrine
           persist-credentials: false
       - name: score against the doctrine
@@ -205,8 +187,6 @@ jobs:
         run: python3 doctrine/scripts/check_names.py .
       - name: every runtime package is recorded
         run: python3 doctrine/scripts/check_dependency_records.py .
-      - name: the standards copy matches the source
-        run: python3 doctrine/scripts/check_doctrine_copy.py .
       # Fails only on an exact copy the change adds (build-doctrine D-042);
       # on a push there is no base to compare against, and it says so.
       - name: no new copy of code the repository already holds
@@ -242,13 +222,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # The identity token lets the coverage upload prove which workflow
-      # it came from, in place of a stored secret.
-      id-token: write
-    env:
-      # Mapped at job level so the scan step's condition can read it;
-      # a step cannot test a variable it sets itself.
-      SONARQUBE_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
     # The image the Dockerfile pins, read from the Dockerfile at run time
     # rather than copied here, so the interpreter that tests the code is
     # the interpreter that ships it and an update tool moving the one home
@@ -289,8 +262,8 @@ jobs:
       # by apt, and never enter the image.
       # jq runs the provider recipes under recipes/ in their tests, so
       # a recipe that stops producing the door's table fails here.
-      - name: tools the upload, the analyzer, and the recipe tests need, from the distribution
-        run: apt-get update && apt-get install -y --no-install-recommends git curl gpg dirmngr unzip ca-certificates jq
+      - name: the tool the recipe tests need, from the distribution
+        run: apt-get update && apt-get install -y --no-install-recommends ca-certificates jq
       - name: lint
         run: ruff check .
       - name: types
@@ -299,29 +272,7 @@ jobs:
         # The floor sits under the measured figure (94 at adoption) so
         # it catches erosion without inviting tests written to move a
         # number (D-041).
-        run: pytest --cov=manifest_identity --cov-fail-under=90 --cov-report=term --cov-report=xml
-      - name: publish coverage to Codecov
-        # Tokenless through the workflow's identity token, so no secret
-        # is stored anywhere; the figure the README states is then also
-        # a figure an outside service measures and displays.
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        with:
-          files: coverage.xml
-          use_oidc: true
-          fail_ci_if_error: false
-      - name: analyze with SonarCloud
-        # Runs only when the token is present, so a fork or a fresh
-        # clone without the secret still passes every other gate; the
-        # quality gate itself is read on the SonarCloud side.
-        # The vendor's action verifies its download through a public
-        # keyserver at run time and fails when the keyserver does not
-        # answer; the script verifies the same archive against a pinned
-        # checksum, like every other tool this pipeline downloads (D-088).
-        if: env.SONARQUBE_TOKEN != ''
-        env:
-          SONAR_TOKEN: ${{ env.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
-        run: python3 scripts/sonar_scan.py
+        run: pytest --cov=manifest_identity --cov-fail-under=90 --cov-report=term
       - name: mutation check
         # Break one control at a time; the tests that claim it must
         # fail. Seven reviewed mutations, minutes not hours (D-041).
@@ -385,6 +336,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # The full history, so a pull request can be compared with its
+          # base to see whether it touches a dependency list.
+          fetch-depth: 0
       - name: install hadolint, verified
         run: |
           cd "$RUNNER_TEMP"
@@ -423,7 +377,24 @@ jobs:
         # pull request can answer for: a fixed finding here means the
         # build did not pick up a published fix (D-055).
         run: '"$RUNNER_TEMP/trivy" image --scanners vuln --pkg-types os --ignore-unfixed --severity CRITICAL --exit-code 1 manifest-identity:ci'
+      - name: does this change touch a dependency list
+        id: deps
+        # GuardDog takes minutes and reads only the dependency lists, so
+        # it runs when a pull request changes one, and on the weekly
+        # run, which catches a package that turns bad while pinned (D-098).
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          if [ "$EVENT" = schedule ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT" = pull_request ] && ! git diff --quiet "origin/$BASE...HEAD" -- 'requirements*.txt'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: scan the pinned trees for malware shapes
+        if: steps.deps.outputs.changed == 'true'
         # pip-audit knows published vulnerabilities; GuardDog's
         # heuristics see what has no advisory yet: install-time
         # execution, exfiltration shapes, typosquats (D-052). It runs
