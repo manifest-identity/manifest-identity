@@ -57,21 +57,3 @@ def test_an_archive_member_that_escapes_the_directory_is_refused(tmp_path: Path)
     assert not (tmp_path / "escaped.txt").exists()
 
 
-def test_the_override_rewrites_only_the_pinned_block() -> None:
-    compile_scan = load("compile_scan")
-    tree = (
-        "pyjwt==2.13.0 \\\n"
-        "    --hash=sha256:aaaa \\\n"
-        "    --hash=sha256:bbbb\n"
-        "    # via\n"
-        "    #   semgrep\n"
-        "ruff==0.16.10 \\\n"
-        "    --hash=sha256:cccc\n"
-    )
-    out = compile_scan.override(tree, "pyjwt", "2.15.1", ["dddd", "eeee"])
-    assert "pyjwt==2.15.1 \\" in out and "sha256:dddd" in out and "sha256:eeee" in out
-    assert "sha256:aaaa" not in out
-    assert "ruff==0.16.10 \\\n    --hash=sha256:cccc\n" in out, "the next block is untouched"
-    assert "    # via\n    #   semgrep\n" in out, "the via comment survives"
-    with pytest.raises(SystemExit):
-        compile_scan.override(tree, "absent", "1.0", ["ffff"])

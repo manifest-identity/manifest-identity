@@ -153,7 +153,7 @@ def raise_alert(
         try:
             outcome = _deliverer.deliver(alert, recipient)
             result, note = RESULT_RECORDED, outcome
-        except Exception as problem:
+        except Exception as problem:  # noqa: BLE001  # any failure is recorded on the delivery
             result, note = RESULT_FAILED, f"{type(problem).__name__}: {problem}"[:500]
         db.add(AlertDelivery(
             alert_id=alert.id,

@@ -79,7 +79,7 @@ def _migrate() -> str:
     try:
         alembic_command.upgrade(cfg, "head")
         return "schema migrated"
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  # reported in the return value
         # Under the split-privilege runtime role the schema is managed
         # by the migrate step and this role may not touch it; if the
         # tables exist, that is fine and the demo continues.

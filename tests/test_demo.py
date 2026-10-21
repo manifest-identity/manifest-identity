@@ -97,3 +97,15 @@ def test_demo_refuses_without_admin_env(demo_env, monkeypatch, capsys) -> None:
 
     assert demo.main() == 1
     assert "MANIFEST_IDENTITY_ADMIN_USERNAME" in capsys.readouterr().out
+
+
+def test_a_refused_migration_is_reported_and_the_demo_continues(monkeypatch) -> None:
+    """Under the runtime role the schema belongs to the migrate step, so
+    a refused upgrade is named in the result rather than raised."""
+    from manifest_identity import demo
+
+    def refuse(*_args, **_kwargs) -> None:
+        raise PermissionError("must be owner of table identities")
+
+    monkeypatch.setattr(demo.alembic_command, "upgrade", refuse)
+    assert demo._migrate() == "migration skipped (PermissionError); assuming a managed schema"
