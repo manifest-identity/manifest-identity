@@ -2965,3 +2965,17 @@ outside service with a stored token and access to the repository; and
 running GuardDog on every change, which spends minutes on files the
 change did not touch.
 
+## D-099: The mutation check runs beside the suite
+
+**What happened.** After D-098 the pipeline's total job time fell from
+19.2 to 11.7 minutes, and the wait for a run did not fall, because the
+application job ran the suite (251 seconds) and then the mutation check
+(189 seconds) one after the other.
+
+**Decision.** The mutation check runs in its own job, on the same
+pinned interpreter and the same hashed trees, beside the suite. It is a
+required check, so nothing merges without it.
+
+**Rejected.** Running it only on the weekly schedule, which would let a
+pull request weaken a test without anyone seeing it before the merge.
+

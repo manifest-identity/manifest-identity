@@ -1305,10 +1305,10 @@ offline, fragments included; `browser` drives the page with a real
 browser from a tree pinned apart in `requirements-browser.txt`, so
 the page is proven by use and the browser never enters the image or
 the ordinary suite (D-077); `application` runs the linter, strict
-typing, every test under the coverage floor, the mutation check,
-the migrations against a real PostgreSQL with drift detection, the
+typing, every test under the coverage floor, the migrations against a real PostgreSQL with drift detection, the
 dependency audits, and generates the software bill of materials as
-the run's artifact; and `container` lints the Dockerfile, scans
+the run's artifact; `mutation` runs the mutation check beside it; and
+`container` lints the Dockerfile, scans
 the pinned base image on the schedule and the built image on every
 change, and runs GuardDog over both pinned dependency trees
 from its digest-pinned official image, asking the question the
@@ -1705,7 +1705,7 @@ which is the check doing exactly what it is for.
 
 Every merge to main passes secret scanning, writing rules and status-truth
 gates, workflow lint and audit, link checks, the application job with
-the coverage floor and mutation check, CodeQL static analysis, and
+the coverage floor, the mutation check, CodeQL static analysis, and
 the container job. Every run also delivers the software bill of
 materials as a downloadable artifact; the reasoning for delivering it
 fresh rather than committing it is in
