@@ -256,11 +256,8 @@ jobs:
         run: |
           pip install --no-cache-dir --require-hashes -r requirements.txt
           pip install --no-cache-dir --require-hashes -r requirements-dev.txt
-      # The slim image ships no git, curl, gpg, dirmngr, or unzip, and the
-      # coverage upload and the analyzer's signature check refuse to run
-      # without them; the tools come from Debian's own archive, verified
-      # by apt, and never enter the image.
-      # jq runs the provider recipes under recipes/ in their tests, so
+      # jq comes from Debian's own archive, verified by apt, and never
+      # enters the image. It runs the provider recipes under recipes/ in their tests, so
       # a recipe that stops producing the door's table fails here.
       - name: the tool the recipe tests need, from the distribution
         run: apt-get update && apt-get install -y --no-install-recommends ca-certificates jq
@@ -273,10 +270,6 @@ jobs:
         # it catches erosion without inviting tests written to move a
         # number (D-041).
         run: pytest --cov=manifest_identity --cov-fail-under=90 --cov-report=term
-      - name: mutation check
-        # Break one control at a time; the tests that claim it must
-        # fail. Seven reviewed mutations, minutes not hours (D-041).
-        run: python3 scripts/check_mutation.py
       - name: migrations apply and match the models
         env:
           MANIFEST_IDENTITY_DATABASE_URL: postgresql+psycopg://manifest_identity:ci-run-${{ github.run_id }}@postgres:5432/manifest_identity
@@ -311,6 +304,28 @@ jobs:
         with:
           name: sbom
           path: ${{ runner.temp }}/sbom.json
+
+  mutation:
+    # Break one control at a time; the tests that claim it must fail
+    # (D-041). It has its own job so it runs beside the suite rather than
+    # after it, which roughly halves the wait for a pull request (D-099).
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      # The interpreter the Dockerfile pins, as in the application job.
+      image: ${{ needs.resolve.outputs.python }} # zizmor: ignore[unpinned-images]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: install the pinned tree, hashes enforced
+        run: |
+          pip install --no-cache-dir --require-hashes -r requirements.txt
+          pip install --no-cache-dir --require-hashes -r requirements-dev.txt
+      - name: mutation check
+        run: python3 scripts/check_mutation.py
 
   page:
     # The page's one lint rule, the one SonarCloud's rule set change
