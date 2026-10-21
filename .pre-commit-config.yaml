@@ -46,7 +46,7 @@ repos:
       # commit once passed every hook here while failing mypy, which
       # is the false assurance a hook set exists to prevent.
       - id: python-checks
-        name: lint, types, and the repository's own scanner rules
+        name: lint and types
         entry: bash scripts/check_python.sh
         language: system
         pass_filenames: false

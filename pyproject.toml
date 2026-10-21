@@ -9,8 +9,10 @@ line-length = 100
 [tool.ruff.lint]
 # E, F: correctness. I: import order. B: known bug patterns. UP: outdated
 # idioms. S: security checks. ERA: commented-out code, which the standards
-# forbid as a deferred-work marker in disguise.
-select = ["E", "F", "I", "B", "UP", "S", "ERA", "C90", "RUF100", "PLC0415"]
+# forbid as a deferred-work marker in disguise. BLE: a handler that
+# catches everything, which with S110 and E722 refuses one that says
+# nothing (D-097).
+select = ["E", "F", "I", "B", "UP", "S", "ERA", "C90", "RUF100", "PLC0415", "BLE"]
 
 # A function whose branches exceed ten is past what a reader holds in
 # mind at once (D-091). The functions already past it carry a noqa

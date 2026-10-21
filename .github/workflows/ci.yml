@@ -283,9 +283,6 @@ jobs:
         run: |
           pip install --no-cache-dir --require-hashes -r requirements.txt
           pip install --no-cache-dir --require-hashes -r requirements-dev.txt
-          pip install --no-cache-dir --require-hashes --no-deps -r requirements-scan.txt
-      - name: the repository's own scanner rules
-        run: semgrep --config .semgrep --error --metrics=off --quiet manifest_identity frontend scripts
       # The slim image ships no git, curl, gpg, dirmngr, or unzip, and the
       # coverage upload and the analyzer's signature check refuse to run
       # without them; the tools come from Debian's own archive, verified
@@ -355,8 +352,7 @@ jobs:
                       print("schema change: refused, as decided")
           PROBE
       - name: audit the pinned trees against known vulnerabilities
-        # Three trees, no exceptions; the scanner tree's one override
-        # is made at compile time by scripts/compile_scan.py (D-086).
+        # Every tree, no exceptions (D-097).
         run: scripts/audit.sh
       - name: software bill of materials
         run: pip-audit --require-hashes -r requirements.txt --format cyclonedx-json --output "$RUNNER_TEMP/sbom.json"
@@ -439,7 +435,6 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/repo:ro" ghcr.io/datadog/guarddog@sha256:3dbc783f65f508b95222101cb2cd84d1d5f3e3675e42d6f1329bb9b8a99c8998 pypi verify /repo/requirements.txt
           docker run --rm -v "$PWD:/repo:ro" ghcr.io/datadog/guarddog@sha256:3dbc783f65f508b95222101cb2cd84d1d5f3e3675e42d6f1329bb9b8a99c8998 pypi verify /repo/requirements-dev.txt
-          docker run --rm -v "$PWD:/repo:ro" ghcr.io/datadog/guarddog@sha256:3dbc783f65f508b95222101cb2cd84d1d5f3e3675e42d6f1329bb9b8a99c8998 pypi verify /repo/requirements-scan.txt
       - name: install kubeconform and kube-linter, verified
         run: |
           cd "$RUNNER_TEMP"

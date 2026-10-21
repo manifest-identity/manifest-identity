@@ -30,15 +30,3 @@ fi
 
 "$PYTHON" -m ruff check .
 "$PYTHON" -m mypy
-# The repository's own rules, each one a lesson a scanner taught after
-# a push (D-086). Semgrep ships in its own hashed tree, apart from the
-# development tree, because one of its pins is overridden at compile
-# time; the tree installs complete, so no resolver runs.
-SEMGREP="$(dirname "$PYTHON")/semgrep"
-if [ ! -x "$SEMGREP" ]; then
-  echo "semgrep is not installed beside $PYTHON; run" \
-       "pip install --require-hashes --no-deps -r requirements-scan.txt" >&2
-  exit 1
-fi
-"$SEMGREP" --config .semgrep --error --metrics=off --quiet \
-  manifest_identity frontend scripts

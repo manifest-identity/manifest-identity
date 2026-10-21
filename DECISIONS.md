@@ -2508,6 +2508,9 @@ it, which is the shape the other writes already had.
 
 ## D-086: What a scanner teaches after a push becomes a rule before the commit, and the pipeline's analysis runs before the push
 
+Superseded in part by D-097: Semgrep is removed, and its rules are held
+by CodeQL, ruff, ESLint, and tests/test_code_rules.py.
+
 In one day three findings reached the pull request page that the
 commit should have refused: a date under a key named like a
 credential, twice, and a trust's kind decided from a hostname
@@ -2874,3 +2877,43 @@ twice. Both have tests, and the existing alert tests pass unchanged.
 their recipients below the parts that use them, which is the wrong way
 round. Calling the alert from the web route instead would let a second
 caller of `authorize` skip it.
+
+## D-097: Semgrep is removed; its rules sit with the tools that already run
+
+**What happened.** The weekly run failed its audit on mcp 1.29.0,
+which carries CVE-2026-59951. Semgrep brought mcp into its own tree
+and pins it exactly, in its newest release too, so no update could
+move it. Fixing that showed a second problem: Semgrep requires
+opentelemetry-api 1.37, the application has needed 1.45 since a
+FastAPI update, and the pipeline installed Semgrep's tree over the
+application's without a resolver. From October 3 the tests ran on
+1.37, not on what ships.
+
+**Decision.** Semgrep is removed. It ran five rules and brought 66
+packages, a separate tree, and a compile-time override. Each rule now
+sits with a tool that already runs:
+
+- A decision from a hostname substring is refused by CodeQL, which
+  refused it here twice before the rule existed.
+- A handler that catches everything and says nothing is refused by
+  ruff's S110, E722, and BLE001; BLE001 is added for this, and its two
+  findings record the error, so each carries a marked exception.
+- A page loader nobody awaits is refused by ESLint's
+  no-floating-promises.
+- A dictionary key named like a credential holding text, and a path
+  containment check made with a string prefix, are read from the code
+  by tests/test_code_rules.py, because no tool here covers them.
+
+The test proves each of its two rules and ruff's three shapes fire on
+the code that taught them, and that the repository passes.
+
+**Proven.** A fresh environment built as the pipeline builds it holds
+opentelemetry-api 1.45.0, pip check finds no conflict, and the suite
+and the audit pass. certifi moves to 2026.10.19 in the development and
+documentation trees for an advisory published the same week.
+
+**Rejected.** Moving Semgrep to an environment of its own, which keeps
+the 66 packages and the override, and meets the next exact pin the
+same way; a second override for opentelemetry-api, which makes every
+future clash another override; and Semgrep's container image, which
+still carries mcp 1.29.0 where the audit cannot read it.
