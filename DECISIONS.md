@@ -2979,3 +2979,20 @@ required check, so nothing merges without it.
 **Rejected.** Running it only on the weekly schedule, which would let a
 pull request weaken a test without anyone seeing it before the merge.
 
+## D-100: The tests hash passwords at the lowest cost; the application does not
+
+**What happened.** The suite took 167 seconds on a laptop and about
+four minutes in the pipeline, spread evenly across every file. One run
+with bcrypt at its lowest cost took 30 seconds and passed every test,
+so four fifths of the suite's time was password hashing at the cost the
+application ships.
+
+**Decision.** The cost is one named value in the security module,
+twelve. The test setup lowers it to four for its own run, and a test
+reads the shipped value from the source and fails unless it is twelve,
+so the shortcut cannot reach the application.
+
+**Rejected.** Removing tests, which would cut protection to save time
+in proportion; and lowering the shipped cost, which weakens every
+stored password.
+

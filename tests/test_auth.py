@@ -116,3 +116,21 @@ def test_a_fabricated_token_is_rejected_even_beside_a_live_session(
     forged = secrets.token_urlsafe(32)
     r = client.get("/auth/me", headers=auth_header(forged))
     assert r.status_code == 401
+
+
+def test_the_shipped_password_hash_cost_is_twelve() -> None:
+    """The suite lowers the cost for speed; what ships is read from the
+    source, so the shortcut cannot reach the application (D-100)."""
+    import ast
+    from pathlib import Path
+
+    from manifest_identity.core import security
+
+    tree = ast.parse(Path(security.__file__).read_text())
+    shipped = [
+        node.value.value for node in tree.body
+        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant)
+        and any(isinstance(t, ast.Name) and t.id == "PASSWORD_HASH_ROUNDS" for t in node.targets)
+    ]
+    assert shipped == [12]
+

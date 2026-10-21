@@ -23,10 +23,16 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from manifest_identity.core import db as db_module
+from manifest_identity.core import security
 from manifest_identity.core.db import Base
 from manifest_identity.core.ratelimit import LOGIN_LIMITER, WRITE_LIMITER
 from manifest_identity.core.roles import Role
 from manifest_identity.core.security import hash_password
+
+# Password hashing at the shipped cost was four fifths of the suite's
+# time. The tests check behavior, not hashing strength, so they hash at
+# bcrypt's lowest cost; test_auth holds the shipped cost at twelve (D-100).
+security.PASSWORD_HASH_ROUNDS = 4
 
 # One shared in-memory database for the whole test process; StaticPool
 # hands every connection the same underlying store.
