@@ -19,11 +19,15 @@ import bcrypt
 
 PASSWORD_MIN_CHARS = 12
 PASSWORD_MAX_BYTES = 72
+# bcrypt's cost: each step doubles the work of one hash. The test suite
+# lowers it for its own run (tests/conftest.py), and a test holds the
+# shipped value here (D-100).
+PASSWORD_HASH_ROUNDS = 12
 
 # Verified against when the username does not exist, so both login paths
 # cost one bcrypt comparison. Computed once at import from a value that
 # is immediately discarded; nothing can ever match it.
-_DUMMY_HASH = bcrypt.hashpw(secrets.token_bytes(32), bcrypt.gensalt())
+_DUMMY_HASH = bcrypt.hashpw(secrets.token_bytes(32), bcrypt.gensalt(PASSWORD_HASH_ROUNDS))
 
 
 class PasswordPolicyError(ValueError):
@@ -43,7 +47,7 @@ def validate_new_password(password: str) -> None:
 
 def hash_password(password: str) -> str:
     validate_new_password(password)
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt(PASSWORD_HASH_ROUNDS)).decode()
 
 
 def verify_password(password: str, password_hash: str) -> bool:
