@@ -1445,8 +1445,8 @@ instead of running.
 Every package in the runtime tree, chosen directly or brought in by another, is recorded in [DEPENDENCIES.md](DEPENDENCIES.md) with its canonical source, its role, and what brought it in, and the doctrine job fails when the tree holds a package with no record (build-doctrine D-039).
 
 The development tree (pytest, Hypothesis, ruff, mypy, pip-audit,
-pytest-cov, pip-tools) is verified the same way and isolated in its
-own hash-pinned file.
+pytest-cov) is verified the same way and isolated in its own
+hash-pinned file.
 
 ### How the agent is governed
 
