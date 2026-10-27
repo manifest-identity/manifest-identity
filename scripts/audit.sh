@@ -18,7 +18,11 @@ fi
 # Every tree, not only the ones the application installs: the Scorecard
 # reads each lockfile in the repository, and three urllib3 advisories
 # in the docs tree went unaudited for the day it took to learn that.
-"$PYTHON" -m pip_audit --require-hashes -r requirements.txt
-"$PYTHON" -m pip_audit --require-hashes -r requirements-dev.txt
-"$PYTHON" -m pip_audit --require-hashes -r requirements-docs.txt
-"$PYTHON" -m pip_audit --require-hashes -r requirements-browser.txt
+# Each tree is audited even after one fails, so one run reports every
+# finding; stopping at the first hid two in the development tree.
+failed=0
+for tree in requirements.txt requirements-dev.txt requirements-docs.txt requirements-browser.txt; do
+  echo "$tree:"
+  "$PYTHON" -m pip_audit --require-hashes -r "$tree" || failed=1
+done
+exit "$failed"
