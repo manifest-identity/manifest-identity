@@ -5,7 +5,7 @@
 # to the full one, 1.6 GB against 190 MB, and the parity gate checked
 # only that both copies moved (D-055). The same reference is pinned in
 # .github/workflows/ci.yml, and the two move together in one commit.
-FROM python:3.14-slim@sha256:0741d101873c12ab927e6f8653feb8862b9bd58771177acb1b885b95141f91b4
+FROM python:3.15-slim@sha256:94d3426f1def7db4a106a232ac121bfd975393e5dfd40a619b955fae45fe7913
 
 # The base image is rebuilt upstream some days after Debian ships a
 # security update, and in that window a pinned base carries a fixed
