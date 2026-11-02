@@ -3,7 +3,8 @@
 # digests. It cannot see container images embedded in workflow files or
 # checksummed tool downloads; those pins are listed with their watchers
 # in the digest-parity check and the close ritual. It only opens pull
-# requests; nothing updates without review. Its commit subjects carry
+# requests; nothing merges without the owner's approval, and after it
+# the merge happens when every check passes (D-101). Its commit subjects carry
 # the DEPS identifier so they read like every other subject here; the
 # bodies are upstream release notes, which the message check skips.
 #
@@ -11,10 +12,12 @@
 # instead of one per package, and the cadence is monthly because these
 # are version updates and not security ones: an advisory reaches this
 # repository through Dependabot's security updates and GitHub's alerts,
-# neither of which waits for this schedule (D-060). Actions from one repository move
-# together because the CodeQL and ClusterFuzzLite actions must run at
-# one version; Python packages move as one tree because the hash lock
-# is recompiled once either way. Each group still runs every gate, and
+# neither of which waits for this schedule (D-060). Every action moves
+# in one group, so the actions arrive as one pull request a month;
+# Python packages move as one tree because the hash lock is recompiled
+# once either way. Moving to a new Python or PostgreSQL version is a
+# decision made once a year, when the packages are ready, so Dependabot
+# offers only updates within the pinned version (D-101). Each group still runs every gate, and
 # the companion edits the gates demand (the README inventory rows, the
 # digest twins) are made once per group rather than once per package.
 version: 2
@@ -26,6 +29,10 @@ updates:
       prefix: DEPS
     schedule:
       interval: monthly
+    # A release waits a week before it is offered, so a compromised one
+    # can be caught and pulled first; security updates do not wait.
+    cooldown:
+      default-days: 7
     groups:
       python:
         patterns: ["*"]
@@ -36,11 +43,11 @@ updates:
       prefix: DEPS
     schedule:
       interval: monthly
+    # A release waits a week before it is offered, so a compromised one
+    # can be caught and pulled first; security updates do not wait.
+    cooldown:
+      default-days: 7
     groups:
-      codeql:
-        patterns: ["github/codeql-action/*"]
-      clusterfuzzlite:
-        patterns: ["google/clusterfuzzlite/*"]
       actions:
         patterns: ["*"]
   - package-ecosystem: docker
@@ -49,9 +56,23 @@ updates:
       prefix: DEPS
     schedule:
       interval: monthly
+    # A release waits a week before it is offered, so a compromised one
+    # can be caught and pulled first; security updates do not wait.
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: docker-compose
     directory: /
     commit-message:
       prefix: DEPS
     schedule:
       interval: monthly
+    # A release waits a week before it is offered, so a compromised one
+    # can be caught and pulled first; security updates do not wait.
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]

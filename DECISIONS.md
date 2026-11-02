@@ -2996,3 +2996,29 @@ so the shortcut cannot reach the application.
 in proportion; and lowering the shipped cost, which weakens every
 stored password.
 
+## D-101: Dependency updates follow a policy decided once
+
+**What happened.** Each month's updates arrived as four or more pull
+requests, and each outside event became its own investigation. In
+November Dependabot proposed Python 3.15 for the image; two pinned
+packages had no ready-built release for it, so every install failed.
+
+**Decision.** Three rules, decided once.
+
+- Dependabot offers only updates within the pinned Python and
+  PostgreSQL versions. A move to a new version is planned once a year,
+  when the packages are ready, and is made by hand.
+- Every GitHub Actions update arrives in one group, one pull request a
+  month.
+- Every update waits seven days after its release before Dependabot
+  offers it, so a compromised release can be caught and pulled first.
+  Security updates do not wait. The workflow audit reads the Dependabot
+  configuration too, so a missing wait fails the pipeline.
+- A workflow turns on auto-merge for each pull request Dependabot
+  opens. The owner's approval and every required check still apply;
+  the merge happens when both are met, so an update needs one click.
+
+**Rejected.** Letting Dependabot's pull requests merge without
+approval, which removes the one human read of what changed; and a
+temporary rule for 3.15 alone, which needs tracking until it is lifted.
+
