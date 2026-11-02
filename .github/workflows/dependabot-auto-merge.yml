@@ -1,0 +1,24 @@
+name: dependabot auto-merge
+
+# Dependabot's pull requests merge themselves once the owner approves
+# and every required check passes, so an update needs one click. The
+# review requirement and every check still apply (D-101).
+on: pull_request
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    # The pull request's author, not the actor, because a person can
+    # trigger a run on a pull request Dependabot opened.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: merge once approved and every check passes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --merge "$PR_URL"

@@ -110,7 +110,7 @@ jobs:
           echo "dd96df044a6e8538d5f423790f453bdd03d49e5b2bcc38214acc41a2f1297839  zz.tar.gz" | sha256sum -c -
           tar -xzf zz.tar.gz
       - name: audit the workflows
-        run: '"$(find "$RUNNER_TEMP" -name zizmor -type f)" --no-online-audits --no-progress .github/workflows/'
+        run: '"$(find "$RUNNER_TEMP" -name zizmor -type f)" --no-online-audits --no-progress .github/'
 
   links:
     runs-on: ubuntu-latest
