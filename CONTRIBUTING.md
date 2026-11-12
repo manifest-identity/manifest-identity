@@ -11,13 +11,11 @@ which run on every push. Run them locally first with the commands in
 AGENTS.md; a red pipeline on a pull request is expected during iteration,
 but the merge waits for green.
 
-The hooks run the same gates before a commit and, at the second stage,
-the pipeline's CodeQL queries before a push, so a finding reaches your
-terminal rather than the pull request page. Install both stages once
-per clone:
+The hooks run the same gates before a commit, so a finding reaches your
+terminal rather than the pull request page. Install them once per clone:
 
 ```bash
-pre-commit install && pre-commit install --hook-type pre-push
+pre-commit install
 ```
 
 Writing matters here as much as code: commit messages lead with an

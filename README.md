@@ -1095,7 +1095,7 @@ holds the reviews and the alerts.
 | `requirements*.in` / `*.txt` | Chosen packages, and the hash-pinned trees that install |
 | `Dockerfile` / `docker-compose.yml` | Digest-pinned base, non-root user, the composed stack |
 | `.github/workflows/` | The pipeline: tests, types, scanners, the container jobs, and the software bill of materials each run delivers |
-| `.pre-commit-config.yaml` | Secret scan, writing rules, lint, types, the page lint, and the truth gates at commit time; CodeQL before the push |
+| `.pre-commit-config.yaml` | Secret scan, writing rules, lint, types, the page lint, and the truth gates at commit time |
 | `badges/` | The score badge the README shows, written by the doctrine's scorer and compared against a fresh one in the pipeline |
 | `scripts/audit.sh` | Every pinned tree audited against known vulnerabilities, with no exceptions |
 | `eslint.config.mjs` / `package.json` | The page's one lint rule and its pinned tools |
