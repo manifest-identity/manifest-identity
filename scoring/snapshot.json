@@ -1,10 +1,10 @@
 {
-  "taken": "2026-09-30",
+  "taken": "2026-11-12",
   "scorecard": {
-    "score": 8.2,
-    "date": "2026-09-30",
-    "version": "v5.5.0",
-    "commit": "d4e4220ddf5412cc3019c8d1fd5e7b2b93bd3588",
+    "score": 9.2,
+    "date": "2026-11-12",
+    "version": "v5.6.0",
+    "commit": "657d18aab0c6931e5ff4acf65b96bc916f3ec5a7",
     "checks": [
       {
         "name": "Binary-Artifacts",
@@ -32,7 +32,7 @@
       {
         "name": "CI-Tests",
         "score": 10,
-        "reason": "12 out of 12 merged PRs checked by a CI test -- score normalized to 10",
+        "reason": "16 out of 16 merged PRs checked by a CI test -- score normalized to 10",
         "details": []
       },
       {
@@ -44,7 +44,7 @@
       {
         "name": "Code-Review",
         "score": -1,
-        "reason": "Found no human activity in the last 12 changesets",
+        "reason": "Found no human activity in the last 16 changesets",
         "details": []
       },
       {
@@ -90,11 +90,9 @@
       },
       {
         "name": "Maintained",
-        "score": 0,
-        "reason": "project was created within the last 90 days. Please review its contents carefully",
-        "details": [
-          "Warn: Repository was created within the last 90 days."
-        ]
+        "score": 10,
+        "reason": "30 commit(s) and 9 issue activity found in the last 90 days -- score normalized to 10",
+        "details": []
       },
       {
         "name": "Packaging",
@@ -109,10 +107,11 @@
         "score": 10,
         "reason": "all dependencies are pinned",
         "details": [
-          "Info:  24 out of  24 GitHub-owned GitHubAction dependencies pinned",
-          "Info:   5 out of   5 third-party GitHubAction dependencies pinned",
+          "Info:  26 out of  26 GitHub-owned GitHubAction dependencies pinned",
+          "Info:   3 out of   3 third-party GitHubAction dependencies pinned",
           "Info:   2 out of   2 containerImage dependencies pinned",
-          "Info:   9 out of   9 pipCommand dependencies pinned"
+          "Info:   9 out of   9 pipCommand dependencies pinned",
+          "Info:   1 out of   1 npmCommand dependencies pinned"
         ]
       },
       {
@@ -138,8 +137,9 @@
       {
         "name": "Signed-Releases",
         "score": 10,
-        "reason": "1 out of the last 1 releases have a total of 1 signed artifacts.",
+        "reason": "2 out of the last 2 releases have a total of 2 signed artifacts.",
         "details": [
+          "Info: provenance for release artifact: attestations-v0.5.0.intoto.jsonl: https://github.com/manifest-identity/manifest-identity/releases/tag/v0.5.0",
           "Info: provenance for release artifact: attestations-v0.2.0.intoto.jsonl: https://github.com/manifest-identity/manifest-identity/releases/tag/v0.2.0"
         ]
       },
@@ -149,15 +149,18 @@
         "reason": "GitHub workflow tokens follow principle of least privilege",
         "details": [
           "Warn: jobLevel 'contents' permission set to 'write': .github/workflows/attest-release.yml:26",
-          "Info: jobLevel 'contents' permission set to 'read': .github/workflows/ci.yml:202",
-          "Info: jobLevel 'contents' permission set to 'read': .github/workflows/ci.yml:221",
+          "Info: jobLevel 'contents' permission set to 'read': .github/workflows/ci.yml:205",
+          "Info: jobLevel 'contents' permission set to 'read': .github/workflows/ci.yml:224",
+          "Info: jobLevel 'contents' permission set to 'read': .github/workflows/ci.yml:315",
           "Info: jobLevel 'contents' permission set to 'read': .github/workflows/codeql.yml:21",
+          "Warn: jobLevel 'contents' permission set to 'write': .github/workflows/dependabot-auto-merge.yml:17",
           "Warn: jobLevel 'contents' permission set to 'write': .github/workflows/release.yml:25",
           "Info: jobLevel 'contents' permission set to 'read': .github/workflows/scorecard.yml:20",
           "Info: topLevel 'contents' permission set to 'read': .github/workflows/attest-release.yml:12",
           "Info: topLevel 'contents' permission set to 'read': .github/workflows/cflite.yml:11",
           "Info: topLevel 'contents' permission set to 'read': .github/workflows/ci.yml:9",
           "Info: topLevel 'contents' permission set to 'read': .github/workflows/codeql.yml:8",
+          "Info: found token with 'none' permissions: .github/workflows/dependabot-auto-merge.yml:1",
           "Info: topLevel 'contents' permission set to 'read': .github/workflows/docs.yml:10",
           "Info: topLevel 'contents' permission set to 'read': .github/workflows/release.yml:12",
           "Info: topLevel 'contents' permission set to 'read': .github/workflows/scorecard.yml:8"
@@ -165,12 +168,10 @@
       },
       {
         "name": "Vulnerabilities",
-        "score": 7,
-        "reason": "3 existing vulnerabilities detected",
+        "score": 9,
+        "reason": "1 existing vulnerabilities detected",
         "details": [
-          "Warn: Project is vulnerable to: https://osv.dev/GHSA-8988-9cw3-xx77",
-          "Warn: Project is vulnerable to: https://osv.dev/GHSA-gh4c-6fx4-qh6g",
-          "Warn: Project is vulnerable to: https://osv.dev/GHSA-vxq7-64xx-v4gw"
+          "Warn: Project is vulnerable to: https://osv.dev/GHSA-g3hv-75wg-m249"
         ]
       }
     ]
@@ -179,7 +180,7 @@
     "level": "passing",
     "percentage": 100,
     "achieved": "2026-09-10",
-    "updated": "2026-09-30",
+    "updated": "2026-11-12",
     "criteria": {
       "sites_https": {
         "status": "Met",
@@ -187,7 +188,7 @@
       },
       "description_good": {
         "status": "Met",
-        "justification": "The README at https://github.com/manifest-identity/manifest-identity#readme opens by stating what the software does, two records about every identity and the difference between them, and the problem it addresses."
+        "justification": "The README at https://github.com/manifest-identity/manifest-identity#readme opens by stating what the software does and the problem it addresses."
       },
       "interact": {
         "status": "Met",
@@ -195,11 +196,11 @@
       },
       "contribution": {
         "status": "Met",
-        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md: every change travels a branch and a pull request through the documented gates."
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md states how a change is proposed and what it must pass."
       },
       "contribution_requirements": {
         "status": "Met",
-        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md names the gates, the writing rules, and the requirement that counted figures move with the change."
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/CONTRIBUTING.md states the requirements a change must meet."
       },
       "license_location": {
         "status": "Met",
@@ -215,11 +216,11 @@
       },
       "documentation_basics": {
         "status": "Met",
-        "justification": "The README (https://github.com/manifest-identity/manifest-identity#readme) documents installation by compose, SQLite, and Kubernetes, use under \"Using it\", and the full API surface under \"How it is put together\"; the same documents render as a site at https://manifest-identity.github.io/manifest-identity/."
+        "justification": "The repository's documentation covers installation and use, and renders as a site at https://manifest-identity.github.io/manifest-identity/."
       },
       "documentation_interface": {
         "status": "Met",
-        "justification": "The routes block in the README is gated by a test against the application's actual route table, and the application serves interactive API documentation from FastAPI at /docs."
+        "justification": "The interface is documented in the repository, the documentation is checked against the running interface, and the application serves interactive interface documentation."
       },
       "repo_public": {
         "status": "Met",
@@ -227,7 +228,7 @@
       },
       "repo_track": {
         "status": "Met",
-        "justification": "Git tracks every change; the mainline ruleset requires pull requests."
+        "justification": "Every change is tracked in version control and reaches the default branch through a pull request."
       },
       "repo_interim": {
         "status": "Met",
@@ -239,23 +240,23 @@
       },
       "version_unique": {
         "status": "Met",
-        "justification": "Tags of the form v0.x.y, one per release, see the release process recorded in DECISIONS.md (D-050)."
+        "justification": "One tag per release, in semantic versioning form; the release process is recorded in the repository's decisions."
       },
       "version_semver": {
         "status": "Met",
-        "justification": "Semantic versioning, v0.2.0 the current release."
+        "justification": "Semantic versioning. The current release is the newest tag on the repository's releases page."
       },
       "version_tags": {
         "status": "Met",
-        "justification": "Signed tags start the release workflow; https://github.com/manifest-identity/manifest-identity/tags"
+        "justification": "Every release is a signed tag; https://github.com/manifest-identity/manifest-identity/tags"
       },
       "release_notes": {
         "status": "Met",
-        "justification": "Each release at https://github.com/manifest-identity/manifest-identity/releases carries notes generated from the annotated tag message, and the README's \"What comes next\" section states the roadmap."
+        "justification": "Each release at https://github.com/manifest-identity/manifest-identity/releases carries notes, and the repository's roadmap states what comes next."
       },
       "release_notes_vulns": {
         "status": "Met",
-        "justification": "No vulnerabilities have needed fixing to date; SECURITY.md commits to naming any fixed vulnerability in the release notes."
+        "justification": "SECURITY.md commits to naming every fixed vulnerability in the release notes."
       },
       "report_tracker": {
         "status": "Met",
@@ -267,7 +268,7 @@
       },
       "report_responses": {
         "status": "Met",
-        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/SECURITY.md commits to acknowledgment within seven days and a triage answer within fourteen."
+        "justification": "https://github.com/manifest-identity/manifest-identity/blob/main/SECURITY.md states how quickly reports are acknowledged and answered."
       },
       "enhancement_responses": {
         "status": "Met",
@@ -291,11 +292,11 @@
       },
       "build": {
         "status": "Met",
-        "justification": "Dockerfile and docker compose; pip installs with hash-verified requirements."
+        "justification": "The repository documents one way to build and run the software from a fresh clone, with dependencies fixed to exact, verified versions."
       },
       "build_common_tools": {
         "status": "Met",
-        "justification": "Docker, pip, Python."
+        "justification": "Common, free tools only; the repository documents the build."
       },
       "build_floss_tools": {
         "status": "Met",
@@ -303,23 +304,23 @@
       },
       "test": {
         "status": "Met",
-        "justification": "The pytest suite holds 422 tests in 45 files, run in continuous integration on every change and on the oldest supported interpreter."
+        "justification": "An automated test suite runs in continuous integration on every change, and a pull request cannot merge until it passes."
       },
       "test_invocation": {
         "status": "Met",
-        "justification": "pytest -q, documented in AGENTS.md and in the README under \"How it was built and gated\"."
+        "justification": "One documented command runs the whole suite; the repository states it."
       },
       "test_most": {
         "status": "Met",
-        "justification": "Coverage is 95 percent over a 90 percent floor enforced in CI, and a mutation check removes thirty-four controls one at a time and requires the suite to notice each."
+        "justification": "Coverage is held above a floor enforced in continuous integration, and controls are proven by removing each one and requiring the tests to notice."
       },
       "test_policy": {
         "status": "Met",
-        "justification": "AGENTS.md and CONTRIBUTING.md require tests for new functionality; counted README figures are recounted by a test so a new test must move the figure."
+        "justification": "The repository's contributing rules require tests with new functionality, and continuous integration enforces a coverage floor on every change."
       },
       "tests_are_added": {
         "status": "Met",
-        "justification": "Every functional change in the history lands with its tests; the counted figures make an untested addition visible."
+        "justification": "Every functional change in the history lands with its tests, and continuous integration enforces a coverage floor on every change."
       },
       "tests_documented_added": {
         "status": "Met",
@@ -327,7 +328,7 @@
       },
       "warnings": {
         "status": "Met",
-        "justification": "ruff and mypy strict run in continuous integration."
+        "justification": "Linting and strict typing run in continuous integration."
       },
       "warnings_fixed": {
         "status": "Met",
@@ -335,35 +336,35 @@
       },
       "warnings_strict": {
         "status": "Met",
-        "justification": "mypy strict mode and the full ruff rule set."
+        "justification": "The strictest settings of the linter and the type checker are on."
       },
       "know_secure_design": {
         "status": "Met",
-        "justification": "The README sections \"How a request is protected\" and \"What it defends against\", and the threat model in THREAT-MODEL.md."
+        "justification": "The repository documents how each request is protected and what the software defends against, and carries a threat model."
       },
       "know_common_errors": {
         "status": "Met",
-        "justification": "Input handling is documented and tested: escaping at every exit, formula-safe CSV, text-only rendering, parameterized queries."
+        "justification": "Input handling is documented and tested: escaping at every exit, formula-safe exports, text-only rendering, parameterized queries."
       },
       "crypto_published": {
         "status": "Met",
-        "justification": "Argon2id via passlib for passwords; TLS from the platform. No home-grown cryptography."
+        "justification": "Only published algorithms, through libraries; transport security belongs to the deployment platform."
       },
       "crypto_call": {
         "status": "Met",
-        "justification": "Only library calls: passlib and the standard library secrets module."
+        "justification": "Cryptography is used only through established libraries and the language's standard library; nothing is implemented in the project."
       },
       "crypto_floss": {
         "status": "Met",
-        "justification": "passlib and CPython are FLOSS."
+        "justification": "The libraries used are free and open source software."
       },
       "crypto_keylength": {
         "status": "Met",
-        "justification": "Argon2id parameters at library defaults; tokens from secrets.token_urlsafe(32)."
+        "justification": "Library defaults for a published, memory-hard password hash; tokens from the standard library's secure random source at its recommended size."
       },
       "crypto_working": {
         "status": "Met",
-        "justification": "No broken algorithms in use; MD5 and SHA-1 appear nowhere."
+        "justification": "No broken cryptographic algorithm is used for any security purpose."
       },
       "crypto_pfs": {
         "status": "N/A",
@@ -371,23 +372,23 @@
       },
       "crypto_password_storage": {
         "status": "Met",
-        "justification": "Argon2id hashing with per-password salts via passlib."
+        "justification": "Passwords are stored only as salted hashes from a published, memory-hard algorithm, through a library."
       },
       "crypto_random": {
         "status": "Met",
-        "justification": "The secrets module for every token."
+        "justification": "Every token comes from the standard library's cryptographically secure random source."
       },
       "delivery_mitm": {
         "status": "Met",
-        "justification": "HTTPS delivery, signed tags, and provenance attestations on release assets and the container image."
+        "justification": "Delivery over HTTPS; releases are signed and carry verifiable provenance."
       },
       "delivery_unsigned": {
         "status": "Met",
-        "justification": "Build provenance attestations on every release asset, verifiable with gh attestation verify; https://github.com/manifest-identity/manifest-identity/releases"
+        "justification": "Every release asset carries build provenance that a consumer can verify against the platform's log; https://github.com/manifest-identity/manifest-identity/releases"
       },
       "vulnerabilities_fixed_60_days": {
         "status": "Met",
-        "justification": "No outstanding vulnerabilities; Dependabot alerts and security updates are enabled and reviewed."
+        "justification": "None outstanding; dependency advisories are received and reviewed as they arrive."
       },
       "vulnerabilities_critical_fixed": {
         "status": "Met",
@@ -395,11 +396,11 @@
       },
       "static_analysis": {
         "status": "Met",
-        "justification": "CodeQL on every commit and weekly, SonarCloud on every pull request and on main, and ruff and mypy strict."
+        "justification": "Static analysis, including security queries, runs on every change and on a schedule, with strict typing and linting; the repository names the analyzers."
       },
       "static_analysis_common_vulnerabilities": {
         "status": "Met",
-        "justification": "CodeQL security queries for Python and for workflow files."
+        "justification": "Security-focused static analysis runs over the code and the pipeline definitions; the repository names the analyzers."
       },
       "static_analysis_fixed": {
         "status": "Met",
@@ -411,7 +412,7 @@
       },
       "dynamic_analysis": {
         "status": "Met",
-        "justification": "ClusterFuzzLite fuzzes the two import parsers under AddressSanitizer on every pull request touching them and weekly, alongside property-based tests in the suite."
+        "justification": "The parsers that read outside input are fuzzed under a memory-error detector on changes and on a schedule, beside property-based tests in the suite."
       },
       "dynamic_analysis_unsafe": {
         "status": "N/A",
@@ -419,7 +420,7 @@
       },
       "dynamic_analysis_enable_assertions": {
         "status": "Met",
-        "justification": "pytest assertions are active in every run."
+        "justification": "Assertions are active in every test run."
       },
       "dynamic_analysis_fixed": {
         "status": "Met",
@@ -431,7 +432,7 @@
       },
       "test_continuous_integration": {
         "status": "Met",
-        "justification": "GitHub Actions on every push and pull request; ten required checks gate the mainline."
+        "justification": "Continuous integration runs on every push and pull request, and its checks must pass before a merge to the default branch."
       },
       "discussion": {
         "status": "Met",
@@ -439,7 +440,7 @@
       },
       "no_leaked_credentials": {
         "status": "Met",
-        "justification": "TruffleHog scans the full history at every commit and in continuous integration, with verification against providers."
+        "justification": "The full history is scanned for credentials at every commit and in continuous integration, with findings verified against their providers."
       },
       "english": {
         "status": "Met",
@@ -447,12 +448,12 @@
       },
       "maintained": {
         "status": "Met",
-        "justification": "Actively developed: release v0.2.0 in August 2026 with changes merged weekly since, and a stated roadmap in the README."
+        "justification": "Actively developed. Every change reaches the default branch through a reviewed pull request with required checks, releases are cut from the maintainer's signed tag and listed on the repository's releases page, and the roadmap in the repository states what comes next."
       }
     }
   },
   "doctrine": {
-    "commit": "a47b0cb94ca5993f686b1698c4e6c0584f8919ea",
+    "commit": "67c22b3bd5e8133b91106d7c838c16f2cd9a4216",
     "kind": "application",
     "rules": [
       {
@@ -478,12 +479,12 @@
       {
         "rule": "decisions-record",
         "level": 4,
-        "reason": "84 numbered entries; a test recounts them"
+        "reason": "101 numbered entries; the README states no count"
       },
       {
         "rule": "commit-subjects",
         "level": 4,
-        "reason": "all 14 recent subjects lead with an identifier; CI walks the messages"
+        "reason": "all 11 recent subjects lead with an identifier; CI walks the messages"
       },
       {
         "rule": "pinned-actions",
@@ -493,7 +494,7 @@
       {
         "rule": "ci-gate",
         "level": 4,
-        "reason": "10 required checks on the mainline: analyze (actions), analyze (python), application, container, doctrine, floor, links, secrets, workflows, writing"
+        "reason": "12 required checks on the mainline: analyze (actions), analyze (python), application, browser, container, doctrine, links, mutation, page, secrets, workflows, writing"
       },
       {
         "rule": "dependency-updates",
@@ -513,7 +514,7 @@
       {
         "rule": "counted-figures",
         "level": 4,
-        "reason": "4 bold figures; a test recounts them from the source"
+        "reason": "2 bold figures; a test recounts them from the source"
       },
       {
         "rule": "generated-artifact-parity",
