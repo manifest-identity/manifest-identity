@@ -909,6 +909,9 @@ why each failure is accepted or scheduled rather than denied.
 
 ## D-045: The agent proposes under its own identity
 
+Superseded in part by D-102: commits are recorded under the owner's name;
+the agent still opens every pull request.
+
 The work was always authored by the agent and reviewed by a person,
 but the platform could not see it: everything ran under the one human
 account, which made that account the recorded author of changes it
@@ -3021,4 +3024,21 @@ packages had no ready-built release for it, so every install failed.
 **Rejected.** Letting Dependabot's pull requests merge without
 approval, which removes the one human read of what changed; and a
 temporary rule for 3.15 alone, which needs tracking until it is lifted.
+
+## D-102: The commits are the owner's
+
+**What happened.** Since D-045 the agent's identity both wrote the
+commits and opened the pull requests, so the record named the agent as
+the author of work the owner directs, reviews, and answers for.
+
+**Decision.** Commits are recorded under the owner's name, and each
+still carries the Co-authored-by trailer naming the assisting system.
+The agent's identity still pushes branches and opens every pull
+request, so the owner's approval remains a review from a different
+account. This repository's history is unchanged.
+
+**Rejected.** The owner opening pull requests directly, which GitHub
+would not let the owner approve; and naming the owner only as a
+co-author, which leaves the agent recorded as the author of the owner's
+work.
 
