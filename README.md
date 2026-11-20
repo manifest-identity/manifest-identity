@@ -1459,11 +1459,11 @@ here: mechanisms, not intentions.
   rules, the truth gates, and the secret scan run at commit time on
   the agent's output exactly as they would on anyone's.
 - **The agent cannot land anything alone.** Main refuses direct
-  pushes; every change travels a branch and a pull request opened
-  under the agent's own identity (D-045), so the author of record and
-  the human who approves are different parties; the required checks
-  and a required approving review must pass; and the merge is a human
-  act. Phase and subphase transitions are likewise human declarations,
+  pushes. The agent writes each change and opens its pull request
+  under its own identity (D-045). The owner reviews and approves every
+  pull request, and the commits are recorded under the owner's name,
+  because the owner answers for the work (D-102). The required checks
+  must pass, and the merge is a human act. Phase and subphase transitions are likewise human declarations,
   never the agent's.
 - **The work is attributed, and the attribution states its own
   limits.** Every co-authored commit carries the standard
@@ -1471,7 +1471,7 @@ here: mechanisms, not intentions.
   shared attribution account. The exact model behind any single
   commit is not knowable from inside the session, so no trailer
   claims one; [AI-USAGE.md](AI-USAGE.md) records the incident that
-  taught this. The agent's commits are unsigned; what carries
+  taught this. Commits are unsigned; what carries
   provenance is the reviewed merge, the maintainer's signed tag that
   starts a release, and the attestation on every artifact (D-087).
 - **The failures are the record.** [AI-USAGE.md](AI-USAGE.md) keeps
@@ -1518,7 +1518,7 @@ the public record of the review. While author and reviewer were the
 same account, no approval was required on the pull request, because a
 self-approval would have been theater; since the agent gained its own
 identity, one approving human review is required and is real (D-045),
-because the author of record and the approver are different actors. There is no testing phase at the end, because every
+because the account that opens a pull request and the owner who approves it are different accounts. There is no testing phase at the end, because every
 subphase ships its own tests, and no hardening phase in substance,
 because each control arrives with the thing it protects; the final
 subphase is proof, not retrofit.
